@@ -19,69 +19,10 @@ This sample module contains one small method - filter_contigs.
 #BEGIN_HEADER
 use Bio::KBase::AuthToken;
 use Bio::KBase::workspace::Client;
-use GenomeFileUtil::GenomeFileUtilClient;
 use Config::IniFiles;
 use Data::Dumper;
+use JSON;
 
-#The first thing every function should do is call this function
-sub util_initialize_call {
-	my ($self,$params,$ctx) = @_;
-	print("Starting ".$ctx->method()." method.\n");
-	$self->{_token} = $ctx->token();
-	$self->{_username} = $ctx->user_id();
-	$self->{_method} = $ctx->method();
-	$self->{_provenance} = $ctx->provenance();
-	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
-	$self->util_timestamp(DateTime->now()->datetime());
-	return $params;
-}
-
-#This function returns the version of the current method
-sub util_version {
-	my ($self) = @_;
-	return "1";
-}
-
-#This function returns the token of the user running the SDK method
-sub util_token {
-	my ($self) = @_;
-	return $self->{_token};
-}
-
-#This function returns the username of the user running the SDK method
-sub util_username {
-	my ($self) = @_;
-	return $self->{_username};
-}
-
-#This function returns the name of the SDK method being run
-sub util_method {
-	my ($self) = @_;
-	return $self->{_method};
-}
-
-#This function returns a timestamp recored when the functionw was first started
-sub util_timestamp {
-	my ($self,$input) = @_;
-	if (defined($input)) {
-		$self->{_timestamp} = $input;
-	}
-	return $self->{_timestamp};
-}
-
-#Use this function to log messages to the SDK console
-sub util_log {
-	my($self,$message) = @_;
-	print $message."\n";
-}
-
-#Use this function to get a client for the workspace service
-sub util_ws_client {
-	my ($self,$input) = @_;
-	return $self->{_wsclient};
-}
-
-#This function validates the arguments to a method making sure mandatory arguments are present and optional arguments are set
 sub util_args {
 	my($self,$args,$mandatoryArguments,$optionalArguments,$substitutions) = @_;
 	if (!defined($args)) {
@@ -113,44 +54,18 @@ sub util_args {
 	return $args;
 }
 
-#This function specifies the name of the workspace where genomes are loaded for the specified source database
-sub util_workspace_names {
-	my($self,$source) = @_;
-	my $workspace = {
-    	ensembl => "Ensembl_Genomes",
-    	phytozome => "Phytozome_Genomes",
-    	refseq => "RefSeq_Genomes"
-    };
-    if (!defined($workspace->{$source})) {
-    	die "No workspace specified for source: ".$source;
-    }
-    return $workspace->{$source};
-}
-
-sub util_create_report {
-	my($self,$args) = @_;
-	my $reportobj = {
-		text_message => $args->{"message"},
-		objects_created => []
-	};
-	if (defined($args->{objects})) {
-		for (my $i=0; $i < @{$args->{objects}}; $i++) {
-			push(@{$reportobj->{objects_created}},{
-				'ref' => $args->{objects}->[$i]->[0],
-				description => $args->{objects}->[$i]->[1]
-			});
-		}
-	}
-	$self->util_ws_client()->save_objects({
-		workspace => $args->{workspace},
-		objects => [{
-			provenance => $self->{_provenance},
-			type => "KBaseReport.Report",
-			data => $reportobj,
-			hidden => 1,
-			name => $self->util_method()
-		}]
-	});
+sub func_load_genome {
+	#Part of load genome function
+	#getMD5Checksums($assembly);
+	#my $assembly_status = checkAssemblyStatus($assembly);
+	#if ($assembly_status eq $status || $status eq "all"){
+	#	my $dir = "$reference_genome_staging_dir/$assembly->{accession}";
+	#	`mkdir $reference_genome_staging_dir/$assembly->{accession}` unless (-d "$reference_genome_staging_dir/$assembly->{accession}");
+	#	getGenBankFile($assembly) if grep $_ eq "gbf", @formats;
+	#	getGffFile($assembly) if grep $_ eq "gff", @formats;
+	#	getFnaFile($assembly) if grep $_ eq "fna", @formats;
+	#	getFaaFile($assembly) if grep $_ eq "faa", @formats;
+	#	getFeatureTableFile($assembly) if grep $_ eq "ftb", @formats;
 }
 
 #END_HEADER
@@ -165,8 +80,10 @@ sub new
     
     my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
     my $cfg = Config::IniFiles->new(-file=>$config_file);
-    $self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');
-    die "no workspace-url defined" unless $self->{workspace_url};
+    my $wsInstance = $cfg->val('ReferenceDataManager','workspace-url');
+    die "no workspace-url defined" unless $wsInstance;
+    
+    $self->{'workspace-url'} = $wsInstance;
     
     #END_CONSTRUCTOR
 
@@ -265,16 +182,12 @@ sub list_reference_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_reference_genomes
-    $self->util_initialize_call();
     $params = $self->util_args($params,[],{
     	ensembl => 0,#todo
     	phytozome => 0,#todo
     	refseq => 0,
-    	create_report => 0,
-    	update_only => 1,#todo
-    	workspace => undef
+    	update_only => 1#todo
     });
-    my $msg = "";
     $output = [];
     if ($params->{refseq} == 1) {
     	["division=s", "Division: bacteria | archaea | plant, multivalued, comma-seperated"],
@@ -302,14 +215,7 @@ sub list_reference_genomes
 			($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
 			#$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
 			push(@{$output},$current_genome);
-			$msg .= $current_genome->{source}."\t".$current_genome->{accession}."\t".$current_genome->{status}."\n";
 		}
-    }
-    if ($params->{create_report}) {
-    	$self->util_create_report({
-    		message => $msg,
-    		workspace => $params->{workspace}
-    	});
     }
     #END list_reference_genomes
     my @_bad_returns;
@@ -409,62 +315,6 @@ sub list_loaded_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_loaded_genomes
-    $self->util_initialize_call();
-    $params = $self->util_args($params,[],{
-    	ensembl => 0,
-    	phytozome => 0,
-    	refseq => 0,
-    	create_report => 0,
-    	workspace => undef
-    });
-    my $msg = "";
-    my $output = [];
-    my $sources = ["ensembl","phytozome","refseq"];
-    for (my $i=0; $i < @{$sources}; $i++) {
-    	if ($params->{$sources->[$i]} == 1) {
-    		my $wsname = $self->util_workspace_names($sources->[$i]);
-    		my $continue = 1;
-    		my $minid = 0;
-    		while ($continue == 1) {
-	    		my $wsoutput = $self->util_ws_client()->list_objects({
-	    			workspaces => [$wsname],
-	    			type => "KBaseGenomes.Genome",
-	    			minObjectID => $minid
-	    		});
-	    		my $lastid = 0;
-	    		for (my $j=0; $j < @{$wsoutput}; $j++) {
-	    			push(@{$output},{
-	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-				        id => $wsoutput->[$j]->[1],
-						workspace_name => $wsoutput->[$j]->[7],
-						source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-						accession => $wsoutput->[$j]->[10]->{"Source ID"},
-						name => $wsoutput->[$j]->[10]->{Name},
-						version => $wsoutput->[$j]->[4],
-						source => $wsoutput->[$j]->[10]->{Source},
-						domain => $wsoutput->[$j]->[10]->{Domain},
-						save_date => $wsoutput->[$j]->[3],
-						contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
-						features => $wsoutput->[$j]->[10]->{"Number features"},
-						dna_size => $wsoutput->[$j]->[10]->{"Size"},
-						gc => $wsoutput->[$j]->[10]->{"GC content"},
-	    			});
-	    			$msg .= $wsoutput->[$j]->[1]."|".$wsoutput->[$j]->[10]->{Name}."\n";
-	    			$lastid = $wsoutput->[$j]->[0];
-	    		}
-	    		$minid = $lastid+1;
-    			if (@{$wsoutput} == 0) {
-    				$continue = 0;
-    			}
-    		}
-    	}
-    }
-    if ($params->{create_report}) {
-    	$self->util_create_report({
-    		message => $msg,
-    		workspace => $params->{workspace}
-    	});
-    }
     #END list_loaded_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -581,69 +431,6 @@ sub load_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN load_genomes
-    $self->util_initialize_call();
-    $params = $self->util_args($params,[],{
-    	genomes => [],
-        index_in_solr => 0,
-        create_report => 0,
-    	workspace => undef
-    });
-	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
-	my $genomes = $params->{genomes};
-	for (my $i=0; $i < @{$genomes}; $i++) {
-		my $genome = $genomes->[$i];
-		print "Now loading ".$genome->{source}.":".$genome->{id}."\n";
-		my $wsname = $self->util_workspace_names($genome->{source});
-		if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
-			my $genutilout = $loader->genbank_to_genome({{
-				file => {
-					ftp_url => $genome->{ftp_dir}
-				},
-				genome_name => $genome->{id},
-				workspace_name => $wsname,
-				source => $genome->{source}
-			});
-			my $genomeout = {
-				"ref" => $genutilout->{genome_ref},
-				id => $genome->{id},
-				workspace_name => $wsname,
-				source_id => $genome->{id},
-		        accession => $genome->{accession},
-				name => $genome->{name},
-    			ftp_dir => $genome->{ftp_dir},
-    			version => $genome->{version},
-				source => $genome->{source},
-				domain => $genome->{domain}
-			};
-			push(@{$output},$genomeout);
-			if ($params->{index_in_solr} == 1) {
-				$self->func_index_in_solr({
-					genomes => [$genomeout]
-				});
-			}
-		} elsif ($genome->{source} eq "phytozome") {
-			#NEED SAM TO PUT CODE FOR HIS LOADER HERE
-			my $genomeout = {
-				"ref" => $wsname."/".$genome->{id},
-				id => $genome->{id},
-				workspace_name => $wsname,
-				source_id => $genome->{id},
-		        accession => $genome->{accession},
-				name => $genome->{name},
-    			ftp_dir => $genome->{ftp_dir},
-    			version => $genome->{version},
-				source => $genome->{source},
-				domain => $genome->{domain}
-			};
-			push(@{$output},$genomeout);
-		}
-	}
-	if ($params->{create_report}) {
-    	$self->util_create_report({
-    		message => "Loaded ".@{$output}." genomes!",
-    		workspace => $params->{workspace}
-    	});
-    }
     #END load_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -969,21 +756,6 @@ sub update_loaded_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN update_loaded_genomes
-    $self->util_initialize_call();
-    $params = $self->util_args($params,[],{
-    	ensembl => 0,#todo
-    	phytozome => 0,#todo
-    	refseq => 0,
-    	create_report => 0,
-    	workspace => undef
-    });
-    
-    if ($params->{create_report}) {
-    	$self->util_create_report({
-    		message => "Updated ".@{$output}." genomes!",
-    		workspace => $params->{workspace}
-    	});
-    }
     #END update_loaded_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
