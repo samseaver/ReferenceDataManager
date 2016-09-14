@@ -181,6 +181,41 @@ sub list_reference_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_reference_genomes
+    $params = $self->util_args($params,[],{
+    	ensembl => 0,#todo
+    	phytozome => 0,#todo
+    	refseq => 0,
+    	update_only => 1#todo
+    });
+    $output = [];
+    if ($params->{refseq} == 1) {
+    	["division=s", "Division: bacteria | archaea | plant, multivalued, comma-seperated"],
+		["source=s", "Source: genbank | refseq", {default => "refseq"}],
+    	my $source = "refseq";#Could also be "genbank"
+    	my $division = "bacteria";#Could also be "archaea" or "plant"
+    	my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
+    	my $assemblies = [`wget -q -O - $assembly_summary_url`];
+		foreach my $entry (@{$assemblies}) {
+			chomp $entry;
+			if ($entry=~/^#/) { #header
+				next;
+			}
+			my @attribs = split /\t/, $entry;
+			my $current_genome = {
+				source => $source,
+				domain => $division
+			};
+			$current_genome->{accession} = $attribs[0];
+			$current_genome->{status} = $attribs[10];
+			$current_genome->{name} = $attribs[15];
+			$current_genome->{ftp_dir} = $attribs[19];
+			$current_genome->{file} = $current_genome->{ftp_dir};
+			$current_genome->{file}=~s/.*\///;
+			($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
+			#$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
+			push(@{$output},$current_genome);
+		}
+    }
     #END list_reference_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
