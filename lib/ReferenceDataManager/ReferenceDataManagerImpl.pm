@@ -42,7 +42,7 @@ sub new
 
     if ($self->can('_init_instance'))
     {
-    $self->_init_instance();
+	$self->_init_instance();
     }
     return $self;
 }
@@ -51,9 +51,9 @@ sub new
 
 
 
-=head2 filter_contigs
+=head2 list_reference_Genomes
 
-  $return = $obj->filter_contigs($params)
+  $output = $obj->list_reference_Genomes($params)
 
 =over 4
 
@@ -62,11 +62,18 @@ sub new
 =begin html
 
 <pre>
-$workspace_name is a ReferenceDataManager.workspace_name
-$contigset_id is a ReferenceDataManager.contigset_id
-$return is an UnspecifiedObject, which can hold any non-null object
-workspace_name is a string
-contigset_id is a string
+$params is a ReferenceDataManager.ListReferenceGenomesParams
+$output is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+ListReferenceGenomesParams is a reference to a hash where the following keys are defined:
+	ensembl has a value which is a ReferenceDataManager.bool
+	refseq has a value which is a ReferenceDataManager.bool
+	phytozome has a value which is a ReferenceDataManager.bool
+	updated_only has a value which is a ReferenceDataManager.bool
+bool is an int
+ReferenceGenomeData is a reference to a hash where the following keys are defined:
+	id has a value which is a string
+	source has a value which is a string
+	version has a value which is a string
 
 </pre>
 
@@ -74,11 +81,18 @@ contigset_id is a string
 
 =begin text
 
-$workspace_name is a ReferenceDataManager.workspace_name
-$contigset_id is a ReferenceDataManager.contigset_id
-$return is an UnspecifiedObject, which can hold any non-null object
-workspace_name is a string
-contigset_id is a string
+$params is a ReferenceDataManager.ListReferenceGenomesParams
+$output is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+ListReferenceGenomesParams is a reference to a hash where the following keys are defined:
+	ensembl has a value which is a ReferenceDataManager.bool
+	refseq has a value which is a ReferenceDataManager.bool
+	phytozome has a value which is a ReferenceDataManager.bool
+	updated_only has a value which is a ReferenceDataManager.bool
+bool is an int
+ReferenceGenomeData is a reference to a hash where the following keys are defined:
+	id has a value which is a string
+	source has a value which is a string
+	version has a value which is a string
 
 
 =end text
@@ -87,14 +101,13 @@ contigset_id is a string
 
 =item Description
 
-Count contigs in a ContigSet
-contigset_id - the ContigSet to count.
+Lists genomes present in selected reference databases (ensembl, phytozome, refseq)
 
 =back
 
 =cut
 
-sub filter_contigs
+sub list_reference_Genomes
 {
     my $self = shift;
     my($params) = @_;
@@ -102,104 +115,23 @@ sub filter_contigs
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-    my $msg = "Invalid arguments passed to filter_contigs:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                   method_name => 'filter_contigs');
+	my $msg = "Invalid arguments passed to list_reference_Genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_reference_Genomes');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
-    my($return);
-    #BEGIN filter_contigs
-    
-    print("Starting filter contigs method.\n");
-    
-    if (!exists $params->{'workspace'}) {
-        die "Parameter workspace is not set in input arguments";
-    }
-    my $workspace_name=$params->{'workspace'};
-    
-    if (!exists $params->{'contigset_id'}) {
-        die "Parameter contigset_id is not set in input arguments";
-    }
-    my $contigset_id=$params->{'contigset_id'};
-    
-    if (!exists $params->{'min_length'}) {
-        die "Parameter min_length is not set in input arguments";
-    }
-    my $min_length = $params->{'min_length'};
-    if ($min_length < 0) {
-        die "min_length parameter shouldn't be negative (".$min_length.")";
-    }
-    
-    my $token=$ctx->token;
-    my $provenance=$ctx->provenance;
-    my $wsClient=Bio::KBase::workspace::Client->new($self->{'workspace-url'},token=>$token);
-    my $contigSet=undef;
-    eval {
-        $contigSet=$wsClient->get_objects([{workspace=>$workspace_name,name=>$contigset_id}])->[0]{data};
-    };
-    if ($@) {
-        die "Error loading original ContigSet object from workspace:\n".$@;
-    }
-    my $contigs=$contigSet->{contigs};
-
-    print("Got ContigSet data.\n");
-    
-    my $good_contigs=[];
-    my $n_total = 0;
-    my $n_remaining = 0;
-    for my $contig (@$contigs) {
-        $n_total++;
-        if (length($contig->{'sequence'}) >= $min_length) {
-            push(@$good_contigs, $contig);
-            $n_remaining++;
-        }
-    }
-
-    # replace the contigs in the contigSet object in local memory
-    $contigSet->{'contigs'} = $good_contigs;
-    
-    print("Filtered ContigSet to ".$n_remaining." contigs out of ".$n_total."\n");
-
-
-    # save the new object to the workspace
-    my $obj_info_list = undef;
-    eval {
-        $obj_info_list = $wsClient->save_objects({
-            'workspace'=>$workspace_name,
-            'objects'=>[{
-                'type'=>'KBaseGenomes.ContigSet',
-                'data'=>$contigSet,
-                'name'=>$contigset_id,
-                'provenance'=>$provenance
-            }]
-        });
-    };
-    if ($@) {
-        die "Error saving filtered ContigSet object to workspace:\n".$@;
-    }
-    my $info = $obj_info_list->[0];
-
-    print("saved:".Dumper($info)."\n");
-
-    $return = {
-        'new_contigset_ref'=>$info->[6].'/'.$info->[0].'/'.$info->[4],
-        'n_initial_contigs'=>$n_total,
-        'n_contigs_removed'=>$n_total-$n_remaining,
-        'n_contigs_remaining'=>$n_remaining
-    };
-        
-    print("returning: ".Dumper($return)."\n");
-    
-    #END filter_contigs
+    my($output);
+    #BEGIN list_reference_Genomes
+    #END list_reference_Genomes
     my @_bad_returns;
-    (defined $return) or push(@_bad_returns, "Invalid type for return variable \"return\" (value was \"$return\")");
+    (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-    my $msg = "Invalid returns passed to filter_contigs:\n" . join("", map { "\t$_\n" } @_bad_returns);
-    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                   method_name => 'filter_contigs');
+	my $msg = "Invalid returns passed to list_reference_Genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_reference_Genomes');
     }
-    return($return);
+    return($output);
 }
 
 
@@ -243,7 +175,7 @@ sub version {
 
 
 
-=head2 contigset_id
+=head2 bool
 
 =over 4
 
@@ -251,7 +183,7 @@ sub version {
 
 =item Description
 
-A string representing a ContigSet id.
+A boolean.
 
 
 =item Definition
@@ -259,14 +191,14 @@ A string representing a ContigSet id.
 =begin html
 
 <pre>
-a string
+an int
 </pre>
 
 =end html
 
 =begin text
 
-a string
+an int
 
 =end text
 
@@ -274,7 +206,7 @@ a string
 
 
 
-=head2 workspace_name
+=head2 ListReferenceGenomesParams
 
 =over 4
 
@@ -282,7 +214,7 @@ a string
 
 =item Description
 
-A string representing a workspace name.
+Arguments for the list_reference_genomes function
 
 
 =item Definition
@@ -290,14 +222,63 @@ A string representing a workspace name.
 =begin html
 
 <pre>
-a string
+a reference to a hash where the following keys are defined:
+ensembl has a value which is a ReferenceDataManager.bool
+refseq has a value which is a ReferenceDataManager.bool
+phytozome has a value which is a ReferenceDataManager.bool
+updated_only has a value which is a ReferenceDataManager.bool
+
 </pre>
 
 =end html
 
 =begin text
 
-a string
+a reference to a hash where the following keys are defined:
+ensembl has a value which is a ReferenceDataManager.bool
+refseq has a value which is a ReferenceDataManager.bool
+phytozome has a value which is a ReferenceDataManager.bool
+updated_only has a value which is a ReferenceDataManager.bool
+
+
+=end text
+
+=back
+
+
+
+=head2 ReferenceGenomeData
+
+=over 4
+
+
+
+=item Description
+
+Struct containing data for a single genome output by the list_reference_genomes function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+id has a value which is a string
+source has a value which is a string
+version has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+id has a value which is a string
+source has a value which is a string
+version has a value which is a string
+
 
 =end text
 
