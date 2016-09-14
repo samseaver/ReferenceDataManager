@@ -23,7 +23,7 @@ eval {
     #Testing the list_reference_genomes function
     my $ret;
     eval {
-        $ret = $impl->list_reference_Genomes({
+        $ret = $impl->list_reference_genomes({
             refseq => 1,
             update_only => 0
         });
