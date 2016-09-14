@@ -22,6 +22,8 @@ use Bio::KBase::workspace::Client;
 use GenomeFileUtil::GenomeFileUtilClient;
 use Config::IniFiles;
 use POSIX;
+use FindBin qw($Bin);
+use JSON;
 
 #The first thing every function should do is call this function
 sub util_initialize_call {
