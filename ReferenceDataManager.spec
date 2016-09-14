@@ -25,11 +25,17 @@ module ReferenceDataManager {
         
     */
     typedef structure {
+        string accession;
+        string status;
+        string name;
+        string ftp_dir;
+        string file;
         string id;
-        string source;
         string version;
+        string source;
+        string domain;
     } ReferenceGenomeData;
-    
+
     /*
         Lists genomes present in selected reference databases (ensembl, phytozome, refseq)
     */
