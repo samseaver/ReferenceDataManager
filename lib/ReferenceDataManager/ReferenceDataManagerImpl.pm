@@ -277,8 +277,6 @@ sub list_reference_genomes
     my $msg = "";
     $output = [];
     if ($params->{refseq} == 1) {
-    	["division=s", "Division: bacteria | archaea | plant, multivalued, comma-seperated"],
-		["source=s", "Source: genbank | refseq", {default => "refseq"}],
     	my $source = "refseq";#Could also be "genbank"
     	my $division = "bacteria";#Could also be "archaea" or "plant"
     	my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
@@ -304,6 +302,14 @@ sub list_reference_genomes
 			push(@{$output},$current_genome);
 			$msg .= $current_genome->{source}."\t".$current_genome->{accession}."\t".$current_genome->{status}."\n";
 		}
+    } elsif ($params->{phytozome} == 1) {
+    	my $source = "phytozome";
+    	my $division = "plant";
+    	#NEED SAM TO FILL THIS IN
+    } elsif ($params->{ensembl} == 1) {
+    	my $source = "ensembl";
+    	my $division = "fungal";
+    	#TODO
     }
     if ($params->{create_report}) {
     	$self->util_create_report({
