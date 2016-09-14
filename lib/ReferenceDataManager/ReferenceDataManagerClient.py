@@ -171,10 +171,38 @@ class ReferenceDataManager(object):
             raise ServerError('Unknown', 0, 'An unknown server error occurred')
         return resp['result']
  
-    def list_reference_Genomes(self, params, json_rpc_context = None):
+    def list_reference_genomes(self, params, json_rpc_context = None):
         if json_rpc_context and type(json_rpc_context) is not dict:
-            raise ValueError('Method list_reference_Genomes: argument json_rpc_context is not type dict as required.')
-        resp = self._call('ReferenceDataManager.list_reference_Genomes',
+            raise ValueError('Method list_reference_genomes: argument json_rpc_context is not type dict as required.')
+        resp = self._call('ReferenceDataManager.list_reference_genomes',
+                          [params], json_rpc_context)
+        return resp[0]
+  
+    def list_loaded_genomes(self, params, json_rpc_context = None):
+        if json_rpc_context and type(json_rpc_context) is not dict:
+            raise ValueError('Method list_loaded_genomes: argument json_rpc_context is not type dict as required.')
+        resp = self._call('ReferenceDataManager.list_loaded_genomes',
+                          [params], json_rpc_context)
+        return resp[0]
+  
+    def load_genomes(self, params, json_rpc_context = None):
+        if json_rpc_context and type(json_rpc_context) is not dict:
+            raise ValueError('Method load_genomes: argument json_rpc_context is not type dict as required.')
+        resp = self._call('ReferenceDataManager.load_genomes',
+                          [params], json_rpc_context)
+        return resp[0]
+  
+    def index_genomes_in_solr(self, params, json_rpc_context = None):
+        if json_rpc_context and type(json_rpc_context) is not dict:
+            raise ValueError('Method index_genomes_in_solr: argument json_rpc_context is not type dict as required.')
+        resp = self._call('ReferenceDataManager.index_genomes_in_solr',
+                          [params], json_rpc_context)
+        return resp[0]
+  
+    def update_loaded_genomes(self, params, json_rpc_context = None):
+        if json_rpc_context and type(json_rpc_context) is not dict:
+            raise ValueError('Method update_loaded_genomes: argument json_rpc_context is not type dict as required.')
+        resp = self._call('ReferenceDataManager.update_loaded_genomes',
                           [params], json_rpc_context)
         return resp[0]
  

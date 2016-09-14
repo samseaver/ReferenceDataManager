@@ -13,6 +13,7 @@ eval {
     $get_time = sub { Time::HiRes::gettimeofday };
 };
 
+use Bio::KBase::AuthToken;
 
 extends 'RPC::Any::Server::JSONRPC::PSGI';
 
@@ -27,32 +28,85 @@ has 'local_headers' => (is => 'ro', isa => 'HashRef');
 our $CallContext;
 
 our %return_counts = (
-        'list_reference_Genomes' => 1,
-        'list_reference_Genomes_async' => 1,
-        'list_reference_Genomes_check' => 1,
+        'list_reference_genomes' => 1,
+        'list_reference_genomes_async' => 1,
+        'list_reference_genomes_check' => 1,
+        'list_loaded_genomes' => 1,
+        'list_loaded_genomes_async' => 1,
+        'list_loaded_genomes_check' => 1,
+        'load_genomes' => 1,
+        'load_genomes_async' => 1,
+        'load_genomes_check' => 1,
+        'index_genomes_in_solr' => 1,
+        'index_genomes_in_solr_async' => 1,
+        'index_genomes_in_solr_check' => 1,
+        'update_loaded_genomes' => 1,
+        'update_loaded_genomes_async' => 1,
+        'update_loaded_genomes_check' => 1,
         'version' => 1,
 );
 
+our %method_authentication = (
+        'list_reference_genomes' => 'none',
+        'list_reference_genomes_async' => 'required',
+        'list_reference_genomes_check' => 'required',
+        'list_loaded_genomes' => 'none',
+        'list_loaded_genomes_async' => 'required',
+        'list_loaded_genomes_check' => 'required',
+        'load_genomes' => 'required',
+        'load_genomes_async' => 'required',
+        'load_genomes_check' => 'required',
+        'index_genomes_in_solr' => 'required',
+        'index_genomes_in_solr_async' => 'required',
+        'index_genomes_in_solr_check' => 'required',
+        'update_loaded_genomes' => 'required',
+        'update_loaded_genomes_async' => 'required',
+        'update_loaded_genomes_check' => 'required',
+);
 
 our %sync_methods = (
-        'list_reference_Genomes' => 1,
+        'list_reference_genomes' => 1,
+        'list_loaded_genomes' => 1,
+        'load_genomes' => 1,
+        'index_genomes_in_solr' => 1,
+        'update_loaded_genomes' => 1,
 );
 
 our %async_run_methods = (
-        'list_reference_Genomes_async' => 'ReferenceDataManager.list_reference_Genomes',
+        'list_reference_genomes_async' => 'ReferenceDataManager.list_reference_genomes',
+        'list_loaded_genomes_async' => 'ReferenceDataManager.list_loaded_genomes',
+        'load_genomes_async' => 'ReferenceDataManager.load_genomes',
+        'index_genomes_in_solr_async' => 'ReferenceDataManager.index_genomes_in_solr',
+        'update_loaded_genomes_async' => 'ReferenceDataManager.update_loaded_genomes',
 );
 
 our %async_check_methods = (
-        'list_reference_Genomes_check' => 'ReferenceDataManager.list_reference_Genomes',
+        'list_reference_genomes_check' => 'ReferenceDataManager.list_reference_genomes',
+        'list_loaded_genomes_check' => 'ReferenceDataManager.list_loaded_genomes',
+        'load_genomes_check' => 'ReferenceDataManager.load_genomes',
+        'index_genomes_in_solr_check' => 'ReferenceDataManager.index_genomes_in_solr',
+        'update_loaded_genomes_check' => 'ReferenceDataManager.update_loaded_genomes',
 );
 
 sub _build_valid_methods
 {
     my($self) = @_;
     my $methods = {
-        'list_reference_Genomes' => 1,
-        'list_reference_Genomes_async' => 1,
-        'list_reference_Genomes_check' => 1,
+        'list_reference_genomes' => 1,
+        'list_reference_genomes_async' => 1,
+        'list_reference_genomes_check' => 1,
+        'list_loaded_genomes' => 1,
+        'list_loaded_genomes_async' => 1,
+        'list_loaded_genomes_check' => 1,
+        'load_genomes' => 1,
+        'load_genomes_async' => 1,
+        'load_genomes_check' => 1,
+        'index_genomes_in_solr' => 1,
+        'index_genomes_in_solr_async' => 1,
+        'index_genomes_in_solr_check' => 1,
+        'update_loaded_genomes' => 1,
+        'update_loaded_genomes_async' => 1,
+        'update_loaded_genomes_check' => 1,
         'version' => 1,
     };
     return $methods;
@@ -227,7 +281,37 @@ sub call_method {
     my $args = $data->{arguments};
     my $prov_action = {'service' => $modname, 'method' => $method, 'method_params' => $args};
     $ctx->provenance([$prov_action]);
-    # Service ReferenceDataManager does not require authentication.
+{
+    # Service ReferenceDataManager requires authentication.
+
+    my $method_auth = $method_authentication{$method};
+    $ctx->authenticated(0);
+    if ($method_auth eq 'none')
+    {
+	# No authentication required here. Move along.
+    }
+    else
+    {
+	my $token = $self->_plack_req_header("Authorization");
+
+	if (!$token && $method_auth eq 'required')
+	{
+	    $self->exception('PerlError', "Authentication required for ReferenceDataManager but no authentication header was passed");
+	}
+
+	my $auth_token = Bio::KBase::AuthToken->new(token => $token, ignore_authrc => 1);
+	my $valid = $auth_token->validate();
+	# Only throw an exception if authentication was required and it fails
+	if ($method_auth eq 'required' && !$valid)
+	{
+	    $self->exception('PerlError', "Token validation failed: " . $auth_token->error_message);
+	} elsif ($valid) {
+	    $ctx->authenticated(1);
+	    $ctx->user_id($auth_token->user_id);
+	    $ctx->token( $token);
+	}
+    }
+}
     my $new_isa = $self->get_package_isa($module);
     no strict 'refs';
     local @{"${module}::ISA"} = @$new_isa;
