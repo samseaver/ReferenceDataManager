@@ -23,6 +23,7 @@ use GenomeFileUtil::GenomeFileUtilClient;
 use Config::IniFiles;
 use Data::Dumper;
 
+#The first thing every function should do is call this function
 sub util_initialize_call {
 	my ($self,$params,$ctx) = @_;
 	print("Starting ".$ctx->method()." method.\n");
@@ -34,26 +35,31 @@ sub util_initialize_call {
 	return $params;
 }
 
+#This function returns the version of the current method
 sub util_version {
 	my ($self) = @_;
 	return "1";
 }
 
+#This function returns the token of the user running the SDK method
 sub util_token {
 	my ($self) = @_;
 	return $self->{_token};
 }
 
+#This function returns the username of the user running the SDK method
 sub util_username {
 	my ($self) = @_;
 	return $self->{_username};
 }
 
+#This function returns the name of the SDK method being run
 sub util_method {
 	my ($self) = @_;
 	return $self->{_method};
 }
 
+#This function returns a timestamp recored when the functionw was first started
 sub util_timestamp {
 	my ($self,$input) = @_;
 	if (defined($input)) {
@@ -62,16 +68,19 @@ sub util_timestamp {
 	return $self->{_timestamp};
 }
 
+#Use this function to log messages to the SDK console
 sub util_log {
 	my($self,$message) = @_;
 	print $message."\n";
 }
 
+#Use this function to get a client for the workspace service
 sub util_ws_client {
 	my ($self,$input) = @_;
 	return $self->{_wsclient};
 }
 
+#This function validates the arguments to a method making sure mandatory arguments are present and optional arguments are set
 sub util_args {
 	my($self,$args,$mandatoryArguments,$optionalArguments,$substitutions) = @_;
 	if (!defined($args)) {
