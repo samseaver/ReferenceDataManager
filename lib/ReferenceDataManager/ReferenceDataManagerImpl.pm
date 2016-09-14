@@ -21,7 +21,7 @@ use Bio::KBase::AuthToken;
 use Bio::KBase::workspace::Client;
 use GenomeFileUtil::GenomeFileUtilClient;
 use Config::IniFiles;
-use Data::Dumper;
+use POSIX;
 
 #The first thing every function should do is call this function
 sub util_initialize_call {
@@ -277,8 +277,6 @@ sub list_reference_genomes
     my $msg = "";
     $output = [];
     if ($params->{refseq} == 1) {
-    	["division=s", "Division: bacteria | archaea | plant, multivalued, comma-seperated"],
-		["source=s", "Source: genbank | refseq", {default => "refseq"}],
     	my $source = "refseq";#Could also be "genbank"
     	my $division = "bacteria";#Could also be "archaea" or "plant"
     	my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
@@ -304,6 +302,14 @@ sub list_reference_genomes
 			push(@{$output},$current_genome);
 			$msg .= $current_genome->{source}."\t".$current_genome->{accession}."\t".$current_genome->{status}."\n";
 		}
+    } elsif ($params->{phytozome} == 1) {
+    	my $source = "phytozome";
+    	my $division = "plant";
+    	#NEED SAM TO FILL THIS IN
+    } elsif ($params->{ensembl} == 1) {
+    	my $source = "ensembl";
+    	my $division = "fungal";
+    	#TODO
     }
     if ($params->{create_report}) {
     	$self->util_create_report({
@@ -423,15 +429,18 @@ sub list_loaded_genomes
     for (my $i=0; $i < @{$sources}; $i++) {
     	if ($params->{$sources->[$i]} == 1) {
     		my $wsname = $self->util_workspace_names($sources->[$i]);
-    		my $continue = 1;
-    		my $minid = 0;
-    		while ($continue == 1) {
-	    		my $wsoutput = $self->util_ws_client()->list_objects({
+    		my $wsoutput = $self->util_ws_client()->list_objects({
+    			workspace => $wsname
+    		});
+    		my $maxid = $wsoutput->[4];
+    		my $pages = ceil($maxid/10000);
+    		for (my $m=0; $m < $pages; $m++) {
+    			$wsoutput = $self->util_ws_client()->list_objects({
 	    			workspaces => [$wsname],
 	    			type => "KBaseGenomes.Genome",
-	    			minObjectID => $minid
+	    			minObjectID => 10000*$m,
+	    			maxObjectID => 10000*($m+1)
 	    		});
-	    		my $lastid = 0;
 	    		for (my $j=0; $j < @{$wsoutput}; $j++) {
 	    			push(@{$output},{
 	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
@@ -450,12 +459,7 @@ sub list_loaded_genomes
 						gc => $wsoutput->[$j]->[10]->{"GC content"},
 	    			});
 	    			$msg .= $wsoutput->[$j]->[1]."|".$wsoutput->[$j]->[10]->{Name}."\n";
-	    			$lastid = $wsoutput->[$j]->[0];
 	    		}
-	    		$minid = $lastid+1;
-    			if (@{$wsoutput} == 0) {
-    				$continue = 0;
-    			}
     		}
     	}
     }
