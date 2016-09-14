@@ -21,6 +21,53 @@ use Bio::KBase::AuthToken;
 use Bio::KBase::workspace::Client;
 use Config::IniFiles;
 use Data::Dumper;
+
+sub util_args {
+	my($self,$args,$mandatoryArguments,$optionalArguments,$substitutions) = @_;
+	if (!defined($args)) {
+	    $args = {};
+	}
+	if (ref($args) ne "HASH") {
+		die "Arguments not hash";	
+	}
+	if (defined($substitutions) && ref($substitutions) eq "HASH") {
+		foreach my $original (keys(%{$substitutions})) {
+			$args->{$original} = $args->{$substitutions->{$original}};
+		}
+	}
+	if (defined($mandatoryArguments)) {
+		for (my $i=0; $i < @{$mandatoryArguments}; $i++) {
+			if (!defined($args->{$mandatoryArguments->[$i]})) {
+				push(@{$args->{_error}},$mandatoryArguments->[$i]);
+			}
+		}
+	}
+	die "Mandatory arguments ".join("; ",@{$args->{_error}})." missing";
+	foreach my $argument (keys(%{$optionalArguments})) {
+		if (!defined($args->{$argument})) {
+			$args->{$argument} = $optionalArguments->{$argument};
+		}
+	}
+	return $args;
+}
+
+sub func_load_genome {
+	#Part of load genome function
+	getMD5Checksums($assembly);
+	my $assembly_status = checkAssemblyStatus($assembly);
+	if ($assembly_status eq $status || $status eq "all"){
+		my $dir = "$reference_genome_staging_dir/$assembly->{accession}";
+		`mkdir $reference_genome_staging_dir/$assembly->{accession}` unless (-d "$reference_genome_staging_dir/$assembly->{accession}");
+		getGenBankFile($assembly) if grep $_ eq "gbf", @formats;
+		getGffFile($assembly) if grep $_ eq "gff", @formats;
+		getFnaFile($assembly) if grep $_ eq "fna", @formats;
+		getFaaFile($assembly) if grep $_ eq "faa", @formats;
+		getFeatureTableFile($assembly) if grep $_ eq "ftb", @formats;
+	}else{
+		# Current version already in KBase, check for annotation updates
+	}
+}
+
 #END_HEADER
 
 sub new
@@ -123,6 +170,50 @@ sub list_reference_Genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_reference_Genomes
+    $params = $self->util_args($params,[],{
+    	ensembl => 0,#todo
+    	phytozome => 0,#todo
+    	refseq => 0,
+    	update_only => 1#todo
+    });
+    $output = [];
+    if ($params->{refseq} == 1) {
+    	["division=s", "Division: bacteria | archaea | plant, multivalued, comma-seperated"],
+		["source=s", "Source: genbank | refseq", {default => "refseq"}],
+    	my $source = "refseq";#Could also be "genbank"
+    	my $division = "bacteria";#Could also be "archaea" or "plant"
+    	my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
+    	my $assemblies = [`wget -q -O - $assembly_summary_url`];
+		my $current_genome;
+		foreach my $entry (@{$assemblies}) {
+			chomp $entry;
+			if ($entry=~/^#/) { #header
+				if (defined($current_genome)) {
+					#Note: we might need special behavior here if $current_genome->{status} eq "replaced" 
+					push(@{$output},$current_genome);
+				}
+				$current_genome = {
+					source => $source,
+					domain => $division
+				};
+				$current_genome->{header} = $entry;
+				$current_genome->{header} =~s/^#/status\tdivision\t/;
+				next;
+			}
+			my @attribs = split /\t/, $entry;
+			$current_genome->{accession} = $attribs[0];
+			$current_genome->{status} = $attribs[10];
+			$current_genome->{name} = $attribs[15];
+			$current_genome->{ftp_dir} = $attribs[19];
+			$current_genome->{file} = $current_genome->{ftp_dir};
+			$current_genome->{file}=~s/.*\///;
+			($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
+			#$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
+		}
+		if (defined($current_genome)) {
+			push(@{$output},$current_genome);
+		}
+    }
     #END list_reference_Genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
