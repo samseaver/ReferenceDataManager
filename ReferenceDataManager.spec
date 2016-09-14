@@ -5,9 +5,9 @@ This sample module contains one small method - filter_contigs.
 
 module ReferenceDataManager {
     /*
-        A string representing a workspace name.
+        A boolean.
     */
-    typedef string workspace_name;
+    typedef int bool;
 
     /*
         Arguments for the list_reference_genomes function
