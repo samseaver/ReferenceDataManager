@@ -39,7 +39,7 @@ module ReferenceDataManager {
     /*
         Lists genomes present in selected reference databases (ensembl, phytozome, refseq)
     */
-    funcdef list_reference_Genomes(ListReferenceGenomesParams params) returns (list<ReferenceGenomeData> output);
+    funcdef list_reference_genomes(ListReferenceGenomesParams params) returns (list<ReferenceGenomeData> output);
     
     /*
         Arguments for the list_loaded_genomes function
