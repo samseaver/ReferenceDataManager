@@ -418,7 +418,47 @@ sub list_loaded_genomes
     	workspace => undef
     });
     my $msg = "";
-    
+    my $output = [];
+    my $sources = ["ensembl","phytozome","refseq"];
+    for (my $i=0; $i < @{$sources}; $i++) {
+    	if ($params->{$sources->[$i]} == 1) {
+    		my $wsname = $self->util_workspace_names($sources->[$i]);
+    		my $continue = 1;
+    		my $minid = 0;
+    		while ($continue == 1) {
+	    		my $wsoutput = $self->util_ws_client()->list_objects({
+	    			workspaces => [$wsname],
+	    			type => "KBaseGenomes.Genome",
+	    			minObjectID => $minid
+	    		});
+	    		my $lastid = 0;
+	    		for (my $j=0; $j < @{$wsoutput}; $j++) {
+	    			push(@{$output},{
+	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
+				        id => $wsoutput->[$j]->[1],
+						workspace_name => $wsoutput->[$j]->[7],
+						source_id => $wsoutput->[$j]->[10]->{"Source ID"},
+						accession => $wsoutput->[$j]->[10]->{"Source ID"},
+						name => $wsoutput->[$j]->[10]->{Name},
+						version => $wsoutput->[$j]->[4],
+						source => $wsoutput->[$j]->[10]->{Source},
+						domain => $wsoutput->[$j]->[10]->{Domain},
+						save_date => $wsoutput->[$j]->[3],
+						contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
+						features => $wsoutput->[$j]->[10]->{"Number features"},
+						dna_size => $wsoutput->[$j]->[10]->{"Size"},
+						gc => $wsoutput->[$j]->[10]->{"GC content"},
+	    			});
+	    			$msg .= $wsoutput->[$j]->[1]."|".$wsoutput->[$j]->[10]->{Name}."\n";
+	    			$lastid = $wsoutput->[$j]->[0];
+	    		}
+	    		$minid = $lastid+1;
+    			if (@{$wsoutput} == 0) {
+    				$continue = 0;
+    			}
+    		}
+    	}
+    }
     if ($params->{create_report}) {
     	$self->util_create_report({
     		message => $msg,
@@ -555,7 +595,7 @@ sub load_genomes
 		print "Now loading ".$genome->{source}.":".$genome->{id}."\n";
 		my $wsname = $self->util_workspace_names($genome->{source});
 		if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
-			my $output = $loader->genbank_to_genome({{
+			my $genutilout = $loader->genbank_to_genome({{
 				file => {
 					ftp_url => $genome->{ftp_dir}
 				},
@@ -564,7 +604,7 @@ sub load_genomes
 				source => $genome->{source}
 			});
 			my $genomeout = {
-				"ref" => $output->{genome_ref},
+				"ref" => $genutilout->{genome_ref},
 				id => $genome->{id},
 				workspace_name => $wsname,
 				source_id => $genome->{id},
