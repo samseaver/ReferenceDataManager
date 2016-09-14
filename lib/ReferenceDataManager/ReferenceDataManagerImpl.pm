@@ -166,6 +166,7 @@ sub new
     my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
     my $cfg = Config::IniFiles->new(-file=>$config_file);
     $self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');
+    $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
     die "no workspace-url defined" unless $self->{workspace_url};
     
     #END_CONSTRUCTOR
@@ -866,7 +867,7 @@ sub index_genomes_in_solr
 
 my $genome_json = $json->pretty->encode(\@solr_records);
 
-my $genome_file = "$genome_name.json";
+my $genome_file = $self->{scratch}."$genome_name.json";
 
 open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
 print FH "$genome_json";
