@@ -741,7 +741,7 @@ sub index_genomes_in_solr
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN index_genomes_in_solr
-    self->util_initialize_call();
+    $self->util_initialize_call();
     $params = $self->util_args($params,[],[]);
     my $json = JSON->new->allow_nonref;
     my @solr_records;
@@ -860,7 +860,7 @@ sub index_genomes_in_solr
 	$record->{feature_publications} = $feature->{}; 
 =cut
 
-		push @$solr_records, $record;
+		push @solr_records, $record;
 	    }
 	}
 	#print Dumper (\@solr_records);
@@ -873,7 +873,7 @@ open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
 print FH "$genome_json";
 close FH;
 
-`$Bin/post_solr_update.sh genomes $genome_file` if $opt->index=~/y|yes|true|1/i;
+`$Bin/post_solr_update.sh genomes $genome_file`;#By default we assume all to be indexed--if $opt->index=~/y|yes|true|1/i;
 	push (@{$output}, $kbase_genome_data);
     }
     #END index_genomes_in_solr
