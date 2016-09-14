@@ -30,6 +30,7 @@ sub util_initialize_call {
 	$self->{_token} = $ctx->token();
 	$self->{_username} = $ctx->user_id();
 	$self->{_method} = $ctx->method();
+	$self->{_provenance} = $ctx->provenance();
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	$self->util_timestamp(DateTime->now()->datetime());
 	return $params;
@@ -124,6 +125,32 @@ sub util_workspace_names {
     	die "No workspace specified for source: ".$source;
     }
     return $workspace->{$source};
+}
+
+sub util_create_report {
+	my($self,$args) = @_;
+	my $reportobj = {
+		text_message => $args->{"message"},
+		objects_created => []
+	};
+	if (defined($args->{objects})) {
+		for (my $i=0; $i < @{$args->{objects}}; $i++) {
+			push(@{$reportobj->{objects_created}},{
+				'ref' => $args->{objects}->[$i]->[0],
+				description => $args->{objects}->[$i]->[1]
+			});
+		}
+	}
+	$self->util_ws_client()->save_objects({
+		workspace => $args->{workspace},
+		objects => [{
+			provenance => $self->{_provenance},
+			type => "KBaseReport.Report",
+			data => $reportobj,
+			hidden => 1,
+			name => $self->util_method()
+		}]
+	});
 }
 
 #END_HEADER
@@ -243,8 +270,11 @@ sub list_reference_genomes
     	ensembl => 0,#todo
     	phytozome => 0,#todo
     	refseq => 0,
-    	update_only => 1#todo
+    	create_report => 0,
+    	update_only => 1,#todo
+    	workspace => undef
     });
+    my $msg = "";
     $output = [];
     if ($params->{refseq} == 1) {
     	["division=s", "Division: bacteria | archaea | plant, multivalued, comma-seperated"],
@@ -272,7 +302,14 @@ sub list_reference_genomes
 			($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
 			#$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
 			push(@{$output},$current_genome);
+			$msg .= $current_genome->{source}."\t".$current_genome->{accession}."\t".$current_genome->{status}."\n";
 		}
+    }
+    if ($params->{create_report}) {
+    	$self->util_create_report({
+    		message => $msg,
+    		workspace => $params->{workspace}
+    	});
     }
     #END list_reference_genomes
     my @_bad_returns;
@@ -376,8 +413,18 @@ sub list_loaded_genomes
     $params = $self->util_args($params,[],{
     	ensembl => 0,
     	phytozome => 0,
-    	refseq => 0
+    	refseq => 0,
+    	create_report => 0,
+    	workspace => undef
     });
+    my $msg = "";
+    
+    if ($params->{create_report}) {
+    	$self->util_create_report({
+    		message => $msg,
+    		workspace => $params->{workspace}
+    	});
+    }
     #END list_loaded_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -497,7 +544,9 @@ sub load_genomes
     $self->util_initialize_call();
     $params = $self->util_args($params,[],{
     	genomes => [],
-        index_in_solr => 0
+        index_in_solr => 0,
+        create_report => 0,
+    	workspace => undef
     });
 	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
 	my $genomes = $params->{genomes};
@@ -549,6 +598,12 @@ sub load_genomes
 			push(@{$output},$genomeout);
 		}
 	}
+	if ($params->{create_report}) {
+    	$self->util_create_report({
+    		message => "Loaded ".@{$output}." genomes!",
+    		workspace => $params->{workspace}
+    	});
+    }
     #END load_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -744,8 +799,16 @@ sub update_loaded_genomes
     	ensembl => 0,#todo
     	phytozome => 0,#todo
     	refseq => 0,
-    	update_only => 1#todo
+    	create_report => 0,
+    	workspace => undef
     });
+    
+    if ($params->{create_report}) {
+    	$self->util_create_report({
+    		message => "Updated ".@{$output}." genomes!",
+    		workspace => $params->{workspace}
+    	});
+    }
     #END update_loaded_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
