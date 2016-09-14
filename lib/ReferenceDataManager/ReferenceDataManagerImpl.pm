@@ -183,23 +183,16 @@ sub list_reference_Genomes
     	my $division = "bacteria";#Could also be "archaea" or "plant"
     	my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
     	my $assemblies = [`wget -q -O - $assembly_summary_url`];
-		my $current_genome;
 		foreach my $entry (@{$assemblies}) {
 			chomp $entry;
 			if ($entry=~/^#/) { #header
-				if (defined($current_genome)) {
-					#Note: we might need special behavior here if $current_genome->{status} eq "replaced" 
-					push(@{$output},$current_genome);
-				}
-				$current_genome = {
-					source => $source,
-					domain => $division
-				};
-				$current_genome->{header} = $entry;
-				$current_genome->{header} =~s/^#/status\tdivision\t/;
 				next;
 			}
 			my @attribs = split /\t/, $entry;
+			my $current_genome = {
+				source => $source,
+				domain => $division
+			};
 			$current_genome->{accession} = $attribs[0];
 			$current_genome->{status} = $attribs[10];
 			$current_genome->{name} = $attribs[15];
@@ -208,8 +201,6 @@ sub list_reference_Genomes
 			$current_genome->{file}=~s/.*\///;
 			($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
 			#$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
-		}
-		if (defined($current_genome)) {
 			push(@{$output},$current_genome);
 		}
     }
