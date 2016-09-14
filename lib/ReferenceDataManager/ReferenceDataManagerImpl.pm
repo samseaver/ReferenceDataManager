@@ -21,7 +21,7 @@ use Bio::KBase::AuthToken;
 use Bio::KBase::workspace::Client;
 use GenomeFileUtil::GenomeFileUtilClient;
 use Config::IniFiles;
-use Data::Dumper;
+use POSIX;
 
 #The first thing every function should do is call this function
 sub util_initialize_call {
@@ -423,15 +423,18 @@ sub list_loaded_genomes
     for (my $i=0; $i < @{$sources}; $i++) {
     	if ($params->{$sources->[$i]} == 1) {
     		my $wsname = $self->util_workspace_names($sources->[$i]);
-    		my $continue = 1;
-    		my $minid = 0;
-    		while ($continue == 1) {
-	    		my $wsoutput = $self->util_ws_client()->list_objects({
+    		my $wsoutput = $self->util_ws_client()->list_objects({
+    			workspace => $wsname
+    		});
+    		my $maxid = $wsoutput->[4];
+    		my $pages = ceil($maxid/10000);
+    		for (my $m=0; $m < $pages; $m++) {
+    			$wsoutput = $self->util_ws_client()->list_objects({
 	    			workspaces => [$wsname],
 	    			type => "KBaseGenomes.Genome",
-	    			minObjectID => $minid
+	    			minObjectID => 10000*$m,
+	    			maxObjectID => 10000*($m+1)
 	    		});
-	    		my $lastid = 0;
 	    		for (my $j=0; $j < @{$wsoutput}; $j++) {
 	    			push(@{$output},{
 	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
@@ -450,12 +453,7 @@ sub list_loaded_genomes
 						gc => $wsoutput->[$j]->[10]->{"GC content"},
 	    			});
 	    			$msg .= $wsoutput->[$j]->[1]."|".$wsoutput->[$j]->[10]->{Name}."\n";
-	    			$lastid = $wsoutput->[$j]->[0];
 	    		}
-	    		$minid = $lastid+1;
-    			if (@{$wsoutput} == 0) {
-    				$continue = 0;
-    			}
     		}
     	}
     }
