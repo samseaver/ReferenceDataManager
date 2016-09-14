@@ -34,7 +34,7 @@ eval {
     } else {
         print "Number of records:".@{$ret}."\n";
         print "First record:\n";
-        print Data::Dumper->Dump($ret->[0])."\n";
+        print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"list_reference_Genomes command returned at least one genome");
     done_testing(2);
