@@ -744,8 +744,8 @@ sub index_genomes_in_solr
     self->util_initialize_call();
     $params = $self->util_args($params,[],[]);
     my $json = JSON->new->allow_nonref;
-    my ($solr_records) = [];
-
+    my @solr_records;
+    $output = [];
     foreach my $kbase_genome_data(@params)
     {
 	my $record;
@@ -860,7 +860,7 @@ sub index_genomes_in_solr
 	$record->{feature_publications} = $feature->{}; 
 =cut
 
-		push (@($solr_records}, $record);
+		push @$solr_records, $record;
 	    }
 	}
 	#print Dumper (\@solr_records);
