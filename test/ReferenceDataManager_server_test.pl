@@ -21,8 +21,9 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     #Testing the list_reference_genomes function
+    my $ret;
     eval {
-        my $ret = $impl->list_reference_Genomes({
+        $ret = $impl->list_reference_Genomes({
             refseq => 1,
             update_only => 0
         });
@@ -42,12 +43,6 @@ my $err = undef;
 if ($@) {
     $err = $@;
 }
-eval {
-    if (defined($ws_name)) {
-        $ws_client->delete_workspace({workspace => $ws_name});
-        print("Test workspace was deleted\n");
-    }
-};
 if (defined($err)) {
     if(ref($err) eq "Bio::KBase::Exceptions::KBaseException") {
         die("Error while running tests: " . $err->trace->as_string);
