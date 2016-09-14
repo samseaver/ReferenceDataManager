@@ -53,19 +53,16 @@ sub util_args {
 
 sub func_load_genome {
 	#Part of load genome function
-	getMD5Checksums($assembly);
-	my $assembly_status = checkAssemblyStatus($assembly);
-	if ($assembly_status eq $status || $status eq "all"){
-		my $dir = "$reference_genome_staging_dir/$assembly->{accession}";
-		`mkdir $reference_genome_staging_dir/$assembly->{accession}` unless (-d "$reference_genome_staging_dir/$assembly->{accession}");
-		getGenBankFile($assembly) if grep $_ eq "gbf", @formats;
-		getGffFile($assembly) if grep $_ eq "gff", @formats;
-		getFnaFile($assembly) if grep $_ eq "fna", @formats;
-		getFaaFile($assembly) if grep $_ eq "faa", @formats;
-		getFeatureTableFile($assembly) if grep $_ eq "ftb", @formats;
-	}else{
-		# Current version already in KBase, check for annotation updates
-	}
+	#getMD5Checksums($assembly);
+	#my $assembly_status = checkAssemblyStatus($assembly);
+	#if ($assembly_status eq $status || $status eq "all"){
+	#	my $dir = "$reference_genome_staging_dir/$assembly->{accession}";
+	#	`mkdir $reference_genome_staging_dir/$assembly->{accession}` unless (-d "$reference_genome_staging_dir/$assembly->{accession}");
+	#	getGenBankFile($assembly) if grep $_ eq "gbf", @formats;
+	#	getGffFile($assembly) if grep $_ eq "gff", @formats;
+	#	getFnaFile($assembly) if grep $_ eq "fna", @formats;
+	#	getFaaFile($assembly) if grep $_ eq "faa", @formats;
+	#	getFeatureTableFile($assembly) if grep $_ eq "ftb", @formats;
 }
 
 #END_HEADER
