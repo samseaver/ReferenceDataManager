@@ -752,9 +752,9 @@ sub index_genomes_in_solr
     foreach my $kbase_genome_data (@$params)
     {
 	my $record;
-	my $ws_name = $kbase_gnome_data->{workspace_name};
+	my $ws_name = $kbase_genome_data->{workspace_name};
 	my $ws_genome_name = $kbase_genome_data->{name}; 
-	my $genome_source = $kbase_gnome_data->{source};
+	my $genome_source = $kbase_genome_data->{source};
 	my $ws_genome_metadata  = `ws-get -w $ws_name $ws_genome_name -m`;
 	my @genome_metadata = split(/\n/, $ws_genome_metadata);
 
@@ -871,7 +871,7 @@ sub index_genomes_in_solr
 
 my $genome_json = $json->pretty->encode(\@solr_records);
 
-my $genome_file = $self->{scratch}."$genome_name.json";
+my $genome_file = $self->{scratch}."$ws_genome_name.json";
 
 open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
 print FH "$genome_json";
