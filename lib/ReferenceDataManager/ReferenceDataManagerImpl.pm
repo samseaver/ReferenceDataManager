@@ -42,7 +42,9 @@ sub util_args {
 			}
 		}
 	}
-	die "Mandatory arguments ".join("; ",@{$args->{_error}})." missing";
+	if (defined($args->{_error})) {
+		die "Mandatory arguments ".join("; ",@{$args->{_error}})." missing";
+	}
 	foreach my $argument (keys(%{$optionalArguments})) {
 		if (!defined($args->{$argument})) {
 			$args->{$argument} = $optionalArguments->{$argument};
