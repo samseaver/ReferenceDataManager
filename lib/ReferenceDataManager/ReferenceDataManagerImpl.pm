@@ -748,8 +748,8 @@ sub index_genomes_in_solr
     my $json = JSON->new->allow_nonref;
     my @solr_records;
     $output = [];
-    my ($genome_source) = $ws_name=~/^(.*)_Genomes/;
-    foreach my $kbase_genome_data(@($params))
+
+    foreach my $kbase_genome_data (@$params)
     {
 	my $record;
 	my $ws_name = $kbase_gnome_data->{workspace_name};
