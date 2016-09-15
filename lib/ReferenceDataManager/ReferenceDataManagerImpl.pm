@@ -903,7 +903,8 @@ sub index_genomes_in_solr
     	$self->util_create_report({
     		message => "Loaded and indexed to SOLR ".@{$output}." genomes!",
     		workspace => $params->{workspace}
-    });
+    	});
+    }
     #END index_genomes_in_solr
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
