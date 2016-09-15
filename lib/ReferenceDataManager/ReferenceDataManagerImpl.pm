@@ -28,13 +28,15 @@ use JSON;
 #The first thing every function should do is call this function
 sub util_initialize_call {
 	my ($self,$params,$ctx) = @_;
-	#print("Starting ".$ctx->method()." method.\n");
+	if(defined($ctx){
+	print("Starting ".$ctx->method()." method.\n");
 	$self->{_token} = $ctx->token();
 	$self->{_username} = $ctx->user_id();
 	$self->{_method} = $ctx->method();
 	$self->{_provenance} = $ctx->provenance();
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	$self->util_timestamp(DateTime->now()->datetime());
+	}
 	return $params;
 }
 
