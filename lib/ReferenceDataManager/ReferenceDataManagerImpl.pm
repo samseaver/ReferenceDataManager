@@ -602,7 +602,7 @@ sub load_genomes
 		print "Now loading ".$genome->{source}.":".$genome->{id}."\n";
 		my $wsname = $self->util_workspace_names($genome->{source});
 		if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
-			my $genutilout = $loader->genbank_to_genome({{
+			my $genutilout = $loader->genbank_to_genome({
 				file => {
 					ftp_url => $genome->{ftp_dir}
 				},
