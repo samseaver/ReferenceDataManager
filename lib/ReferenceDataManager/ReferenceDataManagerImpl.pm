@@ -608,7 +608,7 @@ sub load_genomes
 				},
 				genome_name => $genome->{id},
 				workspace_name => $wsname,
-				source => $genome->{source}
+				source => $genome->{source},
 				taxon_wsname => "ReferenceTaxons",
 				release => $genome->{version},
 				generate_ids_if_needed => 1,
