@@ -20,6 +20,8 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
+    #Altering workspace map
+    $impl->{_workspace_map}->{refseq} = "RefSeqTest";
     #Testing the list_reference_genomes function
     my $ret;
     eval {
@@ -37,6 +39,36 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"list_reference_Genomes command returned at least one genome");
+    #Testing load_genomes function
+    eval {
+        $ret = $impl->load_genomes({
+            genomes => [$ret->[0]],
+            index_in_solr => 0
+        });
+    };
+    ok(!$@,"load_genomes command successful");
+    if ($@) {
+        print "ERROR:".$@;
+    } else {
+        print "Loaded genome data:\n";
+        print Data::Dumper->Dump([$ret->[0]])."\n";
+    }
+    ok(defined($ret->[0]),"load_genomes command returned at least one genome");
+    #Testing list_loaded_genomes function
+    eval {
+        $ret = $impl->list_loaded_genomes({
+            refseq => 1
+        });
+    };
+    ok(!$@,"list_loaded_genomes command successful");
+    if ($@) {
+        print "ERROR:".$@;
+    } else {
+        print "Number of records:".@{$ret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$ret->[0]])."\n";
+    }
+    ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
     done_testing(2);
 };
 my $err = undef;
