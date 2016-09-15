@@ -604,7 +604,7 @@ sub load_genomes
 	my $genomes = $params->{genomes};
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
-		print "Now loading ".$genome->{source}.":".$genome->{id}." with ftp dir=".$gnomes->{ftp_dir}."\n";
+		print "Now loading ".$genome->{source}.":".$genome->{id}." with ftp dir=".$genome->{ftp_dir}."\n";
 		my $wsname = $self->util_workspace_names($genome->{source});
 		if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
 			my $genutilout = $loader->genbank_to_genome({
