@@ -609,6 +609,18 @@ sub load_genomes
 				genome_name => $genome->{id},
 				workspace_name => $wsname,
 				source => $genome->{source}
+				taxon_wsname => "ReferenceTaxons",
+				release => $genome->{version},
+				generate_ids_if_needed => 1,
+				genetic_code => 11,
+				type => "Reference",
+				metadata => {
+					refid => $genome->{id},
+					accession => $genome->{accession},
+					refname => $genome->{name},
+					url => $genome->{url},
+					version => $genome->{version}
+				}
 			});
 			my $genomeout = {
 				"ref" => $genutilout->{genome_ref},
