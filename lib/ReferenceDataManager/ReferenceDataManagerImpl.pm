@@ -434,9 +434,9 @@ sub list_loaded_genomes
     for (my $i=0; $i < @{$sources}; $i++) {
     	if ($params->{$sources->[$i]} == 1) {
     		my $wsname = $self->util_workspace_names($sources->[$i]);
-    		my $wsoutput = $self->util_ws_client()->list_objects({
-    			workspace => $wsname
-    		});
+    		my $wsoutput;# = $self->util_ws_client()->list_objects({
+    			#workspace => $wsname
+    		#});
     		my $maxid = $wsoutput->[4];
     		my $pages = ceil($maxid/10000);
     		for (my $m=0; $m < $pages; $m++) {
