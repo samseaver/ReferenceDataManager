@@ -635,12 +635,27 @@ sub load_genomes
 				domain => $genome->{domain}
 			};
 			push(@{$output},$genomeout);
+			
 			if ($params->{index_in_solr} == 1) {
 				$self->func_index_in_solr({
 					genomes => [$genomeout]
 				});
 			}
 		} elsif ($genome->{source} eq "phytozome") {
+			#NEED SAM TO PUT CODE FOR HIS LOADER HERE
+			my $genomeout = {
+				"ref" => $wsname."/".$genome->{id},
+				id => $genome->{id},
+				workspace_name => $wsname,
+				source_id => $genome->{id},
+		        accession => $genome->{accession},
+				name => $genome->{name},
+    			ftp_dir => $genome->{ftp_dir},
+    			version => $genome->{version},
+				source => $genome->{source},
+				domain => $genome->{domain}
+			};
+			push(@{$output},$genomeout);
 		}
 	}
 	if ($params->{create_report}) {
