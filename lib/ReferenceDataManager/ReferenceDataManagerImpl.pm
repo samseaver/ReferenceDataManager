@@ -118,15 +118,10 @@ sub util_args {
 #This function specifies the name of the workspace where genomes are loaded for the specified source database
 sub util_workspace_names {
 	my($self,$source) = @_;
-	my $workspace = {
-    	ensembl => "Ensembl_Genomes",
-    	phytozome => "Phytozome_Genomes",
-    	refseq => "RefSeq_Genomes"
-    };
-    if (!defined($workspace->{$source})) {
+    if (!defined($self->{_workspace_map}->{$source})) {
     	die "No workspace specified for source: ".$source;
     }
-    return $workspace->{$source};
+    return $self->{_workspace_map}->{$source};
 }
 
 sub util_create_report {
@@ -170,6 +165,11 @@ sub new
     $self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');
     $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
     die "no workspace-url defined" unless $self->{workspace_url};
+    $self->{_workspace_map} = {
+    	ensembl => "Ensembl_Genomes",
+    	phytozome => "Phytozome_Genomes",
+    	refseq => "RefSeq_Genomes"
+    };
     
     #END_CONSTRUCTOR
 
