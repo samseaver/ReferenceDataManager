@@ -604,6 +604,7 @@ sub load_genomes
 	my $genomes = $params->{genomes};
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
+		    print "The bin directory:" . $Bin . "\n";
 		print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 		my $wsname = $self->util_workspace_names($genome->{source});
 		if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
@@ -766,7 +767,7 @@ sub index_genomes_in_solr
     my $json = JSON->new->allow_nonref;
     my @solr_records;
     $output = [];
-    print "The bin directory:" . $Bin . "\n";
+
     foreach my $kbase_genome_data (@$params)
     {
 	my $record;
