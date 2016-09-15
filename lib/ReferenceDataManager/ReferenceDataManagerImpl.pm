@@ -766,7 +766,7 @@ sub index_genomes_in_solr
     my $json = JSON->new->allow_nonref;
     my @solr_records;
     $output = [];
-
+    print "The bin directory:" . $Bin . "\n";
     foreach my $kbase_genome_data (@$params)
     {
 	my $record;
