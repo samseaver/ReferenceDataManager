@@ -435,7 +435,7 @@ sub list_loaded_genomes
     	if ($params->{$sources->[$i]} == 1) {
     		my $wsname = $self->util_workspace_names($sources->[$i]);
     		my $wsoutput;
-    		if(defined($wsname)){
+    		if(defined($self->util_ws_client())){
     			$wsoutput = $self->util_ws_client()->list_objects({
     				workspace => $wsname
     			});
