@@ -590,7 +590,7 @@ sub load_genomes
     #BEGIN load_genomes
     $self->util_initialize_call();
     $params = $self->util_args($params,[],{
-    	genomes => [source => "refseq"],
+    	genomes => [],
         index_in_solr => 0,
         create_report => 0,
     	workspace => undef
