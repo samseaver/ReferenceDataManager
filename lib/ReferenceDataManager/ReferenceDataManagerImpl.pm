@@ -28,7 +28,7 @@ use JSON;
 #The first thing every function should do is call this function
 sub util_initialize_call {
 	my ($self,$params,$ctx) = @_;
-	if(defined($ctx){
+	if(defined($ctx)){
 	print("Starting ".$ctx->method()." method.\n");
 	$self->{_token} = $ctx->token();
 	$self->{_username} = $ctx->user_id();
