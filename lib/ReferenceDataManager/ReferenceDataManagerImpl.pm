@@ -437,8 +437,9 @@ sub list_loaded_genomes
     		my $wsoutput;
     		if(defined($wsname)){
     			$wsoutput = $self->util_ws_client()->list_objects({
-    			workspace => $wsname
-    		});
+    				workspace => $wsname
+    			});
+    		}
     		my $maxid = $wsoutput->[4];
     		my $pages = ceil($maxid/10000);
     		for (my $m=0; $m < $pages; $m++) {
