@@ -887,17 +887,23 @@ sub index_genomes_in_solr
 	}
 	#print Dumper (\@solr_records);
 
-my $genome_json = $json->pretty->encode(\@solr_records);
+	my $genome_json = $json->pretty->encode(\@solr_records);
 
-my $genome_file = $self->{scratch}."$ws_genome_name.json";
+	my $genome_file = $self->{scratch}."$ws_genome_name.json";
 
-open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
-print FH "$genome_json";
-close FH;
+	open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
+	print FH "$genome_json";
+	close FH;
 
-`$Bin/post_solr_update.sh genomes $genome_file`;#By default we assume all to be indexed--if $opt->index=~/y|yes|true|1/i;
+	`$Bin/post_solr_update.sh genomes $genome_file`;#By default we assume all to be indexed--if $opt->index=~/y|yes|true|1/i;
 	push (@{$output}, $kbase_genome_data);
     }
+        
+    if ($params->{create_report}) {
+    	$self->util_create_report({
+    		message => "Loaded and indexed to SOLR ".@{$output}." genomes!",
+    		workspace => $params->{workspace}
+    });
     #END index_genomes_in_solr
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
