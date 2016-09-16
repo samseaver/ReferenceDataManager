@@ -1,3 +1,4 @@
+#!/bin/bash
 # post.jar is included in solr package
 BASEDIR=$(dirname $0)
 POSTJAR=$BASEDIR/post.jar
