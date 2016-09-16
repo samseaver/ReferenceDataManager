@@ -28,7 +28,6 @@ use JSON;
 #The first thing every function should do is call this function
 sub util_initialize_call {
 	my ($self,$params,$ctx) = @_;
-	if(defined($ctx)){
 	print("Starting ".$ctx->method()." method.\n");
 	$self->{_token} = $ctx->token();
 	$self->{_username} = $ctx->user_id();
@@ -36,7 +35,6 @@ sub util_initialize_call {
 	$self->{_provenance} = $ctx->provenance();
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	$self->util_timestamp(DateTime->now()->datetime());
-	}
 	return $params;
 }
 
@@ -270,7 +268,7 @@ sub list_reference_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_reference_genomes
-    $self->util_initialize_call();
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	ensembl => 0,#todo
     	phytozome => 0,#todo
@@ -424,7 +422,7 @@ sub list_loaded_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_loaded_genomes
-    $self->util_initialize_call();
+     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	ensembl => 0,
     	phytozome => 0,
@@ -600,7 +598,7 @@ sub load_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN load_genomes
-    $self->util_initialize_call();
+     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	data => undef,
     	genomes => [],
@@ -785,7 +783,7 @@ sub index_genomes_in_solr
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN index_genomes_in_solr
-    $self->util_initialize_call();
+     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],[]);
     my $json = JSON->new->allow_nonref;
     my @solr_records;
@@ -1027,7 +1025,7 @@ sub update_loaded_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN update_loaded_genomes
-    $self->util_initialize_call();
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	ensembl => 0,#todo
     	phytozome => 0,#todo
