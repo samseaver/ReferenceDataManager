@@ -635,7 +635,7 @@ sub load_genomes
 		if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
 			my $genutilout = $loader->genbank_to_genome({
 				file => {
-					ftp_url => $genome->{ftp_dir}
+					ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
 				},
 				genome_name => $genome->{id},
 				workspace_name => $wsname,
