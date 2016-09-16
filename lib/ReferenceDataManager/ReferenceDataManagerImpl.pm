@@ -319,6 +319,7 @@ sub list_reference_genomes
     	#TODO
     }
     if ($params->{create_report}) {
+    	print $msg."\n";
     	$self->util_create_report({
     		message => $msg,
     		workspace => $params->{workspace}
@@ -478,6 +479,7 @@ sub list_loaded_genomes
     	}
     }
     if ($params->{create_report}) {
+    	print $msg."\n";
     	$self->util_create_report({
     		message => $msg,
     		workspace => $params->{workspace}
@@ -688,6 +690,7 @@ sub load_genomes
 		}
 	}
 	if ($params->{create_report}) {
+    	print "Loaded ".@{$output}." genomes!"."\n";
     	$self->util_create_report({
     		message => "Loaded ".@{$output}." genomes!",
     		workspace => $params->{workspace}
