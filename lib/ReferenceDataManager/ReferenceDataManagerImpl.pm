@@ -323,7 +323,7 @@ sub list_reference_genomes
     		message => $msg,
     		workspace => $params->{workspace}
     	});
-    	$output = [];
+    	$output = [$params->{workspace}."/list_reference_genomes"];
     }
     #END list_reference_genomes
     my @_bad_returns;
@@ -482,7 +482,7 @@ sub list_loaded_genomes
     		message => $msg,
     		workspace => $params->{workspace}
     	});
-    	$output = [];
+    	$output = [$params->{workspace}."/list_loaded_genomes"];
     }
     #END list_loaded_genomes
     my @_bad_returns;
@@ -692,6 +692,7 @@ sub load_genomes
     		message => "Loaded ".@{$output}." genomes!",
     		workspace => $params->{workspace}
     	});
+    	$output = [$params->{workspace}."/load_genomes"];
     }
     #END load_genomes
     my @_bad_returns;

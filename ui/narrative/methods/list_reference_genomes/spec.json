@@ -88,12 +88,11 @@
       ],
       "output_mapping" : [
         {
-          "target_property" : "workspace_name",
-    	  "narrative_system_variable" : "workspace"
-        },
-        {
-          "constant_value" : "list_reference_genomes",
-          "target_property" : "report_name"
+          "target_property" : "report_ref",
+    	  "service_method_output_path" : [
+				0,
+				0
+        	],
         }
       ]
     }
