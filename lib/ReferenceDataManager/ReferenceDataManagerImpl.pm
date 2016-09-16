@@ -323,6 +323,7 @@ sub list_reference_genomes
     		message => $msg,
     		workspace => $params->{workspace}
     	});
+    	$output = [];
     }
     #END list_reference_genomes
     my @_bad_returns;
@@ -438,7 +439,7 @@ sub list_loaded_genomes
     		my $wsname = $self->util_workspace_names($sources->[$i]);
     		my $wsoutput;
     		if(defined($self->util_ws_client())){
-    			$wsoutput = $self->util_ws_client()->list_objects({
+    			$wsoutput = $self->util_ws_client()->get_workspace_info({
     				workspace => $wsname
     			});
     		}
@@ -481,6 +482,7 @@ sub list_loaded_genomes
     		message => $msg,
     		workspace => $params->{workspace}
     	});
+    	$output = [];
     }
     #END list_loaded_genomes
     my @_bad_returns;
