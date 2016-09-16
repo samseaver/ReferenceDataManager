@@ -286,7 +286,9 @@ sub list_reference_genomes
     	my $division = "bacteria";#Could also be "archaea" or "plant"
     	my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
     	my $assemblies = [`wget -q -O - $assembly_summary_url`];
+		my $count = 0;
 		foreach my $entry (@{$assemblies}) {
+			$count++;
 			chomp $entry;
 			if ($entry=~/^#/) { #header
 				next;
@@ -305,7 +307,9 @@ sub list_reference_genomes
 			($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
 			#$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
 			push(@{$output},$current_genome);
-			$msg .= $current_genome->{source}."\t".$current_genome->{accession}."\t".$current_genome->{status}."\n";
+			if ($count < 10) {
+				$msg .= $current_genome->{accession}.";".$current_genome->{status}.";".$current_genome->{name}.";".$current_genome->{ftp_dir}.";".$current_genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
+			}
 		}
     } elsif ($params->{phytozome} == 1) {
     	my $source = "phytozome";
@@ -466,7 +470,10 @@ sub list_loaded_genomes
 						dna_size => $wsoutput->[$j]->[10]->{"Size"},
 						gc => $wsoutput->[$j]->[10]->{"GC content"},
 	    			});
-	    			$msg .= $wsoutput->[$j]->[1]."|".$wsoutput->[$j]->[10]->{Name}."\n";
+	    			if (@{$output} < 10) {
+	    				my $curr = @{$output}-1;
+	    				$msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+	    			}
 	    		}
     		}
     	}
@@ -595,13 +602,30 @@ sub load_genomes
     #BEGIN load_genomes
     $self->util_initialize_call();
     $params = $self->util_args($params,[],{
+    	data => undef,
     	genomes => [],
         index_in_solr => 0,
         create_report => 0,
     	workspace => undef
     });
 	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
-	my $genomes = $params->{genomes};
+	my $genomes;
+	if (defined($params->{data})) {
+		my $array = [split(/;/,$params->{data})];
+		$genomes = [{
+			accession => $array->[0],
+	        status => $array->[1],
+	        name => $array->[2],
+	        ftp_dir => $array->[3],
+	        file => $array->[4],
+	        id => $array->[5],
+	        version => $array->[6],
+	        source => $array->[7],
+	        domain => $array->[8]
+		}];
+	} else {
+		$genomes = $params->{genomes};
+	}
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
 		print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";

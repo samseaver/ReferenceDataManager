@@ -1,0 +1,43 @@
+#
+# Define basic display information
+#
+name     : Load reference genome from reference database
+
+tooltip  : |
+    Load reference genome from reference database
+
+screenshots :
+    []
+
+icon: icon.png
+
+#
+# Define the set of other narrative methods that should be suggested to the user.
+#
+suggestions :
+    apps:
+        related :
+            []
+        next :
+            []
+    methods:
+        related :
+            []
+        next :
+            [index_genomes]
+
+
+#
+# Configure the display and description of the parameters
+#
+parameters :
+    data :
+        ui-name : |
+            Genome data
+        short-hint : |
+            Genome data
+        long-hint  : |
+            Genome data
+
+description : |
+    <p>Lists genomes from source database</p>

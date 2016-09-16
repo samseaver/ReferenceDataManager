@@ -1,0 +1,68 @@
+#
+# Define basic display information
+#
+name     : List genomes in reference databases
+
+tooltip  : |
+    List reference genomes contained in source databases
+
+screenshots :
+    []
+
+icon: icon.png
+
+#
+# Define the set of other narrative methods that should be suggested to the user.
+#
+suggestions :
+    apps:
+        related :
+            []
+        next :
+            []
+    methods:
+        related :
+            []
+        next :
+            [load_genomes]
+
+
+#
+# Configure the display and description of the parameters
+#
+parameters :
+    refseq :
+        ui-name : |
+            List RefSeq genomes
+        short-hint : |
+            List genomes available in RefSeq
+        long-hint  : |
+            List genomes available in RefSeq
+
+
+    phytozome :
+        ui-name : |
+            List Phytozome genomes
+        short-hint : |
+            List genomes available in RefSeq
+        long-hint  : |
+            List genomes available in RefSeq
+            
+    ensembl :
+        ui-name : |
+            List Ensembl genomes
+        short-hint : |
+            List genomes available in Ensembl
+        long-hint  : |
+            List genomes available in Ensembl
+                
+    updated_only :
+        ui-name : |
+            Updated genomes only
+        short-hint : |
+            Only list updated genomes
+        long-hint  : |
+            Only list updated genomes
+
+description : |
+    <p>Lists genomes from source database</p>
