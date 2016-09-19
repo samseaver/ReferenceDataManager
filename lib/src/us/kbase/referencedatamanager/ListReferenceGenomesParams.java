@@ -24,7 +24,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "ensembl",
     "refseq",
     "phytozome",
-    "updated_only"
+    "updated_only",
+    "workspace",
+    "create_report"
 })
 public class ListReferenceGenomesParams {
 
@@ -36,6 +38,10 @@ public class ListReferenceGenomesParams {
     private Long phytozome;
     @JsonProperty("updated_only")
     private Long updatedOnly;
+    @JsonProperty("workspace")
+    private String workspace;
+    @JsonProperty("create_report")
+    private Long createReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("ensembl")
@@ -98,6 +104,36 @@ public class ListReferenceGenomesParams {
         return this;
     }
 
+    @JsonProperty("workspace")
+    public String getWorkspace() {
+        return workspace;
+    }
+
+    @JsonProperty("workspace")
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
+    }
+
+    public ListReferenceGenomesParams withWorkspace(String workspace) {
+        this.workspace = workspace;
+        return this;
+    }
+
+    @JsonProperty("create_report")
+    public Long getCreateReport() {
+        return createReport;
+    }
+
+    @JsonProperty("create_report")
+    public void setCreateReport(Long createReport) {
+        this.createReport = createReport;
+    }
+
+    public ListReferenceGenomesParams withCreateReport(Long createReport) {
+        this.createReport = createReport;
+        return this;
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
@@ -110,7 +146,7 @@ public class ListReferenceGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((((((("ListReferenceGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", updatedOnly=")+ updatedOnly)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((("ListReferenceGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", updatedOnly=")+ updatedOnly)+", workspace=")+ workspace)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

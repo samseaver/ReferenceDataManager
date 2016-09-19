@@ -2,6 +2,7 @@
 package us.kbase.referencedatamanager;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -23,7 +24,11 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "ensembl",
     "refseq",
-    "phytozome"
+    "phytozome",
+    "genomeData",
+    "workspace",
+    "creat_report",
+    "formats"
 })
 public class UpdateLoadedGenomesParams {
 
@@ -33,6 +38,14 @@ public class UpdateLoadedGenomesParams {
     private Long refseq;
     @JsonProperty("phytozome")
     private Long phytozome;
+    @JsonProperty("genomeData")
+    private List<ReferenceGenomeData> genomeData;
+    @JsonProperty("workspace")
+    private String workspace;
+    @JsonProperty("creat_report")
+    private Long creatReport;
+    @JsonProperty("formats")
+    private String formats;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("ensembl")
@@ -80,6 +93,66 @@ public class UpdateLoadedGenomesParams {
         return this;
     }
 
+    @JsonProperty("genomeData")
+    public List<ReferenceGenomeData> getGenomeData() {
+        return genomeData;
+    }
+
+    @JsonProperty("genomeData")
+    public void setGenomeData(List<ReferenceGenomeData> genomeData) {
+        this.genomeData = genomeData;
+    }
+
+    public UpdateLoadedGenomesParams withGenomeData(List<ReferenceGenomeData> genomeData) {
+        this.genomeData = genomeData;
+        return this;
+    }
+
+    @JsonProperty("workspace")
+    public String getWorkspace() {
+        return workspace;
+    }
+
+    @JsonProperty("workspace")
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
+    }
+
+    public UpdateLoadedGenomesParams withWorkspace(String workspace) {
+        this.workspace = workspace;
+        return this;
+    }
+
+    @JsonProperty("creat_report")
+    public Long getCreatReport() {
+        return creatReport;
+    }
+
+    @JsonProperty("creat_report")
+    public void setCreatReport(Long creatReport) {
+        this.creatReport = creatReport;
+    }
+
+    public UpdateLoadedGenomesParams withCreatReport(Long creatReport) {
+        this.creatReport = creatReport;
+        return this;
+    }
+
+    @JsonProperty("formats")
+    public String getFormats() {
+        return formats;
+    }
+
+    @JsonProperty("formats")
+    public void setFormats(String formats) {
+        this.formats = formats;
+    }
+
+    public UpdateLoadedGenomesParams withFormats(String formats) {
+        this.formats = formats;
+        return this;
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
@@ -92,7 +165,7 @@ public class UpdateLoadedGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((((("UpdateLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((("UpdateLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", genomeData=")+ genomeData)+", workspace=")+ workspace)+", creatReport=")+ creatReport)+", formats=")+ formats)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

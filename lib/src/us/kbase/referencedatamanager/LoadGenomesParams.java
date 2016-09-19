@@ -22,16 +22,40 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("com.googlecode.jsonschema2pojo")
 @JsonPropertyOrder({
+    "data",
     "genomes",
-    "index_in_solr"
+    "index_in_solr",
+    "workspace",
+    "create_report"
 })
 public class LoadGenomesParams {
 
+    @JsonProperty("data")
+    private String data;
     @JsonProperty("genomes")
     private List<ReferenceGenomeData> genomes;
     @JsonProperty("index_in_solr")
     private Long indexInSolr;
+    @JsonProperty("workspace")
+    private String workspace;
+    @JsonProperty("create_report")
+    private Long createReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+
+    @JsonProperty("data")
+    public String getData() {
+        return data;
+    }
+
+    @JsonProperty("data")
+    public void setData(String data) {
+        this.data = data;
+    }
+
+    public LoadGenomesParams withData(String data) {
+        this.data = data;
+        return this;
+    }
 
     @JsonProperty("genomes")
     public List<ReferenceGenomeData> getGenomes() {
@@ -63,6 +87,36 @@ public class LoadGenomesParams {
         return this;
     }
 
+    @JsonProperty("workspace")
+    public String getWorkspace() {
+        return workspace;
+    }
+
+    @JsonProperty("workspace")
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
+    }
+
+    public LoadGenomesParams withWorkspace(String workspace) {
+        this.workspace = workspace;
+        return this;
+    }
+
+    @JsonProperty("create_report")
+    public Long getCreateReport() {
+        return createReport;
+    }
+
+    @JsonProperty("create_report")
+    public void setCreateReport(Long createReport) {
+        this.createReport = createReport;
+    }
+
+    public LoadGenomesParams withCreateReport(Long createReport) {
+        this.createReport = createReport;
+        return this;
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
@@ -75,7 +129,7 @@ public class LoadGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((("LoadGenomesParams"+" [genomes=")+ genomes)+", indexInSolr=")+ indexInSolr)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((("LoadGenomesParams"+" [data=")+ data)+", genomes=")+ genomes)+", indexInSolr=")+ indexInSolr)+", workspace=")+ workspace)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

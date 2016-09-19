@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "ref",
     "id",
-    "workspace_name",
+    "workspace",
     "source_id",
     "accession",
     "name",
@@ -38,8 +38,8 @@ public class KBaseReferenceGenomeData {
     private String ref;
     @JsonProperty("id")
     private String id;
-    @JsonProperty("workspace_name")
-    private String workspaceName;
+    @JsonProperty("workspace")
+    private String workspace;
     @JsonProperty("source_id")
     private String sourceId;
     @JsonProperty("accession")
@@ -86,18 +86,18 @@ public class KBaseReferenceGenomeData {
         return this;
     }
 
-    @JsonProperty("workspace_name")
-    public String getWorkspaceName() {
-        return workspaceName;
+    @JsonProperty("workspace")
+    public String getWorkspace() {
+        return workspace;
     }
 
-    @JsonProperty("workspace_name")
-    public void setWorkspaceName(String workspaceName) {
-        this.workspaceName = workspaceName;
+    @JsonProperty("workspace")
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
     }
 
-    public KBaseReferenceGenomeData withWorkspaceName(String workspaceName) {
-        this.workspaceName = workspaceName;
+    public KBaseReferenceGenomeData withWorkspace(String workspace) {
+        this.workspace = workspace;
         return this;
     }
 
@@ -218,7 +218,7 @@ public class KBaseReferenceGenomeData {
 
     @Override
     public String toString() {
-        return ((((((((((((((((((((((("KBaseReferenceGenomeData"+" [ref=")+ ref)+", id=")+ id)+", workspaceName=")+ workspaceName)+", sourceId=")+ sourceId)+", accession=")+ accession)+", name=")+ name)+", ftpDir=")+ ftpDir)+", version=")+ version)+", source=")+ source)+", domain=")+ domain)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((((((((("KBaseReferenceGenomeData"+" [ref=")+ ref)+", id=")+ id)+", workspace=")+ workspace)+", sourceId=")+ sourceId)+", accession=")+ accession)+", name=")+ name)+", ftpDir=")+ ftpDir)+", version=")+ version)+", source=")+ source)+", domain=")+ domain)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

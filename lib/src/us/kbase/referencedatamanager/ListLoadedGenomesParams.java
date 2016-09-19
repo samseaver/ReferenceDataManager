@@ -23,7 +23,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({
     "ensembl",
     "refseq",
-    "phytozome"
+    "phytozome",
+    "workspace",
+    "create_report"
 })
 public class ListLoadedGenomesParams {
 
@@ -33,6 +35,10 @@ public class ListLoadedGenomesParams {
     private Long refseq;
     @JsonProperty("phytozome")
     private Long phytozome;
+    @JsonProperty("workspace")
+    private String workspace;
+    @JsonProperty("create_report")
+    private Long createReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("ensembl")
@@ -80,6 +86,36 @@ public class ListLoadedGenomesParams {
         return this;
     }
 
+    @JsonProperty("workspace")
+    public String getWorkspace() {
+        return workspace;
+    }
+
+    @JsonProperty("workspace")
+    public void setWorkspace(String workspace) {
+        this.workspace = workspace;
+    }
+
+    public ListLoadedGenomesParams withWorkspace(String workspace) {
+        this.workspace = workspace;
+        return this;
+    }
+
+    @JsonProperty("create_report")
+    public Long getCreateReport() {
+        return createReport;
+    }
+
+    @JsonProperty("create_report")
+    public void setCreateReport(Long createReport) {
+        this.createReport = createReport;
+    }
+
+    public ListLoadedGenomesParams withCreateReport(Long createReport) {
+        this.createReport = createReport;
+        return this;
+    }
+
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
@@ -92,7 +128,7 @@ public class ListLoadedGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((((("ListLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((("ListLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", workspace=")+ workspace)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }
