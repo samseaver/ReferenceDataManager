@@ -18,7 +18,9 @@ module ReferenceDataManager {
         bool refseq;
         bool phytozome;
         bool updated_only;
-    } ListReferenceGenomesParams;
+	string workspace;
+	bool create_report; 
+   } ListReferenceGenomesParams;
 
     /*
         Struct containing data for a single genome output by the list_reference_genomes function
@@ -49,7 +51,9 @@ module ReferenceDataManager {
         bool ensembl;
         bool refseq;
         bool phytozome;
-    } ListLoadedGenomesParams;
+	string workspace;
+	bool create_report;
+   } ListLoadedGenomesParams;
     
     /*
         Struct containing data for a single genome output by the list_loaded_genomes function
@@ -58,7 +62,7 @@ module ReferenceDataManager {
     typedef structure {
         string ref;
         string id;
-        string workspace_name;
+        string workspace;
         string source_id;
         string accession;
         string name;
@@ -78,8 +82,11 @@ module ReferenceDataManager {
         
     */
     typedef structure {
-        list<ReferenceGenomeData> genomes;
+        string data;
+	list<ReferenceGenomeData> genomes;
         bool index_in_solr;
+	string workspace;
+	bool create_report;
     } LoadGenomesParams;
     
     /*
@@ -93,6 +100,8 @@ module ReferenceDataManager {
     */
     typedef structure {
         list<KBaseReferenceGenomeData> genomes;
+        string workspace;
+        bool creat_report;
     } IndexGenomesInSolrParams;
     
     /*
@@ -108,6 +117,8 @@ module ReferenceDataManager {
         bool ensembl;
         bool refseq;
         bool phytozome;
+        string workspace;
+        bool creat_report;
     } UpdateLoadedGenomesParams;
     
     /*
