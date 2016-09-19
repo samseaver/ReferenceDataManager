@@ -1083,7 +1083,7 @@ sub update_loaded_genomes
 		$count ++;
 		push(@{$output},$genome);
 		if ($count < 10) {
-		   $msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
+		   $msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
 		}
 	}else{
 		# Current version already in KBase, check for annotation updates
