@@ -120,6 +120,8 @@ ListReferenceGenomesParams is a reference to a hash where the following keys are
 	refseq has a value which is a ReferenceDataManager.bool
 	phytozome has a value which is a ReferenceDataManager.bool
 	updated_only has a value which is a ReferenceDataManager.bool
+	workspace has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
@@ -145,6 +147,8 @@ ListReferenceGenomesParams is a reference to a hash where the following keys are
 	refseq has a value which is a ReferenceDataManager.bool
 	phytozome has a value which is a ReferenceDataManager.bool
 	updated_only has a value which is a ReferenceDataManager.bool
+	workspace has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
@@ -232,11 +236,13 @@ ListLoadedGenomesParams is a reference to a hash where the following keys are de
 	ensembl has a value which is a ReferenceDataManager.bool
 	refseq has a value which is a ReferenceDataManager.bool
 	phytozome has a value which is a ReferenceDataManager.bool
+	workspace has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
-	workspace_name has a value which is a string
+	workspace has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
@@ -257,11 +263,13 @@ ListLoadedGenomesParams is a reference to a hash where the following keys are de
 	ensembl has a value which is a ReferenceDataManager.bool
 	refseq has a value which is a ReferenceDataManager.bool
 	phytozome has a value which is a ReferenceDataManager.bool
+	workspace has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
-	workspace_name has a value which is a string
+	workspace has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
@@ -342,8 +350,11 @@ Lists genomes loaded into KBase from selected reference sources (ensembl, phytoz
 $params is a ReferenceDataManager.LoadGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 LoadGenomesParams is a reference to a hash where the following keys are defined:
+	data has a value which is a string
 	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
 	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
 	status has a value which is a string
@@ -358,7 +369,7 @@ bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
-	workspace_name has a value which is a string
+	workspace has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
@@ -376,8 +387,11 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 $params is a ReferenceDataManager.LoadGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 LoadGenomesParams is a reference to a hash where the following keys are defined:
+	data has a value which is a string
 	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
 	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
 	status has a value which is a string
@@ -392,7 +406,7 @@ bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
-	workspace_name has a value which is a string
+	workspace has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
@@ -474,10 +488,12 @@ $params is a ReferenceDataManager.IndexGenomesInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 IndexGenomesInSolrParams is a reference to a hash where the following keys are defined:
 	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
+	workspace has a value which is a string
+	creat_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
-	workspace_name has a value which is a string
+	workspace has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
@@ -485,6 +501,7 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+bool is an int
 
 </pre>
 
@@ -496,10 +513,12 @@ $params is a ReferenceDataManager.IndexGenomesInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 IndexGenomesInSolrParams is a reference to a hash where the following keys are defined:
 	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
+	workspace has a value which is a string
+	creat_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
-	workspace_name has a value which is a string
+	workspace has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
@@ -507,6 +526,7 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+bool is an int
 
 
 =end text
@@ -583,11 +603,25 @@ UpdateLoadedGenomesParams is a reference to a hash where the following keys are 
 	ensembl has a value which is a ReferenceDataManager.bool
 	refseq has a value which is a ReferenceDataManager.bool
 	phytozome has a value which is a ReferenceDataManager.bool
+	genomeData has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+	workspace has a value which is a string
+	creat_report has a value which is a ReferenceDataManager.bool
+	formats has a value which is a string
 bool is an int
+ReferenceGenomeData is a reference to a hash where the following keys are defined:
+	accession has a value which is a string
+	status has a value which is a string
+	name has a value which is a string
+	ftp_dir has a value which is a string
+	file has a value which is a string
+	id has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
-	workspace_name has a value which is a string
+	workspace has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
@@ -608,11 +642,25 @@ UpdateLoadedGenomesParams is a reference to a hash where the following keys are 
 	ensembl has a value which is a ReferenceDataManager.bool
 	refseq has a value which is a ReferenceDataManager.bool
 	phytozome has a value which is a ReferenceDataManager.bool
+	genomeData has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+	workspace has a value which is a string
+	creat_report has a value which is a ReferenceDataManager.bool
+	formats has a value which is a string
 bool is an int
+ReferenceGenomeData is a reference to a hash where the following keys are defined:
+	accession has a value which is a string
+	status has a value which is a string
+	name has a value which is a string
+	ftp_dir has a value which is a string
+	file has a value which is a string
+	id has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
-	workspace_name has a value which is a string
+	workspace has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
@@ -788,6 +836,8 @@ ensembl has a value which is a ReferenceDataManager.bool
 refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
 updated_only has a value which is a ReferenceDataManager.bool
+workspace has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
 
 </pre>
 
@@ -800,6 +850,8 @@ ensembl has a value which is a ReferenceDataManager.bool
 refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
 updated_only has a value which is a ReferenceDataManager.bool
+workspace has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
 
 
 =end text
@@ -879,6 +931,8 @@ a reference to a hash where the following keys are defined:
 ensembl has a value which is a ReferenceDataManager.bool
 refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
+workspace has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
 
 </pre>
 
@@ -890,6 +944,8 @@ a reference to a hash where the following keys are defined:
 ensembl has a value which is a ReferenceDataManager.bool
 refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
+workspace has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
 
 
 =end text
@@ -917,7 +973,7 @@ Struct containing data for a single genome output by the list_loaded_genomes fun
 a reference to a hash where the following keys are defined:
 ref has a value which is a string
 id has a value which is a string
-workspace_name has a value which is a string
+workspace has a value which is a string
 source_id has a value which is a string
 accession has a value which is a string
 name has a value which is a string
@@ -935,7 +991,7 @@ domain has a value which is a string
 a reference to a hash where the following keys are defined:
 ref has a value which is a string
 id has a value which is a string
-workspace_name has a value which is a string
+workspace has a value which is a string
 source_id has a value which is a string
 accession has a value which is a string
 name has a value which is a string
@@ -968,8 +1024,11 @@ Arguments for the load_genomes function
 
 <pre>
 a reference to a hash where the following keys are defined:
+data has a value which is a string
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
 index_in_solr has a value which is a ReferenceDataManager.bool
+workspace has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
 
 </pre>
 
@@ -978,8 +1037,11 @@ index_in_solr has a value which is a ReferenceDataManager.bool
 =begin text
 
 a reference to a hash where the following keys are defined:
+data has a value which is a string
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
 index_in_solr has a value which is a ReferenceDataManager.bool
+workspace has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
 
 
 =end text
@@ -1006,6 +1068,8 @@ Arguments for the index_genomes_in_solr function
 <pre>
 a reference to a hash where the following keys are defined:
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
+workspace has a value which is a string
+creat_report has a value which is a ReferenceDataManager.bool
 
 </pre>
 
@@ -1015,6 +1079,8 @@ genomes has a value which is a reference to a list where each element is a Refer
 
 a reference to a hash where the following keys are defined:
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
+workspace has a value which is a string
+creat_report has a value which is a ReferenceDataManager.bool
 
 
 =end text
@@ -1043,6 +1109,10 @@ a reference to a hash where the following keys are defined:
 ensembl has a value which is a ReferenceDataManager.bool
 refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
+genomeData has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+workspace has a value which is a string
+creat_report has a value which is a ReferenceDataManager.bool
+formats has a value which is a string
 
 </pre>
 
@@ -1054,6 +1124,10 @@ a reference to a hash where the following keys are defined:
 ensembl has a value which is a ReferenceDataManager.bool
 refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
+genomeData has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+workspace has a value which is a string
+creat_report has a value which is a ReferenceDataManager.bool
+formats has a value which is a string
 
 
 =end text
