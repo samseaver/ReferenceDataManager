@@ -48,7 +48,6 @@ module ReferenceDataManager {
         
     */
     typedef structure {
-        string workspace;
         bool ensembl;
         bool refseq;
         bool phytozome;
