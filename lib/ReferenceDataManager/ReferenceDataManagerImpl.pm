@@ -1103,7 +1103,7 @@ sub update_loaded_genomes
 	#check if the genome is already present in the database by querying SOLR
     	my $gnstatus;
   	my $core = "/genomes";
-  	my $query = "/select?q=genome_id:".$assembly->{id}."*"; 
+  	my $query = "/select?q=genome_id:".$genome->{id}."*"; 
   	my $fields = "&fl=genome_source,genome_id,genome_name";
   	my $rows = "&rows=100";
   	my $sort = "";
@@ -1116,10 +1116,10 @@ sub update_loaded_genomes
 	}else{
 	   my ($genome_source, $genome_id, $genome_name) = split /\t/, @records[0];
 
-	   if ($genome_id eq $assembly->{accession}){
+	   if ($genome_id eq $genome->{accession}){
 		$gnstatus = "Existing genome: current";
 		$genome->{genome_id} = $genome_id;
-	   }elsif ($genome_id =~/$assembly->{id}/){
+	   }elsif ($genome_id =~/$genome->{id}/){
 		$gnstatus = "Existing genome: updated ";
 		$genome->{genome_id} = $genome_id;
 	   }else{
