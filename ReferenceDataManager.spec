@@ -8,7 +8,7 @@ module ReferenceDataManager {
         A boolean.
     */
     typedef int bool;
-
+    
     /*
         Arguments for the list_reference_genomes function
         
@@ -48,6 +48,7 @@ module ReferenceDataManager {
         
     */
     typedef structure {
+        string workspace;
         bool ensembl;
         bool refseq;
         bool phytozome;
