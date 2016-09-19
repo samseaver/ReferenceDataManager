@@ -1035,16 +1035,67 @@ sub update_loaded_genomes
     $params = $self->util_args($params,[],{
     	ensembl => 0,#todo
     	phytozome => 0,#todo
-    	refseq => 0,
+    	refseq => 1,
     	create_report => 0,
-    	workspace => undef
+    	workspace => "RefSeq_Genomes",
+    	genomeData => undef,
+    	formats => "gbf"
     });
+    
+    my $msg = "";
+    $output = [];
+    my $solrServer = $ENV{KBASE_SOLR};
+    my $solrFormat="&wt=csv&csv.separator=%09&csv.mv.separator=;";
+    my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
+    my $genome_data = $params->{genomeData};
+    my $count = 0;
+    for (my $i=0; $i < @{$genome_data}; $i++) {
+	my $genome = $genome_data->[$i];
+	
+	#check if the genome is already present in the database by querying SOLR
+    	my $gnstatus;
+  	my $core = "/genomes";
+  	my $query = "/select?q=genome_id:".$assembly->{id}."*"; 
+  	my $fields = "&fl=genome_source,genome_id,genome_name";
+  	my $rows = "&rows=100";
+  	my $sort = "";
+  	my $solrQuery = $solrServer.$core.$query.$fields.$rows.$sort.$solrFormat;
+	print "\n$solrQuery\n";
+	my @records = `wget -q -O - "$solrQuery" | grep -v genome_name`;
+
+	if (scalar @records == 0 ){
+	   $gnstatus = "New genome";
+	}else{
+	   my ($genome_source, $genome_id, $genome_name) = split /\t/, @records[0];
+
+	   if ($genome_id eq $assembly->{accession}){
+		$gnstatus = "Existing genome: current";
+		$genome->{genome_id} = $genome_id;
+	   }elsif ($genome_id =~/$assembly->{id}/){
+		$gnstatus = "Existing genome: updated ";
+		$genome->{genome_id} = $genome_id;
+	   }else{
+		$gnstatus = "Existing genome: status unknown";
+		$$genome->{genome_id} = $genome_id;
+	   }
+	}
+	if ($gnstatus=~/(new|updated)/i){
+		$count ++;
+		push(@{$output},$genome);
+		if ($count < 10) {
+		   $msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
+		}
+	}else{
+		# Current version already in KBase, check for annotation updates
+	}
+    }
     
     if ($params->{create_report}) {
     	$self->util_create_report({
     		message => "Updated ".@{$output}." genomes!",
     		workspace => $params->{workspace}
     	});
+    	$output = [$params->{workspace}."/list_reference_genomes"];
     }
     #END update_loaded_genomes
     my @_bad_returns;
