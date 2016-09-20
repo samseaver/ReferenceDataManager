@@ -16,7 +16,6 @@ my $config = new Config::Simple($config_file)->get_block('ReferenceDataManager')
 #my $ws_client = new Bio::KBase::workspace::Client($ws_url,token => $token);
 my $auth_token = Bio::KBase::AuthToken->new(token => $token, ignore_authrc => 1);
 my $ctx = LocalCallContext->new($token, $auth_token->user_id);
-print "config: " . $config . "\n" . "context: " . $ctx . "\n";
 $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
