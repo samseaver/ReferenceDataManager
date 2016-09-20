@@ -31,13 +31,37 @@ suggestions :
 # Configure the display and description of the parameters
 #
 parameters :
-    data :
+    refseq :
+        ui-name : |
+            List RefSeq genomes
+        short-hint : |
+            List genomes available in RefSeq
+        long-hint  : |
+            List genomes available in RefSeq
+
+    phytozome :
+        ui-name : |
+            List Phytozome genomes
+        short-hint : |
+            List genomes available in RefSeq
+        long-hint  : |
+            List genomes available in RefSeq
+            
+    ensembl :
+        ui-name : |
+            List Ensembl genomes
+        short-hint : |
+            List genomes available in Ensembl
+        long-hint  : |
+            List genomes available in Ensembl
+
+    genomeData :
         ui-name : |
             Genome data
         short-hint : |
-            Genome data
+            Genome data to be updated
         long-hint  : |
-            Genome data
+            Genome data to be updated
 
 description : |
-    <p>Lists genomes from source database</p>
+    <p>Update genomes from source database</p>
