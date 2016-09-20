@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "ensembl",
     "refseq",
     "phytozome",
-    "workspace",
+    "workspace_name",
     "create_report"
 })
 public class ListLoadedGenomesParams {
@@ -35,8 +35,8 @@ public class ListLoadedGenomesParams {
     private Long refseq;
     @JsonProperty("phytozome")
     private Long phytozome;
-    @JsonProperty("workspace")
-    private String workspace;
+    @JsonProperty("workspace_name")
+    private String workspaceName;
     @JsonProperty("create_report")
     private Long createReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -86,18 +86,18 @@ public class ListLoadedGenomesParams {
         return this;
     }
 
-    @JsonProperty("workspace")
-    public String getWorkspace() {
-        return workspace;
+    @JsonProperty("workspace_name")
+    public String getWorkspaceName() {
+        return workspaceName;
     }
 
-    @JsonProperty("workspace")
-    public void setWorkspace(String workspace) {
-        this.workspace = workspace;
+    @JsonProperty("workspace_name")
+    public void setWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
     }
 
-    public ListLoadedGenomesParams withWorkspace(String workspace) {
-        this.workspace = workspace;
+    public ListLoadedGenomesParams withWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
         return this;
     }
 
@@ -128,7 +128,7 @@ public class ListLoadedGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((((((((("ListLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", workspace=")+ workspace)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((("ListLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", workspaceName=")+ workspaceName)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

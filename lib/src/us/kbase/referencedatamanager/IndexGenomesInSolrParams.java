@@ -23,15 +23,15 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @Generated("com.googlecode.jsonschema2pojo")
 @JsonPropertyOrder({
     "genomes",
-    "workspace",
+    "workspace_name",
     "creat_report"
 })
 public class IndexGenomesInSolrParams {
 
     @JsonProperty("genomes")
     private List<KBaseReferenceGenomeData> genomes;
-    @JsonProperty("workspace")
-    private String workspace;
+    @JsonProperty("workspace_name")
+    private String workspaceName;
     @JsonProperty("creat_report")
     private Long creatReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -51,18 +51,18 @@ public class IndexGenomesInSolrParams {
         return this;
     }
 
-    @JsonProperty("workspace")
-    public String getWorkspace() {
-        return workspace;
+    @JsonProperty("workspace_name")
+    public String getWorkspaceName() {
+        return workspaceName;
     }
 
-    @JsonProperty("workspace")
-    public void setWorkspace(String workspace) {
-        this.workspace = workspace;
+    @JsonProperty("workspace_name")
+    public void setWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
     }
 
-    public IndexGenomesInSolrParams withWorkspace(String workspace) {
-        this.workspace = workspace;
+    public IndexGenomesInSolrParams withWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
         return this;
     }
 
@@ -93,7 +93,7 @@ public class IndexGenomesInSolrParams {
 
     @Override
     public String toString() {
-        return ((((((((("IndexGenomesInSolrParams"+" [genomes=")+ genomes)+", workspace=")+ workspace)+", creatReport=")+ creatReport)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((("IndexGenomesInSolrParams"+" [genomes=")+ genomes)+", workspaceName=")+ workspaceName)+", creatReport=")+ creatReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

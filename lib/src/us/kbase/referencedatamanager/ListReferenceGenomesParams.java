@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "refseq",
     "phytozome",
     "updated_only",
-    "workspace",
+    "workspace_name",
     "create_report"
 })
 public class ListReferenceGenomesParams {
@@ -38,8 +38,8 @@ public class ListReferenceGenomesParams {
     private Long phytozome;
     @JsonProperty("updated_only")
     private Long updatedOnly;
-    @JsonProperty("workspace")
-    private String workspace;
+    @JsonProperty("workspace_name")
+    private String workspaceName;
     @JsonProperty("create_report")
     private Long createReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -104,18 +104,18 @@ public class ListReferenceGenomesParams {
         return this;
     }
 
-    @JsonProperty("workspace")
-    public String getWorkspace() {
-        return workspace;
+    @JsonProperty("workspace_name")
+    public String getWorkspaceName() {
+        return workspaceName;
     }
 
-    @JsonProperty("workspace")
-    public void setWorkspace(String workspace) {
-        this.workspace = workspace;
+    @JsonProperty("workspace_name")
+    public void setWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
     }
 
-    public ListReferenceGenomesParams withWorkspace(String workspace) {
-        this.workspace = workspace;
+    public ListReferenceGenomesParams withWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
         return this;
     }
 
@@ -146,7 +146,7 @@ public class ListReferenceGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((((((((((("ListReferenceGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", updatedOnly=")+ updatedOnly)+", workspace=")+ workspace)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((("ListReferenceGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", updatedOnly=")+ updatedOnly)+", workspaceName=")+ workspaceName)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

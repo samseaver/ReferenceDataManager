@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "refseq",
     "phytozome",
     "genomeData",
-    "workspace",
+    "workspace_name",
     "creat_report",
     "formats"
 })
@@ -40,8 +40,8 @@ public class UpdateLoadedGenomesParams {
     private Long phytozome;
     @JsonProperty("genomeData")
     private List<ReferenceGenomeData> genomeData;
-    @JsonProperty("workspace")
-    private String workspace;
+    @JsonProperty("workspace_name")
+    private String workspaceName;
     @JsonProperty("creat_report")
     private Long creatReport;
     @JsonProperty("formats")
@@ -108,18 +108,18 @@ public class UpdateLoadedGenomesParams {
         return this;
     }
 
-    @JsonProperty("workspace")
-    public String getWorkspace() {
-        return workspace;
+    @JsonProperty("workspace_name")
+    public String getWorkspaceName() {
+        return workspaceName;
     }
 
-    @JsonProperty("workspace")
-    public void setWorkspace(String workspace) {
-        this.workspace = workspace;
+    @JsonProperty("workspace_name")
+    public void setWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
     }
 
-    public UpdateLoadedGenomesParams withWorkspace(String workspace) {
-        this.workspace = workspace;
+    public UpdateLoadedGenomesParams withWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
         return this;
     }
 
@@ -165,7 +165,7 @@ public class UpdateLoadedGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((((((((((((("UpdateLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", genomeData=")+ genomeData)+", workspace=")+ workspace)+", creatReport=")+ creatReport)+", formats=")+ formats)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((("UpdateLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", genomeData=")+ genomeData)+", workspaceName=")+ workspaceName)+", creatReport=")+ creatReport)+", formats=")+ formats)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

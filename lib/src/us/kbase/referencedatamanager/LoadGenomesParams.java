@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "data",
     "genomes",
     "index_in_solr",
-    "workspace",
+    "workspace_name",
     "create_report"
 })
 public class LoadGenomesParams {
@@ -36,8 +36,8 @@ public class LoadGenomesParams {
     private List<ReferenceGenomeData> genomes;
     @JsonProperty("index_in_solr")
     private Long indexInSolr;
-    @JsonProperty("workspace")
-    private String workspace;
+    @JsonProperty("workspace_name")
+    private String workspaceName;
     @JsonProperty("create_report")
     private Long createReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
@@ -87,18 +87,18 @@ public class LoadGenomesParams {
         return this;
     }
 
-    @JsonProperty("workspace")
-    public String getWorkspace() {
-        return workspace;
+    @JsonProperty("workspace_name")
+    public String getWorkspaceName() {
+        return workspaceName;
     }
 
-    @JsonProperty("workspace")
-    public void setWorkspace(String workspace) {
-        this.workspace = workspace;
+    @JsonProperty("workspace_name")
+    public void setWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
     }
 
-    public LoadGenomesParams withWorkspace(String workspace) {
-        this.workspace = workspace;
+    public LoadGenomesParams withWorkspaceName(String workspaceName) {
+        this.workspaceName = workspaceName;
         return this;
     }
 
@@ -129,7 +129,7 @@ public class LoadGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((((((((("LoadGenomesParams"+" [data=")+ data)+", genomes=")+ genomes)+", indexInSolr=")+ indexInSolr)+", workspace=")+ workspace)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((("LoadGenomesParams"+" [data=")+ data)+", genomes=")+ genomes)+", indexInSolr=")+ indexInSolr)+", workspaceName=")+ workspaceName)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }
