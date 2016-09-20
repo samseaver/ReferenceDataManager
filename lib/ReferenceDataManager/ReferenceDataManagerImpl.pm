@@ -279,7 +279,7 @@ sub list_reference_genomes
     	refseq => 0,
     	create_report => 0,
     	update_only => 1,#todo
-    	workspace => undef
+    	workspace_name => undef
     });
     my $msg = "";
     $output = [];
@@ -438,7 +438,7 @@ sub list_loaded_genomes
     	phytozome => 0,
     	refseq => 0,
     	create_report => 0,
-    	workspace => undef
+    	workspace_name => undef
     });
     my $msg = "";
     my $output = [];
@@ -616,20 +616,21 @@ sub load_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN load_genomes
-     $params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	data => undef,
     	genomes => [],
         index_in_solr => 0,
         create_report => 0,
-    	workspace => undef
+    	workspace_name => undef
     });
-	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
-	my $genomes;
-	if (defined($params->{data})) {
-		my $array = [split(/;/,$params->{data})];
-		$genomes = [{
-			accession => $array->[0],
+    my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
+    my $genomes;
+    $output = [];
+    if (defined($params->{data})) {
+	my $array = [split(/;/,$params->{data})];
+	$genomes = [{
+		accession => $array->[0],
 	        status => $array->[1],
 	        name => $array->[2],
 	        ftp_dir => $array->[3],
@@ -639,78 +640,78 @@ sub load_genomes
 	        source => $array->[7],
 	        domain => $array->[8]
 		}];
-	} else {
-		$genomes = $params->{genomes};
-	}
-	for (my $i=0; $i < @{$genomes}; $i++) {
-		my $genome = $genomes->[$i];
-		print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
-		my $wsname = $self->util_workspace_names($genome->{source});
-		if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
-			my $genutilout = $loader->genbank_to_genome({
-				file => {
-					ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
-				},
-				genome_name => $genome->{id},
-				workspace_name => $wsname,
-				source => $genome->{source},
-				taxon_wsname => "ReferenceTaxons",
-				release => $genome->{version},
-				generate_ids_if_needed => 1,
-				genetic_code => 11,
-				type => "Reference",
-				metadata => {
-					refid => $genome->{id},
-					accession => $genome->{accession},
-					refname => $genome->{name},
-					url => $genome->{url},
-					version => $genome->{version}
-				}
-			});
-			my $genomeout = {
-				"ref" => $genutilout->{genome_ref},
-				id => $genome->{id},
-				workspace_name => $wsname,
-				source_id => $genome->{id},
-		        accession => $genome->{accession},
-				name => $genome->{name},
-    			ftp_dir => $genome->{ftp_dir},
-    			version => $genome->{version},
-				source => $genome->{source},
-				domain => $genome->{domain}
-			};
-			push(@{$output},$genomeout);
-			
-			if ($params->{index_in_solr} == 1) {
-				$self->func_index_in_solr({
-					genomes => [$genomeout]
-				});
+   } else {
+	$genomes = $params->{genomes};
+   }
+   for (my $i=0; $i < @{$genomes}; $i++) {
+	my $genome = $genomes->[$i];
+	print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
+	my $wsname = $self->util_workspace_names($genome->{source});
+	if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
+		my $genutilout = $loader->genbank_to_genome({
+			file => {
+				ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
+			},
+			genome_name => $genome->{id},
+			workspace_name => $wsname,
+			source => $genome->{source},
+			taxon_wsname => "ReferenceTaxons",
+			release => $genome->{version},
+			generate_ids_if_needed => 1,
+			genetic_code => 11,
+			type => "Reference",
+			metadata => {
+				refid => $genome->{id},
+				accession => $genome->{accession},
+				refname => $genome->{name},
+				url => $genome->{url},
+				version => $genome->{version}
 			}
-		} elsif ($genome->{source} eq "phytozome") {
-			#NEED SAM TO PUT CODE FOR HIS LOADER HERE
-			my $genomeout = {
-				"ref" => $wsname."/".$genome->{id},
-				id => $genome->{id},
-				workspace_name => $wsname,
-				source_id => $genome->{id},
+		});
+		my $genomeout = {
+			"ref" => $genutilout->{genome_ref},
+			id => $genome->{id},
+			workspace_name => $wsname,
+			source_id => $genome->{id},
 		        accession => $genome->{accession},
-				name => $genome->{name},
+			name => $genome->{name},
     			ftp_dir => $genome->{ftp_dir},
     			version => $genome->{version},
-				source => $genome->{source},
-				domain => $genome->{domain}
-			};
-			push(@{$output},$genomeout);
+			source => $genome->{source},
+			domain => $genome->{domain}
+		};
+		push(@{$output},$genomeout);
+			
+		if ($params->{index_in_solr} == 1) {
+			$self->func_index_in_solr({
+				genomes => [$genomeout]
+			});
 		}
+	} elsif ($genome->{source} eq "phytozome") {
+		#NEED SAM TO PUT CODE FOR HIS LOADER HERE
+		my $genomeout = {
+			"ref" => $wsname."/".$genome->{id},
+			id => $genome->{id},
+			workspace_name => $wsname,
+			source_id => $genome->{id},
+		        accession => $genome->{accession},
+			name => $genome->{name},
+    			ftp_dir => $genome->{ftp_dir},
+    			version => $genome->{version},
+			source => $genome->{source},
+			domain => $genome->{domain}
+		};
+		push(@{$output},$genomeout);
 	}
-	if ($params->{create_report}) {
-    	print "Loaded ".@{$output}." genomes!"."\n";
-    	$self->util_create_report({
-    		message => "Loaded ".@{$output}." genomes!",
-    		workspace => $params->{workspace}
-    	});
-    	$output = [$params->{workspace}."/load_genomes"];
-    }
+   }
+   if ($params->{create_report}) {
+      print "Loaded ".@{$output}." genomes!"."\n";
+      $self->util_create_report({
+    	message => "Loaded ".@{$output}." genomes!",
+    	workspace => $params->{workspace}
+      });
+      $output = [$params->{workspace}."/load_genomes"];
+   }
     #END load_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -809,7 +810,7 @@ sub index_genomes_in_solr
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN index_genomes_in_solr
-     $params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],[]);
     my $json = JSON->new->allow_nonref;
     my @solr_records;
@@ -1085,7 +1086,7 @@ sub update_loaded_genomes
     	phytozome => 0,#todo
     	refseq => 1,
     	create_report => 0,
-    	workspace => "RefSeq_Genomes",
+    	workspace_name => "RefSeq_Genomes",
     	genomeData => [],
     	formats => "gbf"
     });
