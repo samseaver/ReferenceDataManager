@@ -119,8 +119,8 @@ module ReferenceDataManager {
         bool phytozome;
         list<ReferenceGenomeData> genomeData;
 	string workspace_name;
-        bool creat_report;
-	string formats;
+        bool create_report;
+	string fileformats;
     } UpdateLoadedGenomesParams;
     
     /*
