@@ -1086,7 +1086,7 @@ sub update_loaded_genomes
     	refseq => 1,
     	create_report => 0,
     	workspace => "RefSeq_Genomes",
-    	genomeData => undef,
+    	genomeData => [],
     	formats => "gbf"
     });
     
