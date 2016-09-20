@@ -18,8 +18,7 @@ my $auth_token = Bio::KBase::AuthToken->new(token => $token, ignore_authrc => 1)
 my $ctx = LocalCallContext->new($token, $auth_token->user_id);
 $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
-print "local context:" . Dumper($ctx) . "\n";
-print "ref local context:". Dumper($impl->{$ctx});
+
 eval {
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
