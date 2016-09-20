@@ -25,7 +25,7 @@
     "service-mapping" : {
       "url" : "",
       "name" : "ReferenceDataManager",
-      "method" : "load_genomes",
+      "method" : "update_loaded_genomes",
       "input_mapping" : [
         {
           "input_parameter": "genomeData",
