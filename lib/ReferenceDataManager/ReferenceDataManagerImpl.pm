@@ -811,7 +811,11 @@ sub index_genomes_in_solr
     my($output);
     #BEGIN index_genomes_in_solr
     $params = $self->util_initialize_call($params,$ctx);
-    $params = $self->util_args($params,[],[]);
+    $params = $self->util_args($params,[],{
+    	genomes => [],
+        create_report => 0,
+    	workspace_name => undef
+    });
     my $json = JSON->new->allow_nonref;
     my @solr_records;
     $output = [];
