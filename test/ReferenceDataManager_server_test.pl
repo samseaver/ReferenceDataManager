@@ -9,6 +9,7 @@ use ReferenceDataManager::ReferenceDataManagerImpl;
 
 local $| = 1;
 my $token = $ENV{'KB_AUTH_TOKEN'};
+print "Here is my token: " . $token . "\n";
 my $config_file = $ENV{'KB_DEPLOYMENT_CONFIG'};
 my $config = new Config::Simple($config_file)->get_block('ReferenceDataManager');
 #my $ws_url = $config->{"workspace-url"};
