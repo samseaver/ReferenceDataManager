@@ -1,5 +1,6 @@
 #!/bin/bash
-# post.jar is included in solr package
+# Apache Solr comes with a Standalone Java program called the SimplePostTool.
+# This program is packaged into JAR and available with the installation,post.jar
 BASEDIR=$(dirname $0)
 POSTJAR=$BASEDIR/post.jar
 URL=$KBASE_SOLR_CI/$1/update
