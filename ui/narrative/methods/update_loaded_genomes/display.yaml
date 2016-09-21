@@ -24,7 +24,7 @@ suggestions :
         related :
             []
         next :
-            [load_genomes]
+            []
 
 
 #
@@ -54,14 +54,6 @@ parameters :
             List genomes available in Ensembl
         long-hint  : |
             List genomes available in Ensembl
-
-    genomeData :
-        ui-name : |
-            Genome data
-        short-hint : |
-            Genome data to be updated
-        long-hint  : |
-            Genome data to be updated
 
 description : |
     <p>Update genomes from source database</p>
