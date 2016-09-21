@@ -43,6 +43,9 @@ our %return_counts = (
         'update_loaded_genomes' => 1,
         'update_loaded_genomes_async' => 1,
         'update_loaded_genomes_check' => 1,
+        'update_loaded_genomes_v1' => 1,
+        'update_loaded_genomes_v1_async' => 1,
+        'update_loaded_genomes_v1_check' => 1,
         'version' => 1,
 );
 
@@ -62,6 +65,9 @@ our %method_authentication = (
         'update_loaded_genomes' => 'required',
         'update_loaded_genomes_async' => 'required',
         'update_loaded_genomes_check' => 'required',
+        'update_loaded_genomes_v1' => 'required',
+        'update_loaded_genomes_v1_async' => 'required',
+        'update_loaded_genomes_v1_check' => 'required',
 );
 
 our %sync_methods = (
@@ -70,6 +76,7 @@ our %sync_methods = (
         'load_genomes' => 1,
         'index_genomes_in_solr' => 1,
         'update_loaded_genomes' => 1,
+        'update_loaded_genomes_v1' => 1,
 );
 
 our %async_run_methods = (
@@ -78,6 +85,7 @@ our %async_run_methods = (
         'load_genomes_async' => 'ReferenceDataManager.load_genomes',
         'index_genomes_in_solr_async' => 'ReferenceDataManager.index_genomes_in_solr',
         'update_loaded_genomes_async' => 'ReferenceDataManager.update_loaded_genomes',
+        'update_loaded_genomes_v1_async' => 'ReferenceDataManager.update_loaded_genomes_v1',
 );
 
 our %async_check_methods = (
@@ -86,6 +94,7 @@ our %async_check_methods = (
         'load_genomes_check' => 'ReferenceDataManager.load_genomes',
         'index_genomes_in_solr_check' => 'ReferenceDataManager.index_genomes_in_solr',
         'update_loaded_genomes_check' => 'ReferenceDataManager.update_loaded_genomes',
+        'update_loaded_genomes_v1_check' => 'ReferenceDataManager.update_loaded_genomes_v1',
 );
 
 sub _build_valid_methods
@@ -107,6 +116,9 @@ sub _build_valid_methods
         'update_loaded_genomes' => 1,
         'update_loaded_genomes_async' => 1,
         'update_loaded_genomes_check' => 1,
+        'update_loaded_genomes_v1' => 1,
+        'update_loaded_genomes_v1_async' => 1,
+        'update_loaded_genomes_v1_check' => 1,
         'version' => 1,
     };
     return $methods;
