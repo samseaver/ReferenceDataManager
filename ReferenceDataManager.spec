@@ -117,7 +117,7 @@ module ReferenceDataManager {
         bool ensembl;
         bool refseq;
         bool phytozome;
-        laist<ReferenceGenomeData> genomeData;
+        list<ReferenceGenomeData> genomeData;
 	string workspace_name;
         bool create_report;
 	string fileformats;
