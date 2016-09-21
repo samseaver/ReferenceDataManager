@@ -109,24 +109,6 @@ module ReferenceDataManager {
     */
     funcdef index_genomes_in_solr(IndexGenomesInSolrParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
     
-    /*
-        Arguments for the update_loaded_genomes_v1 function
-        
-    */
-    typedef structure {
-        bool ensembl;
-        bool refseq;
-        bool phytozome;
-        list<ReferenceGenomeData> genomeData;
-	string workspace_name;
-        bool create_report;
-	string fileformats;
-    } UpdateLoadedGenomesParams;
-    
-    /*
-        Updates the loaded genomes in KBase for the specified source databases
-    */
-    funcdef update_loaded_genomes_v1(UpdateLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
 
    /*
         Arguments for the update_loaded_genomes function
@@ -144,4 +126,27 @@ module ReferenceDataManager {
         Updates the loaded genomes in KBase for the specified source databases
     */
     funcdef update_loaded_genomes(UpdateLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
+
+
+
+    /*
+        Arguments for the update_loaded_genomes_v1 function
+        
+    */
+    typedef structure {
+        bool ensembl;
+        bool refseq;
+        bool phytozome;
+        list<ReferenceGenomeData> genomeData;
+	string workspace_name;
+        bool create_report;
+	string fileformats;
+    } UpdateLoadedGenomesParams_v1;
+    
+    /*
+        Updates the loaded genomes in KBase for the specified source databases
+    */
+    funcdef update_loaded_genomes_v1(UpdateLoadedGenomesParams_v1 params) returns (list<KBaseReferenceGenomeData> output) authentication required;
+
 };
+
