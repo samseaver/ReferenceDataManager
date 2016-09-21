@@ -272,6 +272,7 @@ sub list_reference_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_reference_genomes
+    print("The context:" . $ctx . "\n");
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	ensembl => 0,#todo
