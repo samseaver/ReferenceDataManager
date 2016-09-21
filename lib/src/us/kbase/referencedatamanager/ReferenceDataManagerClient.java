@@ -228,4 +228,22 @@ public class ReferenceDataManagerClient {
         List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.update_loaded_genomes", args, retType, true, true, jsonRpcContext);
         return res.get(0);
     }
+
+    /**
+     * <p>Original spec-file function name: update_loaded_genomes_v1</p>
+     * <pre>
+     * Updates the loaded genomes in KBase for the specified source databases
+     * </pre>
+     * @param   params   instance of type {@link us.kbase.referencedatamanager.UpdateLoadedGenomesParamsV1 UpdateLoadedGenomesParamsV1} (original type "UpdateLoadedGenomesParams_v1")
+     * @return   parameter "output" of list of type {@link us.kbase.referencedatamanager.KBaseReferenceGenomeData KBaseReferenceGenomeData}
+     * @throws IOException if an IO exception occurs
+     * @throws JsonClientException if a JSON RPC exception occurs
+     */
+    public List<KBaseReferenceGenomeData> updateLoadedGenomesV1(UpdateLoadedGenomesParamsV1 params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
+        List<Object> args = new ArrayList<Object>();
+        args.add(params);
+        TypeReference<List<List<KBaseReferenceGenomeData>>> retType = new TypeReference<List<List<KBaseReferenceGenomeData>>>() {};
+        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.update_loaded_genomes_v1", args, retType, true, true, jsonRpcContext);
+        return res.get(0);
+    }
 }
