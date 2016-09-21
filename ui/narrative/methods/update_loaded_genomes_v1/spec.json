@@ -1,0 +1,99 @@
+{
+  "ver" : "1.0.0",
+  "name" : "Uplate loaded genomes in reference databases",
+  "authors" : [ "chenry", "qzhang" ],
+  "contact" : "help@kbase.us",
+  "visble" : true,
+  "categories" : ["active"],
+  "widgets" : {
+    "input" : null,
+    "output" : "kbaseReportView"
+  },
+  "parameters" : [ {
+    "id" : "refseq",
+    "optional":false,
+    "advanced":false,
+    "allow_multiple":false,
+    "default_values":["1"],
+    "field_type" : "checkbox",
+    "checkbox_options":{
+      "checked_value": 1,
+      "unchecked_value": 0
+    }
+  }, {
+    "id" : "ensembl",
+    "optional":false,
+    "advanced":false,
+    "allow_multiple":false,
+    "default_values":["0"],
+    "field_type" : "checkbox",
+    "checkbox_options":{
+      "checked_value": 1,
+      "unchecked_value": 0
+    }
+  }, {
+    "id": "phytozome",
+    "optional":false,
+    "advanced":false,
+    "allow_multiple":false,
+    "default_values":["0"],
+    "field_type" : "checkbox",
+    "checkbox_options":{
+      "checked_value": 1,
+      "unchecked_value": 0
+    }
+  }, {
+    "id" : "genomeData",	
+    "default_values" : [],
+    "advanced" : false,
+    "allow_multiple" : false,
+    "optional" : false,
+    "field_type" : "text",
+    "text_options" : {
+      "valid_ws_types" : []
+    }
+  }],
+  "job_id_output_field": "docker",
+  "behavior" : {
+    "service-mapping" : {
+      "url" : "",
+      "name" : "ReferenceDataManager",
+      "method" : "update_loaded_genomes",
+      "input_mapping" : [
+        {
+          "input_parameter": "ensembl",
+          "target_property": "ensembl"
+        },
+        {
+          "input_parameter": "refseq",
+          "target_property": "refseq"
+        },
+        {
+          "input_parameter": "phytozome",
+          "target_property": "phytozome"
+        },
+	{
+	  "input_parameter": "genomeData",
+	  "target_property": "genomeData"
+	},
+        {
+          "constant_value" : "1",
+          "target_property": "create_report"
+        },
+	{
+          "narrative_system_variable": "workspace",
+          "target_property": "workspace_name"
+        }
+      ],
+      "output_mapping" : [
+        {
+          "target_property" : "report_ref",
+    	  "service_method_output_path" : [
+				0,
+				0
+        	]
+        }
+      ]
+    }
+  }
+}
