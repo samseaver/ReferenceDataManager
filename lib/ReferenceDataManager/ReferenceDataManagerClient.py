@@ -205,4 +205,11 @@ class ReferenceDataManager(object):
         resp = self._call('ReferenceDataManager.update_loaded_genomes',
                           [params], json_rpc_context)
         return resp[0]
+  
+    def update_loaded_genomes_v1(self, params, json_rpc_context = None):
+        if json_rpc_context and type(json_rpc_context) is not dict:
+            raise ValueError('Method update_loaded_genomes_v1: argument json_rpc_context is not type dict as required.')
+        resp = self._call('ReferenceDataManager.update_loaded_genomes_v1',
+                          [params], json_rpc_context)
+        return resp[0]
  
