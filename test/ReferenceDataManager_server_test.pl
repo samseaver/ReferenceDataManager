@@ -41,7 +41,7 @@ eval {
     ok(defined($ret->[0]),"list_reference_Genomes command returned at least one genome");
     #Testing update_loaded_genomes
     eval {
-        $ret = $impl->update_loaded_genomes({
+        $ret = $impl->update_loaded_genomes_v1({
  	genomeData => [$ret->[0]],    
         refseq => 1,
 	formats => "gbf"
