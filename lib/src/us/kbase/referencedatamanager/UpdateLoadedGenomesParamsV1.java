@@ -2,6 +2,7 @@
 package us.kbase.referencedatamanager;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -12,9 +13,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 
 /**
- * <p>Original spec-file type: UpdateLoadedGenomesParams</p>
+ * <p>Original spec-file type: UpdateLoadedGenomesParams_v1</p>
  * <pre>
- * Arguments for the update_loaded_genomes function
+ * Arguments for the update_loaded_genomes_v1 function
  * </pre>
  * 
  */
@@ -24,10 +25,12 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "ensembl",
     "refseq",
     "phytozome",
+    "genomeData",
     "workspace_name",
-    "create_report"
+    "create_report",
+    "fileformats"
 })
-public class UpdateLoadedGenomesParams {
+public class UpdateLoadedGenomesParamsV1 {
 
     @JsonProperty("ensembl")
     private Long ensembl;
@@ -35,10 +38,14 @@ public class UpdateLoadedGenomesParams {
     private Long refseq;
     @JsonProperty("phytozome")
     private Long phytozome;
+    @JsonProperty("genomeData")
+    private List<ReferenceGenomeData> genomeData;
     @JsonProperty("workspace_name")
     private String workspaceName;
     @JsonProperty("create_report")
     private Long createReport;
+    @JsonProperty("fileformats")
+    private String fileformats;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("ensembl")
@@ -51,7 +58,7 @@ public class UpdateLoadedGenomesParams {
         this.ensembl = ensembl;
     }
 
-    public UpdateLoadedGenomesParams withEnsembl(Long ensembl) {
+    public UpdateLoadedGenomesParamsV1 withEnsembl(Long ensembl) {
         this.ensembl = ensembl;
         return this;
     }
@@ -66,7 +73,7 @@ public class UpdateLoadedGenomesParams {
         this.refseq = refseq;
     }
 
-    public UpdateLoadedGenomesParams withRefseq(Long refseq) {
+    public UpdateLoadedGenomesParamsV1 withRefseq(Long refseq) {
         this.refseq = refseq;
         return this;
     }
@@ -81,8 +88,23 @@ public class UpdateLoadedGenomesParams {
         this.phytozome = phytozome;
     }
 
-    public UpdateLoadedGenomesParams withPhytozome(Long phytozome) {
+    public UpdateLoadedGenomesParamsV1 withPhytozome(Long phytozome) {
         this.phytozome = phytozome;
+        return this;
+    }
+
+    @JsonProperty("genomeData")
+    public List<ReferenceGenomeData> getGenomeData() {
+        return genomeData;
+    }
+
+    @JsonProperty("genomeData")
+    public void setGenomeData(List<ReferenceGenomeData> genomeData) {
+        this.genomeData = genomeData;
+    }
+
+    public UpdateLoadedGenomesParamsV1 withGenomeData(List<ReferenceGenomeData> genomeData) {
+        this.genomeData = genomeData;
         return this;
     }
 
@@ -96,7 +118,7 @@ public class UpdateLoadedGenomesParams {
         this.workspaceName = workspaceName;
     }
 
-    public UpdateLoadedGenomesParams withWorkspaceName(String workspaceName) {
+    public UpdateLoadedGenomesParamsV1 withWorkspaceName(String workspaceName) {
         this.workspaceName = workspaceName;
         return this;
     }
@@ -111,8 +133,23 @@ public class UpdateLoadedGenomesParams {
         this.createReport = createReport;
     }
 
-    public UpdateLoadedGenomesParams withCreateReport(Long createReport) {
+    public UpdateLoadedGenomesParamsV1 withCreateReport(Long createReport) {
         this.createReport = createReport;
+        return this;
+    }
+
+    @JsonProperty("fileformats")
+    public String getFileformats() {
+        return fileformats;
+    }
+
+    @JsonProperty("fileformats")
+    public void setFileformats(String fileformats) {
+        this.fileformats = fileformats;
+    }
+
+    public UpdateLoadedGenomesParamsV1 withFileformats(String fileformats) {
+        this.fileformats = fileformats;
         return this;
     }
 
@@ -128,7 +165,7 @@ public class UpdateLoadedGenomesParams {
 
     @Override
     public String toString() {
-        return ((((((((((((("UpdateLoadedGenomesParams"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", workspaceName=")+ workspaceName)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((((((("UpdateLoadedGenomesParamsV1"+" [ensembl=")+ ensembl)+", refseq=")+ refseq)+", phytozome=")+ phytozome)+", genomeData=")+ genomeData)+", workspaceName=")+ workspaceName)+", createReport=")+ createReport)+", fileformats=")+ fileformats)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }
