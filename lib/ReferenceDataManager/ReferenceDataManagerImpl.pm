@@ -204,8 +204,9 @@ sub _list_genomes_in_solr {
 	my $records_total = $solr_json_records->{numFound};
 	return @genome_records;
 }
-
-#This method checks if a given genome by name is present in SOLR.  Returns a string stating the status
+#
+# Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
+#
 sub _checkGenomeStatus {
 	my ($current_genome, $solr_genomes) = @_;
 	
@@ -215,8 +216,8 @@ sub _checkGenomeStatus {
 		$status = "New genome";
 	}else{
 		for (my $i = 0; $i < @{ $solr_genomes }; $i++ ) {
- 		    my $record = $solr_genomes->[$i];		
-		    my ($genome_source, $genome_id, $genome_name) = split /\t/, $record;
+ 		    my $record = $solr_genomes->[$i];
+		    my $genome_id = $record->{genome_id};
 
 		    if ($genome_id eq $current_genome->{accession}){
 			$status = "Existing genome: current";
