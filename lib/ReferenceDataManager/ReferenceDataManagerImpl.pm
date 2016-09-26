@@ -161,8 +161,8 @@ sub list_genomes_in_solr {
   	my $sort = "&sort=genome_id asc";
   	my $solrQuery = $solrServer.$core.$query.$fields.$rows.$sort.$solrFormat;
 	print "\n$solrQuery\n";
-	my @genome_records =`curl "$solrQuery" | grep -v genome_name`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
-	return @genome_records;
+	my $genome_records =`curl "$solrQuery" | grep -v genome_name`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
+	return $genome_records->{response};
 }
 
 #This method checks if a given genome by name is present in SOLR.  Returns a string stating the status
