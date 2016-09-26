@@ -149,24 +149,64 @@ sub util_create_report {
 		}]
 	});
 }
+#
+# Internal Method: to parse solr server response
+#
+sub _parseResponse
+{
+    my ($self, $response, $responseType) = @_;
 
-#This method lists the genomes already in SOLR and returns the list of those genomes
-sub list_genomes_in_solr {
-	my $solrServer = $ENV{KBASE_SOLR};
-	my $solrFormat="&wt=xml";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
+    # Clear the error fields
+    $self->{is_error} = 0;
+    $self->{error} = undef;
+
+    $responseType = "xml" unless $responseType;
+
+    # Check for successfull request/response
+    if ($response->{responsecode} eq "200") {
+           if ($responseType eq "json") {
+                my $resRef = JSON::from_json($response->{response});
+                if ($resRef->{responseHeader}->{status} eq 0) {
+                        return 1;
+                }
+            } else {
+                my $xs = new XML::Simple();
+                my $xmlRef;
+                eval {
+                        $xmlRef = $xs->XMLin($response->{response});
+                };
+                if ($xmlRef->{lst}->{'int'}->{status}->{content} eq 0){
+                        return 1;
+                }
+            }
+    }
+    $self->{is_error} = 1;
+    $self->{error} = $response;
+    $self->{error}->{errmsg} = $@;
+    return 0;
+}
+#
+#Internal Method: to list the genomes already in SOLR and return an array of those genomes
+#
+sub _list_genomes_in_solr {
+	my $solrServer = "http://kbase.us/internal/solr-ci/search";#$ENV{KBASE_SOLR};
+	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
 	my $core = "/genomes";
-  	my $query = "select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
+  	my $query = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
   	my $fields = "&fl=genome_source,genome_id,gene_name";
   	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
   	my $solrQuery = $solrServer.$core.$query.$fields.$rows.$sort.$solrFormat;
 	print "\n$solrQuery\n";
-	my $genome_records =`curl "$solrQuery" | grep -v genome_name`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
-	return $genome_records->{response};
+	my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
+	my $solr_json_records = JSON::decode_json($solr_response);
+	my @genome_records = @{$solr_json_records->{response}{docs}};
+	my $records_total = $solr_json_records->{numFound};
+	return @genome_records;
 }
 
 #This method checks if a given genome by name is present in SOLR.  Returns a string stating the status
-sub checkGenomeStatus {
+sub _checkGenomeStatus {
 	my ($current_genome, $solr_genomes) = @_;
 	
 	print "\tChecking status for assembly $current_genome->{accession}: ";
