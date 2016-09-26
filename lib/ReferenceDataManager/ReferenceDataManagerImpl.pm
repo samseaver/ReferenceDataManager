@@ -153,15 +153,15 @@ sub util_create_report {
 #This method lists the genomes already in SOLR and returns the list of those genomes
 sub list_genomes_in_solr {
 	my $solrServer = $ENV{KBASE_SOLR};
-	my $solrFormat="&wt=csv&csv.separator=%09&csv.mv.separator=;";
+	my $solrFormat="&wt=xml";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
 	my $core = "/genomes";
   	my $query = "select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
-  	my $fields = "&fl=genome_source,genome_id,genome_name";
+  	my $fields = "&fl=genome_source,genome_id,gene_name";
   	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
   	my $solrQuery = $solrServer.$core.$query.$fields.$rows.$sort.$solrFormat;
 	print "\n$solrQuery\n";
-	my @genome_records = `wget -q -O - "$solrQuery" | grep -v genome_name`;
+	my @genome_records =`curl "$solrQuery" | grep -v genome_name`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	return @genome_records;
 }
 
