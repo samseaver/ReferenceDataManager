@@ -24,6 +24,8 @@ use Config::IniFiles;
 use POSIX;
 use FindBin qw($Bin);
 use JSON;
+use Data::Dumper qw(Dumper);
+
 
 #The first thing every function should do is call this function
 sub util_initialize_call {
