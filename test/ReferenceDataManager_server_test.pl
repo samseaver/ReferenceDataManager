@@ -21,8 +21,9 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     my $solr_ret = $impl->_list_genomes_in_solr();#{response}->{response}->{docs}
-    print "Number of solr records found: ".$solr_ret->{response}->{response}->{numFound}."\n";
-    print Dumper($solr_ret->{response}->{response}->{docs}->[0]);
+    print "Example solr records value: ".$solr_ret->{grouped}->{groups}->[0]->{groupValue}."\n";
+    print "Example solr records count: ".$solr_ret->{grouped}->{groups}->[0]->{doclist}->{numFound}."\n";
+    print Dumper($solr_ret->{grouped}->{groups});
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
     #Testing the list_reference_genomes function
