@@ -260,7 +260,7 @@ sub _list_genomes_in_solr {
 	}
 	my $solr_genome_records = $solr_response->{response}->{docs};
 	print Dumper($solr_genome_records->[0]);
-	return @solr_genome_records;
+	return @{$solr_genome_records};
 }
 #
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
