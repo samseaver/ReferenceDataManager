@@ -236,6 +236,7 @@ sub _parseResponse
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
 sub _list_genomes_in_solr {
+	my ($self) = @_;
 	#my $solrServer = "http://kbase.us/internal/solr-ci/search";#$ENV{KBASE_SOLR};
 	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
 	my $core = "/genomes";
