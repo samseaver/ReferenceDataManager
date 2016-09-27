@@ -20,8 +20,9 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
-    my $solr_ret = $impl->_list_genomes_in_solr();
-    print "Number of solr records found: ".@{$solr_ret}."\n";
+    my $solr_ret = $impl->_list_genomes_in_solr();#{response}->{response}->{docs}
+    print "Number of solr records found: ".$solr_ret->{response}->{response}->{numFound}."\n";
+    print Dumper($solr_ret->{response}->{response}->{docs}->[0]);
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
     #Testing the list_reference_genomes function
