@@ -255,12 +255,11 @@ sub _list_genomes_in_solr {
         	if ($resultformat eq "json") {
                 	my $out = JSON::from_json($solr_response->{response});
                 	$solr_response->{response} = $out;
-                	print "\nJSON response: \n" . $out->{response}{docs} . "\n";
         	}
 	}
-	my $solr_genome_records = $solr_response->{response}->{docs};
-	print Dumper(@{$solr_genome_records});
-	return @{$solr_genome_records};
+	my @solr_genome_records = @{$solr_response->{response}{docs}};
+	print @solr_genome_records[0]->{object_id};
+	return @solr_genome_records;
 }
 #
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
