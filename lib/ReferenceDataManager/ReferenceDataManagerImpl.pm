@@ -237,7 +237,8 @@ sub _parseResponse
 #
 sub _list_genomes_in_solr {
 	my ($self) = @_;
-	#my $solrServer = "http://kbase.us/internal/solr-ci/search";#$ENV{KBASE_SOLR};
+	
+	my $resultformat = "json";
 	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
 	my $core = "/genomes";
   	my $query = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
@@ -248,7 +249,7 @@ sub _list_genomes_in_solr {
 	print "\n$solrQuery\n";
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_response = $self->_request("$solrQuery", "GET");
-	my $responseCode = $self->_parseResponse($solr_response, "json");
+	my $responseCode = $self->_parseResponse($solr_response, $resultformat);
     	if ($responseCode) {
         	if ($resultformat eq "json") {
                 	my $out = JSON::from_json($solr_response->{response});
@@ -260,7 +261,7 @@ sub _list_genomes_in_solr {
 	#return $solr_response;
 	my @solr_genome_records = $solr_response->{response}{docs};
 	#my $records_total = $solr_json_response->{numFound};
-	return @genome_records;
+	return @solr_genome_records;
 }
 #
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
