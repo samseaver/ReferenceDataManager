@@ -261,8 +261,8 @@ sub _list_genomes_in_solr {
         	}
 	}
 	my @solr_genome_records = @{$solr_response->{response}->{grouped}->{genome_id}->{groups}};
-	print "\nSome example data:\n";
-	print @solr_genome_records[0]->{doclist}->{numFound};
+	print "\nFound unique genome_id groups of:" . scalar @solr_genome_records;
+	#print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	return $solr_response;
 }
 #
