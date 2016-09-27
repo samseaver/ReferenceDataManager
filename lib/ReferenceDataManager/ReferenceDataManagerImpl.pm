@@ -252,16 +252,17 @@ sub _list_genomes_in_solr {
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_response = $self->_request("$solrQuery", "GET");
 	print "\nRaw response: \n" . $solr_response->{response} . "\n";
-	#print "\nRaw response: \n" . $solr_response->{grouped}->{genome_id} . "\n";
+	
 	my $responseCode = $self->_parseResponse($solr_response, $resultformat);
     	if ($responseCode) {
         	if ($resultformat eq "json") {
-                	my $out = JSON::from_json($solr_response->{grouped}->{genome_id}->{groups});
-                	$solr_response->{grouped}->{genome_id}->{groups}= $out;
+                	my $out = JSON::from_json($solr_response->{response}->{grouped}->{genome_id}->{groups});
+                	$solr_response->{response}->{grouped}->{genome_id}->{groups}= $out;
         	}
 	}
-	my @solr_genome_records = @{$solr_response->{grouped}->{groups}};
-	print "\nSome example data:" . @solr_genome_records[0]->{doclist}->{numFound};
+	my @solr_genome_records = @{$solr_response->{response}->{grouped}->{groups}};
+	print "\nSome example data:\n";
+	print @solr_genome_records[0]->{doclist}->{numFound};
 	return $solr_response;
 }
 #
