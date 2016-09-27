@@ -257,9 +257,9 @@ sub _list_genomes_in_solr {
                 	$solr_response->{response} = $out;
         	}
 	}
-	my @solr_genome_records = @{$solr_response->{response}->{response}->{docs}};
-	print "\nSome example data:" . @solr_genome_records[0]->{object_id};
-	return @solr_genome_records;
+	#my @solr_genome_records = @{$solr_response->{response}->{response}->{docs}};
+	#print "\nSome example data:" . @solr_genome_records[0]->{object_id};
+	return $solr_response;
 }
 #
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
