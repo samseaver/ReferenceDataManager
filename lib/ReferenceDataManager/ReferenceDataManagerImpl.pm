@@ -257,7 +257,7 @@ sub _list_genomes_in_solr {
                 	$solr_response->{response} = $out;
         	}
 	}
-	my @solr_genome_records = @{$solr_response->{response}{docs}};
+	my @solr_genome_records = @{$solr_response->{response}->{docs}};
 	print @solr_genome_records[0]->{object_id};
 	return @solr_genome_records;
 }
