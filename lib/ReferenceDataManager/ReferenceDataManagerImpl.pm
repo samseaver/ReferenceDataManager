@@ -244,7 +244,7 @@ sub _list_genomes_in_solr {
   	my $fields = "&fl=genome_source,genome_id,gene_name";
   	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
-  	my $solrQuery = $self->{SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
+  	my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
 	print "\n$solrQuery\n";
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_response = $self->_request("$solrQuery", "GET");
