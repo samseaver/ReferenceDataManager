@@ -253,7 +253,7 @@ sub _list_genomes_in_solr {
 	my $responseCode = $self->_parseResponse($solr_response, $resultformat);
     	if ($responseCode) {
         	if ($resultformat eq "json") {
-                	my $out = JSON::from_json($solr_response->{response});
+                	my $out = JSON::from_json($solr_response->{response}->{response});
                 	$solr_response->{response} = $out;
         	}
 	}
