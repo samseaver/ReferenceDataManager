@@ -25,6 +25,7 @@ use POSIX;
 use FindBin qw($Bin);
 use JSON;
 use Data::Dumper qw(Dumper);
+use LWP::UserAgent;
 
 
 #The first thing every function should do is call this function
@@ -152,6 +153,49 @@ sub util_create_report {
 	});
 }
 #
+# Internal Method used for sending HTTP
+# url : Requested url
+# method : HTTP method
+# dataType : Type of data posting (binary or text)
+# headers : headers as key => value pair
+# data : if binary it will as sequence of character
+#          if text it will be key => value pair
+sub _request
+{
+    my ($self, $url, $method, $dataType, $headers, $data) = @_;
+
+    # Intialize the request params if not specified
+    $dataType = ($dataType) ? $dataType : 'text';
+    $method = ($method) ? $method : 'POST';
+    $url = ($url) ? $url : $self->(_SOLR_URL);
+    $headers = ($headers) ?  $headers : {};
+    $data = ($data) ? $data: '';
+
+    my $out = {};
+
+    # create a HTTP request
+    my $ua = LWP::UserAgent->new;
+    my $request = HTTP::Request->new;
+    $request->method($method);
+    $request->uri($url);
+
+    # set headers
+    foreach my $header (keys %$headers) {
+        $request->header($header =>  $headers->{$header});
+    }
+
+    # set data for posting
+    $request->content($data);
+
+    # Send request and receive the response
+    my $response = $ua->request($request);
+    $out->{responsecode} = $response->code();
+    $out->{response} = $response->content;
+    $out->{url} = $url;
+    return $out;
+}
+
+#
 # Internal Method: to parse solr server response
 #
 sub _parseResponse
@@ -200,7 +244,8 @@ sub _list_genomes_in_solr {
   	my $sort = "&sort=genome_id asc";
   	my $solrQuery = $solrServer.$core.$query.$fields.$rows.$sort.$solrFormat;
 	print "\n$solrQuery\n";
-	my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
+	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
+	my $solr_response = $self->_request("$solrQuery", "GET");
 	my $solr_json_response = JSON::from_json($solr_response->{response});
 	print "\nRaw response: \n";
 	print $solr_response;
