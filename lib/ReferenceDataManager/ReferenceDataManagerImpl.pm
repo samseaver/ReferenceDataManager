@@ -191,7 +191,7 @@ sub _parseResponse
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
 sub _list_genomes_in_solr {
-	my $solrServer = "http://localhost:8005"; #"http://kbase.us/internal/solr-ci/search";#$ENV{KBASE_SOLR};
+	my $solrServer = "http://kbase.us/internal/solr-ci/search";#$ENV{KBASE_SOLR};
 	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
 	my $core = "/genomes";
   	my $query = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
@@ -201,11 +201,12 @@ sub _list_genomes_in_solr {
   	my $solrQuery = $solrServer.$core.$query.$fields.$rows.$sort.$solrFormat;
 	print "\n$solrQuery\n";
 	my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
-	#my $solr_json_records = JSON::decode_json($solr_response);
-	print Dumper($solr_response);
-	#my @genome_records = @{$solr_json_records->{response}};
-	#my $records_total = $solr_json_records->{numFound};
-	return;#@genome_records;
+	my $solr_json_response = JSON::from_json($solr_response->{response});
+	print "\nRaw response: \n". $solr_response;
+	print "\nJSON response: \n" . $solr_json_response;
+	my @genome_records = @{$solr_json_response->{docs}};
+	#my $records_total = $solr_json_response->{numFound};
+	return @genome_records;
 }
 #
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
