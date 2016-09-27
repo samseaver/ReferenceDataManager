@@ -255,7 +255,7 @@ sub _list_genomes_in_solr {
         	if ($resultformat eq "json") {
                 	my $out = JSON::from_json($solr_response->{response});
                 	$solr_response->{response} = $out;
-                	print "\nJSON response: \n" . $out->{response} . "\n";
+                	print "\nJSON response: \n" . $out->{response}{docs} . "\n";
         	}
 	}
 	my @solr_genome_records = $solr_response->{response}{docs};
