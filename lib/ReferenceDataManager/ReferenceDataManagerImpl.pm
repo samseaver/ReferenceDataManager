@@ -201,7 +201,7 @@ sub _list_genomes_in_solr {
 	my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_json_records = JSON::decode_json($solr_response);
 	my @genome_records = @{$solr_json_records->{response}{docs}};
-	my $records_total = $solr_json_records->{numFound};
+	#my $records_total = $solr_json_records->{numFound};
 	return @genome_records;
 }
 #
