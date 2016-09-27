@@ -26,6 +26,7 @@ use FindBin qw($Bin);
 use JSON;
 use Data::Dumper qw(Dumper);
 use LWP::UserAgent;
+use XML::Simple;
 
 
 #The first thing every function should do is call this function
@@ -167,7 +168,7 @@ sub _request
     # Intialize the request params if not specified
     $dataType = ($dataType) ? $dataType : 'text';
     $method = ($method) ? $method : 'POST';
-    $url = ($url) ? $url : $self->(_SOLR_URL);
+    $url = ($url) ? $url : $self->{_SOLR_URL};
     $headers = ($headers) ?  $headers : {};
     $data = ($data) ? $data: '';
 
@@ -235,21 +236,21 @@ sub _parseResponse
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
 sub _list_genomes_in_solr {
-	my $solrServer = "http://kbase.us/internal/solr-ci/search";#$ENV{KBASE_SOLR};
+	#my $solrServer = "http://kbase.us/internal/solr-ci/search";#$ENV{KBASE_SOLR};
 	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
 	my $core = "/genomes";
   	my $query = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
   	my $fields = "&fl=genome_source,genome_id,gene_name";
   	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
-  	my $solrQuery = $solrServer.$core.$query.$fields.$rows.$sort.$solrFormat;
+  	my $solrQuery = $self->{SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
 	print "\n$solrQuery\n";
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_response = $self->_request("$solrQuery", "GET");
 	my $solr_json_response = JSON::from_json($solr_response->{response});
 	print "\nRaw response: \n";
-	print $solr_response;
-	#print "\nJSON response: \n" . $solr_json_response;
+	print $solr_response->{response};
+	print "\nJSON response: \n" . $solr_json_response;
 	#my @genome_records = $solr_json_response->{docs};
 	#my $records_total = $solr_json_response->{numFound};
 	return;# @genome_records;
@@ -307,6 +308,10 @@ sub new
     	phytozome => "Phytozome_Genomes",
     	refseq => "RefSeq_Genomes"
     };
+    if (! $self->{_SOLR_URL}) {
+        $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
+    }
+
     
     #END_CONSTRUCTOR
 
