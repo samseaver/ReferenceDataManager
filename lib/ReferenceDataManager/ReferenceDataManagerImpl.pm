@@ -256,11 +256,11 @@ sub _list_genomes_in_solr {
 	my $responseCode = $self->_parseResponse($solr_response, $resultformat);
     	if ($responseCode) {
         	if ($resultformat eq "json") {
-                	my $out = JSON::from_json($solr_response->{response}->{grouped}->{genome_id}->{groups});
-                	$solr_response->{response}->{grouped}->{genome_id}->{groups}= $out;
+                	my $out = JSON::from_json($solr_response->{response});
+                	$solr_response->{response}= $out;
         	}
 	}
-	my @solr_genome_records = @{$solr_response->{response}->{grouped}->{groups}};
+	my @solr_genome_records = @{$solr_response->{response}->{grouped}->{genome_id}->{groups}};
 	print "\nSome example data:\n";
 	print @solr_genome_records[0]->{doclist}->{numFound};
 	return $solr_response;
