@@ -249,7 +249,7 @@ sub _list_genomes_in_solr {
 	print "\n$solrQuery\n";
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_response = $self->_request("$solrQuery", "GET");
-	print "\nRaw response: \n" . $solr_response->{response} . "\n";
+	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	my $responseCode = $self->_parseResponse($solr_response, $resultformat);
     	if ($responseCode) {
         	if ($resultformat eq "json") {
