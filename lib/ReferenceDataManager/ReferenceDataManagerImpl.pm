@@ -242,9 +242,9 @@ sub _list_genomes_in_solr {
 	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
 	my $core = "/genomes";
   	my $query = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
-  	my $fields = "&fl=genome_source,genome_id,gene_name";
+  	my $fields = "&fl=object_id,genome_source,gene_name";
   	my $rows = "&rows=100";
-  	my $sort = "&sort=genome_id asc";
+  	my $sort = "&sort=object_id, asc";
   	my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
 	print "\n$solrQuery\n";
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
@@ -258,7 +258,7 @@ sub _list_genomes_in_solr {
         	}
 	}
 	my @solr_genome_records = @{$solr_response->{response}->{docs}};
-	print @solr_genome_records[0]->{object_id};
+	print @solr_genome_records[0]->{genome_id};
 	return @solr_genome_records;
 }
 #
