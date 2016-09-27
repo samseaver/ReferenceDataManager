@@ -21,7 +21,7 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     my $solr_ret = $impl->_list_genomes_in_solr();
-    #print "Number of solr records:".@{$solr_ret}."\n";
+    print "Number of solr records returned: ".@{$solr_ret}."\n";
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
     #Testing the list_reference_genomes function
