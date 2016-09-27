@@ -248,13 +248,19 @@ sub _list_genomes_in_solr {
 	print "\n$solrQuery\n";
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_response = $self->_request("$solrQuery", "GET");
-	my $solr_json_response = JSON::from_json($solr_response->{response});
-	print "\nRaw response: \n";
-	print $solr_response->{response};
-	print "\nJSON response: \n" . $solr_json_response;
-	#my @genome_records = $solr_json_response->{docs};
+	my $responseCode = $self->_parseResponse($solr_response, "json");
+    	if ($responseCode) {
+        	if ($resultformat eq "json") {
+                	my $out = JSON::from_json($solr_response->{response});
+                	$solr_response->{response} = $out;
+                	print "\nJSON response: \n" . $out . "\n";
+                	#return $solr_response;
+        	}
+	}
+	#return $solr_response;
+	my @solr_genome_records = $solr_response->{response}{docs};
 	#my $records_total = $solr_json_response->{numFound};
-	return;# @genome_records;
+	return @genome_records;
 }
 #
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
