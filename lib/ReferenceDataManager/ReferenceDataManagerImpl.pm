@@ -258,7 +258,7 @@ sub _list_genomes_in_solr {
         	}
 	}
 	my @solr_genome_records = @{$solr_response->{response}->{response}->{docs}};
-	print "Some json data:" . @solr_genome_records[0]->{object_id};
+	print "\nSome example data:" . @solr_genome_records[0]->{object_id};
 	return @solr_genome_records;
 }
 #
