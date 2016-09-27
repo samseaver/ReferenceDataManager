@@ -242,23 +242,26 @@ sub _list_genomes_in_solr {
 	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
 	my $core = "/genomes";
   	my $query = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
-  	my $fields = "&fl=object_id,genome_source,gene_name";
+  	my $fields = "&fl=genome_id";
   	my $rows = "&rows=100";
-  	my $sort = "&sort=object_id asc";
-  	my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
+  	my $sort = "&sort=genome_id asc";
+	my $grp = "&group=true&group.field=genome_id";
+  	#my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
+	my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$solrFormat.$grp;
 	print "\n$solrQuery\n";
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_response = $self->_request("$solrQuery", "GET");
 	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
+	print "\nRaw response: \n" . $solr_response->{grouped} . "\n";
 	my $responseCode = $self->_parseResponse($solr_response, $resultformat);
     	if ($responseCode) {
         	if ($resultformat eq "json") {
-                	my $out = JSON::from_json($solr_response->{response});
-                	$solr_response->{response} = $out;
+                	my $out = JSON::from_json($solr_response->{grouped});
+                	$solr_response->{grouped} = $out;
         	}
 	}
-	#my @solr_genome_records = @{$solr_response->{response}->{response}->{docs}};
-	#print "\nSome example data:" . @solr_genome_records[0]->{object_id};
+	my @solr_genome_records = @{$solr_response->{grouped}->{groups}};
+	print "\nSome example data:" . @solr_genome_records[0]->{doclist}->{numFound};
 	return $solr_response;
 }
 #
