@@ -1383,7 +1383,7 @@ sub update_loaded_genomes_v1
     
     my $msg = "";
     $output = [];
-    my $solrServer = $ENV{KBASE_SOLR};
+    my $solrServer = $self->{_SOLR_URL};#$ENV{KBASE_SOLR};
     my $solrFormat="&wt=csv&csv.separator=%09&csv.mv.separator=;";
     my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
     my $genome_data = $params->{genomeData};
