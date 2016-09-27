@@ -249,16 +249,15 @@ sub _list_genomes_in_solr {
 	print "\n$solrQuery\n";
 	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
 	my $solr_response = $self->_request("$solrQuery", "GET");
+	print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	my $responseCode = $self->_parseResponse($solr_response, $resultformat);
     	if ($responseCode) {
         	if ($resultformat eq "json") {
                 	my $out = JSON::from_json($solr_response->{response});
                 	$solr_response->{response} = $out;
                 	print "\nJSON response: \n" . $out . "\n";
-                	#return $solr_response;
         	}
 	}
-	#return $solr_response;
 	my @solr_genome_records = $solr_response->{response}{docs};
 	#my $records_total = $solr_json_response->{numFound};
 	return @solr_genome_records;
