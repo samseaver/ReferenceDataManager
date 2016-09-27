@@ -258,8 +258,8 @@ sub _list_genomes_in_solr {
                 	print "\nJSON response: \n" . $out->{response}{docs} . "\n";
         	}
 	}
-	my @solr_genome_records = @{$solr_response->{response}->{docs}};
-	print Dumper(@solr_genome_records);
+	my $solr_genome_records = $solr_response->{response}->{docs};
+	print Dumper($solr_genome_records->[0]);
 	return @solr_genome_records;
 }
 #
