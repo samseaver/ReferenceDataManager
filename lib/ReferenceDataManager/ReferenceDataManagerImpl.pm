@@ -242,7 +242,7 @@ sub _list_genomes_in_solr {
 	my $start = 0;
 	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
-	my $grp = "genome_id";
+	my $grp = "";#"genome_id";
 	my $params = {
 		fl => "genome_id",
 		wt => "json",
