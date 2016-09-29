@@ -237,24 +237,94 @@ sub _parseResponse
 #
 sub _list_genomes_in_solr {
 	my ($self) = @_;
-	
-	my $resultformat = "json";
-	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
-	#my $core = "/genomes";
-	my $core = "/QZtest";
-  	my $query = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
-  	my $fields = "&fl=genome_id";
-  	my $rows = "&rows=100";
+	my $count = 10;
+	my $start = 0;
+	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
 	my $grp = "&group=true&group.field=genome_id";
+	$params = {
+		fl => "genome_id",
+		wt => "json",
+		rows => $count,
+		sort => "genome_id asc",
+		hl => "false",
+		start => $start,
+		count => $count
+	};
+	my $query = { q => "*" };
+	my $core = "QZtest";
+	return $self->_search_solr($core, $params, $query, "json");
+}
+#
+#Internal Method: to list the genomes already in SOLR and return an array of those genomes
+#
+#$searchParams is a hash, see the example below:
+#$searchParams {
+#   fl => 'object_id,gene_name,genome_source',
+#   wt => 'json',
+#   rows => $count,
+#   sort => 'object_id asc',
+#   hl => 'false',
+#   start=> $start,
+#   count=> $count
+#}
+#
+sub _search_solr {
+	my ($self, $searchCore, $searchParams, $searchQuery, $resultFormat, $groupOption, $skipEscape) = @_;
+	$skipEscape = {} unless $skipEscape;
+	
+	# If output format is not passed set it to XML
+    $resultFormat = "xml" unless $resultformat;
+    my $DEFAULT_FIELD_CONNECTOR = "AND";
+	
+	my $url = "$self->{_SOLR_SEARCH_URL}";
+	
+	# Build the queryFields string with $searchQuery and $searchParams
+	my $queryFields = "";
+    if (! $searchQuery) {
+        $self->{is_error} = 1;
+        $self->{errmsg} = "Query parameters not specified";
+        return undef;
+    }
+	foreach my $key (keys %$searchParams) {
+        $queryFields .= "$key=". URI::Escape::uri_escape($searchParams->{$key}) . "&";
+    }
+	
+	# Add solr query to queryString
+    my $qStr = "q=";
+    if (defined $searchQuery->{q}) {
+        $qStr .= URI::Escape::uri_escape($searchQuery->{q});
+        print "Query string passed with q: " . $qStr . "\n";
+    } else {
+    	foreach my $key (keys %$searchQuery) {
+        	if (defined $skipEscape->{$key}) {
+            	$qStr .= "+$key:" . $query->{$key} ." $DEFAULT_FIELD_CONNECTOR ";
+            } else {
+            	$qStr .= "+$key:" . URI::Escape::uri_escape($query->{$key}) .
+                        " $DEFAULT_FIELD_CONNECTOR ";
+            }
+        }
+        # Remove last occurance of ' AND '
+        $qStr =~ s/ AND $//g;
+        print "Query string passed without q: " . $qStr . "\n";
+    }
+    $queryFields .= "$qStr";
+    print "The query string is: \n" . $url . "?" . $queryFields . "\n";
+	
+	my $solrCore = "/$searchCore"; #"/QZtest";
+	my $solrFormat="&wt=$resultFormat";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
+  	my $solrQuery = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
+  	my $rows = "&rows=100";
+  	my $sort = "&sort=genome_id asc";
+	my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
   	#my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
-	my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$solrFormat.$grp;
+	my $solrQuery = $self->{_SOLR_URL}.$solrCore.$solrQuery.$queryFields.$solrFormat.$solrGroup;
 	print "\n$solrQuery\n";
-	#my $solr_response =`curl "$solrQuery"`; #`wget -q -O - "$solrQuery" | grep -v genome_name`;
+	
 	my $solr_response = $self->_request("$solrQuery", "GET");
 	print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	
-	my $responseCode = $self->_parseResponse($solr_response, $resultformat);
+	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
     	if ($responseCode) {
         	if ($resultformat eq "json") {
                 	my $out = JSON::from_json($solr_response->{response});
