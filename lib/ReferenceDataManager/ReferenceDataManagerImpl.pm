@@ -330,9 +330,6 @@ sub _search_solr {
                 $solr_response->{response}= $out;
         	}
 	}
-	my @solr_genome_records = @{$solr_response->{response}->{grouped}->{genome_id}->{groups}};
-	print "\nFound unique genome_id groups of:" . scalar @solr_genome_records;
-	#print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	return $solr_response;
 }
 #
