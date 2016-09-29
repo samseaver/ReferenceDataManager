@@ -294,7 +294,7 @@ sub _search_solr {
     my $qStr = "q=";
     if (defined $searchQuery->{q}) {
         $qStr .= URI::Escape::uri_escape($searchQuery->{q});
-        print "Query string passed with q: " . $qStr . "\n";
+        #print "Query string passed with q: " . $qStr . "\n";
     } else {
     	foreach my $key (keys %$searchQuery) {
         	if (defined $skipEscape->{$key}) {
@@ -306,22 +306,19 @@ sub _search_solr {
         }
         # Remove last occurance of ' AND '
         $qStr =~ s/ AND $//g;
-        print "Query string passed without q: " . $qStr . "\n";
+        #print "Query string passed without q: " . $qStr . "\n";
     }
     $queryFields .= "$qStr";
-    print "The query string is: \n" . "&$queryFields \n";
+    #print "The query string is: \n" . "&$queryFields \n";
 	
 	my $solrCore = "/$searchCore"; 
-  	#my $solrQuery = "/select?"; #"/select?q=genome_id:".$genome->{id}."*"; 
-  	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
 	my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
-  	#my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
 	my $solrQuery = $self->{_SOLR_URL}.$solrCore."/select?".$queryFields.$solrGroup;
-	print "\n$solrQuery\n";
+	print "Query string:\n$solrQuery\n";
 	
 	my $solr_response = $self->_request("$solrQuery", "GET");
-	print "\nRaw response: \n" . $solr_response->{response} . "\n";
+	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	
 	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
     	if ($responseCode) {
@@ -332,7 +329,7 @@ sub _search_solr {
 	}
 	if($groupOption){
 		my @solr_genome_records = @{$solr_response->{response}->{grouped}->{genome_id}->{groups}};
-		print "\nFound unique genome_id groups of:" . scalar @solr_genome_records;
+		print "\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
 		print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	}
 	return $solr_response;
