@@ -240,7 +240,8 @@ sub _list_genomes_in_solr {
 	
 	my $resultformat = "json";
 	my $solrFormat="&wt=json";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
-	my $core = "/genomes";
+	#my $core = "/genomes";
+	my $core = "/QZtest";
   	my $query = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
   	my $fields = "&fl=genome_id";
   	my $rows = "&rows=100";
