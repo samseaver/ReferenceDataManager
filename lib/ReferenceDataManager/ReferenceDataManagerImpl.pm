@@ -344,7 +344,7 @@ sub _testInsert2solr
         workspace_name => "KBasePublicRichGenomesV5",
         genome_id => "kb|g.239993",
         genome_source_id => "1331250.3"
-    } ];
+	} ];
 
 	if (!$self->_insert2solr($ds)) {
    		print "\n Error: " . $self->error->{response};
@@ -396,6 +396,7 @@ sub _toXML
     } else {
     $xml = $xs->XMLout($params, rootname => $rootnode);
     }
+	print "\n$xml\n";
     return $xml;
 }
 
@@ -424,12 +425,13 @@ sub _toXML
 sub _rawDsToSolrDs
 {
     my ($self, $docs) = @_;
+	print "\nInput data:\n". Dumper($docs);
     my $ds = [];
     for my $doc (@$docs) {
     my $d = [];
     for my $field (keys %$doc) {
         my $values = $doc->{$field};
-	print Dumper($values);
+		print "$field => " . Dumper($values);
         if (scalar (@$values)) {
         for my $val (@$values) {
             push @$d, {name => $field, content => $val};
@@ -441,7 +443,7 @@ sub _rawDsToSolrDs
     push @$ds, {field => $d};
     }
     $ds = { doc => $ds };
-    
+    print "\noutput data:\n" .Dumper($ds);
     return $ds;
 }
 
