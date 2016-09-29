@@ -265,8 +265,8 @@ sub _list_genomes_in_solr {
 #   rows => $count,
 #   sort => 'object_id asc',
 #   hl => 'false',
-#   start=> $start,
-#   count=> $count
+#   start => $start,
+#   count => $count
 #}
 #
 sub _search_solr {
@@ -309,7 +309,7 @@ sub _search_solr {
         print "Query string passed without q: " . $qStr . "\n";
     }
     $queryFields .= "$qStr";
-    print "The query string is: \n" . $url . "?" . $queryFields . "\n";
+    print "The query string is: \n" . "&$queryFields \n";
 	
 	my $solrCore = "/$searchCore"; #"/QZtest";
 	my $solrFormat="&wt=$resultFormat";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
@@ -327,8 +327,8 @@ sub _search_solr {
 	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
     	if ($responseCode) {
         	if ($resultFormat eq "json") {
-                	my $out = JSON::from_json($solr_response->{response});
-                	$solr_response->{response}= $out;
+            	my $out = JSON::from_json($solr_response->{response});
+                $solr_response->{response}= $out;
         	}
 	}
 	my @solr_genome_records = @{$solr_response->{response}->{grouped}->{genome_id}->{groups}};
