@@ -331,7 +331,7 @@ sub _search_solr {
 	}
 	if($groupOption){
 		my @solr_genome_records = @{$solr_response->{response}->{grouped}->{genome_id}->{groups}};
-		print "\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
+		print "\n\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
 		print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	}
 	return $solr_response;
@@ -372,8 +372,8 @@ sub _testInsert2solr
 sub _insert2solr
 {
     my ($self, $params) = @_;
-    my $ds = $self->_rawDsToSolrDs($params);
-    my $doc = $self->_toXML($ds, 'add');
+    #my $ds = $self->_rawDsToSolrDs($params);
+    my $doc = $self->_toXML($params, 'add');
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_POST_URL}?commit=" . $commit;
     my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $doc);
