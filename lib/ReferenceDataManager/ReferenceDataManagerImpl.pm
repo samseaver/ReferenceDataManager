@@ -346,8 +346,8 @@ sub _testInsert2solr
         genome_source_id => "1331250.3"
     } ];
 
-	if (!$solr->add($ds)) {
-   		print "\n Error: " . $solr->error->{response};
+	if (!$self->_insert2solr($ds)) {
+   		print "\n Error: " . $self->error->{response};
    	exit 1;
 	}
 	else
