@@ -348,7 +348,7 @@ sub _testInsert2solr
 
 	if (!$self->_insert2solr($ds)) {
    		print "\n Error: " . $self->error->{response};
-   	exit 1;
+   		exit 1;
 	}
 	else
 	{
@@ -432,8 +432,8 @@ sub _rawDsToSolrDs
     for my $field (keys %$doc) {
         my $values = $doc->{$field};
 		print "$field => " . Dumper($values);
-        if (scalar (@$values)) {
-        for my $val (@$values) {
+        if (scalar @{$values} {
+        for my $val (@{$values}) {
             push @$d, {name => $field, content => $val};
         }
         } else {
