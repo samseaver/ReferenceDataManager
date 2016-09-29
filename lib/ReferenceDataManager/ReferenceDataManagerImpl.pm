@@ -311,14 +311,13 @@ sub _search_solr {
     $queryFields .= "$qStr";
     print "The query string is: \n" . "&$queryFields \n";
 	
-	my $solrCore = "/$searchCore"; #"/QZtest";
-	my $solrFormat="&wt=$resultFormat";#"&wt=csv&csv.separator=%09&csv.mv.separator=;";
+	my $solrCore = "/$searchCore"; 
   	my $solrQuery = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
   	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
 	my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
   	#my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
-	my $solrQuery = $self->{_SOLR_URL}.$solrCore.$solrQuery.$queryFields.$solrFormat.$solrGroup;
+	my $solrQuery = $self->{_SOLR_URL}.$solrCore.$solrQuery.$queryFields.$solrGroup;
 	print "\n$solrQuery\n";
 	
 	my $solr_response = $self->_request("$solrQuery", "GET");
