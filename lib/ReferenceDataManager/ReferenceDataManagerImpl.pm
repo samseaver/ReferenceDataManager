@@ -498,6 +498,8 @@ sub _checkGenomeStatus {
 	return $status;
 }
 
+#################### End methods for accessing SOLR #######################
+
 #END_HEADER
 
 sub new
