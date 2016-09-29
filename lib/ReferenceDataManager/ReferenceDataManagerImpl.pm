@@ -340,7 +340,7 @@ sub _testInsert2solr
 {
 	my ($self) = @_;
 	my $ds = [ {
-        object_id => "b|ws.2869.obj.72243",
+        object_id => "kb|ws.2869.obj.72243",
         workspace_name => "KBasePublicRichGenomesV5",
         genome_id => "kb|g.239993",
         genome_source_id => "1331250.3"
