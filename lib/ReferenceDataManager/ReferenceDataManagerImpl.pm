@@ -424,6 +424,7 @@ sub _toXML
 sub _rawDsToSolrDs
 {
     my ($self, $docs) = @_;
+    print Dumper($docs);
     my $ds = [];
     for my $doc (@$docs) {
     my $d = [];
@@ -440,6 +441,7 @@ sub _rawDsToSolrDs
     push @$ds, {field => $d};
     }
     $ds = { doc => $ds };
+    
     return $ds;
 }
 
