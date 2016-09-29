@@ -433,7 +433,7 @@ sub _rawDsToSolrDs
         my $values = $doc->{$field};
 		print "$field => " . Dumper($values);
         if (scalar @{$values} {
-        for my $val (@{$values}) {
+        for my $val (@$values) {
             push @$d, {name => $field, content => $val};
         }
         } else {
