@@ -172,7 +172,6 @@ sub _request
     $url = ($url) ? $url : $self->{_SOLR_URL};
     $headers = ($headers) ?  $headers : {};
     $data = ($data) ? $data: '';
-	print "\nRequest url: $url";
 	
     my $out = {};
 
@@ -353,7 +352,7 @@ sub _testInsert2solr
 	}
 	else
 	{
-        print "Added a new doc for indexing:\n$ds";
+        print "Added a new doc for indexing:\n" . Dumper($ds);
 	}	
 }
 #
