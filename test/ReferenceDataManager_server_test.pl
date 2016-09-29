@@ -20,8 +20,9 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
-    my $solr_ret = $impl->_list_genomes_in_solr();
     $impl->_testInsert2solr();
+    my $solr_ret = $impl->_list_genomes_in_solr();
+    print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
     
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
