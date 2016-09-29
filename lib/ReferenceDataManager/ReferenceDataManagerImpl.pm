@@ -312,12 +312,12 @@ sub _search_solr {
     print "The query string is: \n" . "&$queryFields \n";
 	
 	my $solrCore = "/$searchCore"; 
-  	my $solrQuery = "/select?q=*:*"; #"/select?q=genome_id:".$genome->{id}."*"; 
+  	#my $solrQuery = "/select?"; #"/select?q=genome_id:".$genome->{id}."*"; 
   	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
 	my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
   	#my $solrQuery = $self->{_SOLR_URL}.$core.$query.$fields.$rows.$sort.$solrFormat;
-	my $solrQuery = $self->{_SOLR_URL}.$solrCore.$solrQuery.$queryFields.$solrGroup;
+	my $solrQuery = $self->{_SOLR_URL}.$solrCore."/select?".$queryFields.$solrGroup;
 	print "\n$solrQuery\n";
 	
 	my $solr_response = $self->_request("$solrQuery", "GET");
