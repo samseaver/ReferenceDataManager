@@ -242,7 +242,7 @@ sub _list_genomes_in_solr {
 	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
 	my $grp = "&group=true&group.field=genome_id";
-	$params = {
+	my $params = {
 		fl => "genome_id",
 		wt => "json",
 		rows => $count,
@@ -274,7 +274,7 @@ sub _search_solr {
 	$skipEscape = {} unless $skipEscape;
 	
 	# If output format is not passed set it to XML
-    $resultFormat = "xml" unless $resultformat;
+    $resultFormat = "xml" unless $resultFormat;
     my $DEFAULT_FIELD_CONNECTOR = "AND";
 	
 	my $url = "$self->{_SOLR_SEARCH_URL}";
@@ -298,9 +298,9 @@ sub _search_solr {
     } else {
     	foreach my $key (keys %$searchQuery) {
         	if (defined $skipEscape->{$key}) {
-            	$qStr .= "+$key:" . $query->{$key} ." $DEFAULT_FIELD_CONNECTOR ";
+            	$qStr .= "+$key:" . $searchQuery->{$key} ." $DEFAULT_FIELD_CONNECTOR ";
             } else {
-            	$qStr .= "+$key:" . URI::Escape::uri_escape($query->{$key}) .
+            	$qStr .= "+$key:" . URI::Escape::uri_escape($searchQuery->{$key}) .
                         " $DEFAULT_FIELD_CONNECTOR ";
             }
         }
@@ -326,7 +326,7 @@ sub _search_solr {
 	
 	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
     	if ($responseCode) {
-        	if ($resultformat eq "json") {
+        	if ($resultFormat eq "json") {
                 	my $out = JSON::from_json($solr_response->{response});
                 	$solr_response->{response}= $out;
         	}
