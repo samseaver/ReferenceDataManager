@@ -424,12 +424,12 @@ sub _toXML
 sub _rawDsToSolrDs
 {
     my ($self, $docs) = @_;
-    print Dumper($docs);
     my $ds = [];
     for my $doc (@$docs) {
     my $d = [];
     for my $field (keys %$doc) {
         my $values = $doc->{$field};
+	print Dumper($values);
         if (scalar (@$values)) {
         for my $val (@$values) {
             push @$d, {name => $field, content => $val};
