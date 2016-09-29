@@ -21,7 +21,8 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     my $solr_ret = $impl->_list_genomes_in_solr();
-
+    $impl->_testInsert2solr();
+    
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
     #Testing the list_reference_genomes function
