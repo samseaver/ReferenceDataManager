@@ -172,7 +172,8 @@ sub _request
     $url = ($url) ? $url : $self->{_SOLR_URL};
     $headers = ($headers) ?  $headers : {};
     $data = ($data) ? $data: '';
-
+	print "\nRequest url: $url";
+	
     my $out = {};
 
     # create a HTTP request
@@ -376,7 +377,7 @@ sub _insert2solr
     my $doc = $self->_toXML($params, 'add');
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_POST_URL}?commit=" . $commit;
-    my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $doc);
+    my $response = $self->_request($url, 'POST', undef, $self->{_CT_JSON}, $doc);
 
     return 1 if ($self->_parseResponse($response));
     return 0;
@@ -523,6 +524,8 @@ sub new
     }
     $self->{_SOLR_POST_URL} = "$self->{_SOLR_URL}/update";
     $self->{_AUTOCOMMIT} = 0;
+    $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
+    $self->{_CT_JSON} = { Content_Type => 'text/json'};
     
     #END_CONSTRUCTOR
 
