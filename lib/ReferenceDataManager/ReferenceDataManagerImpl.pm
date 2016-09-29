@@ -352,7 +352,7 @@ sub _testInsert2solr
 	}
 	else
 	{
-        print "Added a new doc for indexing:\n" . Dumper($ds);
+        print "Added a new doc for indexing:\n" . Dumper($ds) . "\n";
 	}	
 }
 #
