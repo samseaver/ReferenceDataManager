@@ -377,7 +377,7 @@ sub _insert2solr
     my $doc = $self->_toXML($params, 'add');
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_POST_URL}?commit=" . $commit;
-    my $response = $self->_request($url, 'POST', undef, $self->{_CT_JSON}, $doc);
+    my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $doc);
 
     return 1 if ($self->_parseResponse($response));
     return 0;
