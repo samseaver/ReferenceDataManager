@@ -153,6 +153,7 @@ sub util_create_report {
 		}]
 	});
 }
+#################### methods for accessing SOLR #######################
 #
 # Internal Method used for sending HTTP
 # url : Requested url
@@ -256,10 +257,11 @@ sub _list_genomes_in_solr {
 	return $self->_search_solr($core, $params, $query, "json", $grp);
 }
 #
-#Internal Method: to list the genomes already in SOLR and return an array of those genomes
-#
-#$searchParams is a hash, see the example below:
-#$searchParams {
+# method name: _search_solr
+# Internal Method: to execute a search in SOLR according to the passed parameters
+# parameters:
+# $searchParams is a hash, see the example below:
+# $searchParams {
 #   fl => 'object_id,gene_name,genome_source',
 #   wt => 'json',
 #   rows => $count,
@@ -334,6 +336,113 @@ sub _search_solr {
 	}
 	return $solr_response;
 }
+sub _testInsert2solr
+{
+	my ($self) = @_;
+	my $ds = [ {
+        object_id => "b|ws.2869.obj.72243",
+        workspace_name => "KBasePublicRichGenomesV5",
+        genome_id => "kb|g.239993",
+        genome_source_id => "1331250.3"
+    } ];
+
+	if (!$solr->add($ds)) {
+   		print "\n Error: " . $solr->error->{response};
+   	exit 1;
+	}
+	else
+	{
+        print "Added a new doc for indexing:\n$ds";
+	}	
+}
+#
+# method name: _insert2solr
+# Internal method: to add documents to solr for indexing.
+# It sends a xml http request.  First it will convert the raw datastructure to required ds then it will convert 
+# this ds to xml. This xml will be posted to Apache solr for indexing.
+# Depending on the flag AUTOCOMMIT the documents will be indexed immediatly or on commit is issued.
+# parameters:
+#     $arams: This parameter specifies set of list of document fileds and values.
+# return
+#    1 for successful posting of the xml document
+#    0 for any failure
+#
+# Check error method for for getting the error details for last command
+#
+sub _insert2solr
+{
+    my ($self, $params) = @_;
+    my $ds = $self->_rawDsToSolrDs($params);
+    my $doc = $self->_toXML($ds, 'add');
+    my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
+    my $url = "$self->{_SOLR_POST_URL}?commit=" . $commit;
+    my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $doc);
+
+    return 1 if ($self->_parseResponse($response));
+    return 0;
+}
+
+#
+# Internal Method
+# This function will convert the datastructe to XML document
+#
+sub _toXML
+{
+    my ($self, $params, $rootnode) = @_;
+    my $xs = new XML::Simple();
+    my $xml;
+    if (! $rootnode) {
+    $xml = $xs->XMLout($params);
+    } else {
+    $xml = $xs->XMLout($params, rootname => $rootnode);
+    }
+    return $xml;
+}
+
+#
+# method name: _rawDs2SolrDs
+#
+# Convert raw DS to sorl requird DS.
+# Input format :
+#    [
+#    {
+#        attr1 => [ value1, value2],
+#        attr2 => [valu3, value4]
+#    },
+#    ...
+#    ]
+# Output format:
+#    [
+#    { field => [ { name => attr1, content => value1 },
+#             { name => attr1, content => value2 },
+#             { name => attr2, content => value3 },
+#             { name => attr2, content => value4 }
+#            ],
+#    },
+#    ...
+#    ]
+sub _rawDsToSolrDs
+{
+    my ($self, $docs) = @_;
+    my $ds = [];
+    for my $doc (@$docs) {
+    my $d = [];
+    for my $field (keys %$doc) {
+        my $values = $doc->{$field};
+        if (scalar (@$values)) {
+        for my $val (@$values) {
+            push @$d, {name => $field, content => $val};
+        }
+        } else {
+        push @$d, { name => $field, content => $values};
+        }
+    }
+    push @$ds, {field => $d};
+    }
+    $ds = { doc => $ds };
+    return $ds;
+}
+
 #
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
 #
@@ -390,7 +499,8 @@ sub new
     if (! $self->{_SOLR_URL}) {
         $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
     }
-
+    $self->{_SOLR_POST_URL} = "$self->{_SOLR_URL}/update";
+    $self->{_AUTOCOMMIT} = 0;
     
     #END_CONSTRUCTOR
 
