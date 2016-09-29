@@ -466,6 +466,127 @@ sub _error
 }
 
 #
+# method name: _autocommit
+#    This method is used for setting the autocommit on or off.
+# params:
+#     flag: 1 or 0, 1 for setting autocommit on and 0 for off.
+# return
+#    always returns true
+#
+sub _autocommit
+{
+    my ($self, $flag) = @_;
+    $self->{_AUTOCOMMIT} = $flag | 1;
+    return 1;
+}
+
+#
+# method name: _commit
+#    This method is used for commiting the transaction that was initiated.
+#     Request XML format:
+#         true
+# params : -
+# returns :
+#    1 for success
+#    0 for any failure
+#
+# Check error method for for getting the error details for last command
+#
+sub _commit
+{
+    my ($self) = @_;
+    my $url = $self->{_SOLR_POST_URL};
+    my $cmd = $self->_toXML('true', 'commit');
+    my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $cmd);
+
+    return 1 if ($self->_parseResponse($response));
+    return 0;
+}
+
+#
+# method name: _rollback
+#    This method is used for issuing rollback on transaction that
+# was initiated. Request XML format:
+#     <rollback>
+# params : -
+# returns :
+#    1 for success
+#    0 for any failure
+#
+# Check error method for for getting the error details for last command
+#
+sub _rollback
+{
+    my ($self) = @_;
+    my $url = $self->{_SOLR_POST_URL};
+    my $cmd = $self->_toXML('', 'rollback');
+    my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $cmd);
+
+    return 1 if ($self->_parseResponse($response));
+    return 0;
+}
+
+#
+# method name: _exists
+#    This method is used for checking if the document with ID specified
+# exists in solr index database or not.
+# params :
+#    id: document id for searching in solr dabase for existance
+# returns :
+#    1 for success
+#    0 for any failure
+#
+# Check error method for for getting the error details for last command
+#
+sub _exists
+{
+    my ($self, $id) = @_;
+    my $url = "$self->{_SOLR_SEARCH_URL}?q=id:$id";
+    my $response = $self->_request($url, 'GET');
+    my $status = ($self->_parseResponse($response));
+    if ($status) {
+    my $xs = new XML::Simple();
+    my $xmlRef;
+    eval {
+        $xmlRef = $xs->XMLin($response->{response});
+    };
+    if ($xmlRef->{lst}->{'int'}->{status}->{content} eq 0){
+        if ($xmlRef->{result}->{numFound} gt 0) {
+        return 1;
+        }
+    }
+    }
+    return 0;
+}
+
+# method name: _ping
+#    This methods is check Apache solr server is reachable or not
+# params : -
+# returns :
+#     1 for success
+#     0 for failure
+# Check error method for for getting the error details for last command
+#
+sub _ping
+{
+    #print "In ping server at " . $self->{_SOLR_PING_URL} . "\n";
+    my ($self, $errors) = @_;
+    my $response = $self->_request($self->{_SOLR_PING_URL}, 'GET');
+print("Ping's response: " . $response);
+    return 1 if ($self->_parseResponse($response));
+    return 0;
+}
+
+sub _clear_error
+{
+    my ($self) = @_;
+    $self->{is_error} = 0;
+    $self->{error} = undef;
+}
+
+
+
+#
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
 #
 sub _checkGenomeStatus {
