@@ -347,7 +347,7 @@ sub _testInsert2solr
 	} ];
 
 	if (!$self->_insert2solr($ds)) {
-   		print "\n Error: " . $self->error->{response};
+   		print "\n Error: " . $self->_error->{response};
    		exit 1;
 	}
 	else
@@ -445,6 +445,24 @@ sub _rawDsToSolrDs
     $ds = { doc => $ds };
     print "\noutput data:\n" .Dumper($ds);
     return $ds;
+}
+#
+# method name: _error
+#     returns the errors details that was occured during last transaction action.
+# params : -
+# returns : response details includes the following details
+#    {
+#          url => 'url which is being accessed',
+#       response => 'response from server',
+#       code => 'response code',
+#       errmsg => 'for any internal error error msg'
+#     }
+#
+#
+sub _error
+{
+    my ($self) = @_;
+    return $self->{error};
 }
 
 #
