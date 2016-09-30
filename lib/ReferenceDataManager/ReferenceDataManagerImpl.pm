@@ -200,6 +200,13 @@ sub _sendRequest
 
 #
 # Internal Method: to parse solr server response
+# Responses from Solr take the form shown here:
+#<response>
+#  <lst name="responseHeader">
+#    <int name="status">0</int>
+#    <int name="QTime">127</int>
+#  </lst>
+#</response>
 #
 sub _parseResponse
 {
@@ -375,22 +382,19 @@ sub _deleteRecords {
 sub _testInsert2Solr
 {
 	my ($self) = @_;
-	my $ds = [ 
-	{
-        object_id => "kb|ws.2869.obj.72243",
-        workspace_name => "KBasePublicRichGenomesV5",
-        genome_id => "kb|g.239993",
-        genome_source_id => "1331250.3"
-	} 
-	];
+	my $ds = [{"object_id":"kb|ws.2869.obj.3","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},
+	{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3026","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},
+	{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2696","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},
+	{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3024","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3025","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2289","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2288","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3020","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2125","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2285","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2284","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2287","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2286","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2281","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2280","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2283","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2282","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3804","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3805","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3806","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2695","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3800","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3801","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3802","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3803","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2692","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.opr.146","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3808","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3809","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2693","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2690","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.841","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.rna.18","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.rna.17","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.rna.16","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.3390","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2123","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.rna.13","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.rna.12","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.rna.11","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.rna.10","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2601","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2600","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2603","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2602","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2605","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2604","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2607","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2606","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"},{"object_id":"kb|ws.2869.obj.2/features/kb|g.0.peg.2609","workspace_name":"KBasePublicRichGenomesV5","genome_id":"kb|g.0","genome_source_id":"83333.1"}]
+	;
 
-	if (!$self->_insert2Solr($ds)) {
+	if (!$self->_addXML2Solr($ds)) {
    		print "\n Error: " . $self->_error->{response};
    		exit 1;
 	}
 	else
 	{
-        print "Added a new doc for indexing:\n" . Dumper($ds) . "\n";
+        print "Added a new set of docs for indexing:\n" . Dumper($ds) . "\n";
 		if (!$self->_commit()) {
     		print "\n Error: " . $self->_error->{response};
     		exit 1;
@@ -398,20 +402,20 @@ sub _testInsert2Solr
 	}	
 }
 #
-# method name: _insert2Solr
+# method name: _addXML2Solr
 # Internal method: to add documents to solr for indexing.
 # It sends a xml http request.  First it will convert the raw datastructure to required ds then it will convert 
 # this ds to xml. This xml will be posted to Apache solr for indexing.
 # Depending on the flag AUTOCOMMIT the documents will be indexed immediatly or on commit is issued.
 # parameters:
-#     $arams: This parameter specifies set of list of document fileds and values.
+#     $params: This parameter specifies set of list of document fields and values.
 # return
 #    1 for successful posting of the xml document
 #    0 for any failure
 #
 # Check error method for for getting the error details for last command
 #
-sub _insert2Solr
+sub _addXML2Solr
 {
     my ($self, $params) = @_;
     my $ds = $self->_rawDsToSolrDs($params);
@@ -427,6 +431,9 @@ sub _insert2Solr
 #
 # Internal Method
 # This function will convert the datastructe to XML document
+# For XML Formatted Index Updates
+# Index update commands can be sent as XML message to the update handler using Content-type: application/xml or Content-type: text/xml.
+# For adding Documents
 #
 sub _toXML
 {
@@ -464,6 +471,29 @@ sub _toXML
 #    },
 #    ...
 #    ]
+#
+# The XML schema recognized by the update handler for adding documents is very straightforward:
+# The <add> element introduces one more documents to be added.
+# The <doc> element introduces the fields making up a document.
+# The <field> element presents the content for a specific field.
+# For example:
+# <add>
+#  <doc>
+#    <field name="authors">Patrick Eagar</field>
+#    <field name="subject">Sports</field>
+#    <field name="dd">796.35</field>
+#    <field name="numpages">128</field>
+#    <field name="desc"></field>
+#    <field name="price">12.40</field>
+#    <field name="title" boost="2.0">Summer of the all-rounder: Test and championship cricket in England 1982</field>
+#    <field name="isbn">0002166313</field>
+#    <field name="yearpub">1982</field>
+#    <field name="publisher">Collins</field>
+#  </doc>
+#  <doc boost="2.5">
+#  ...
+#  </doc>
+#</add>
 sub _rawDsToSolrDs
 {
     my ($self, $docs) = @_;
