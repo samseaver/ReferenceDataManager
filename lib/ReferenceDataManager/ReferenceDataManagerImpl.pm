@@ -295,7 +295,6 @@ sub _searchSolr {
     my $qStr = "q=";
     if (defined $searchQuery->{q}) {
         $qStr .= URI::Escape::uri_escape($searchQuery->{q});
-        #print "Query string passed with q: " . $qStr . "\n";
     } else {
     	foreach my $key (keys %$searchQuery) {
         	if (defined $skipEscape->{$key}) {
@@ -307,7 +306,6 @@ sub _searchSolr {
         }
         # Remove last occurance of ' AND '
         $qStr =~ s/ AND $//g;
-        #print "Query string passed without q: " . $qStr . "\n";
     }
     $queryFields .= "$qStr";
     #print "The query string is: \n" . "&$queryFields \n";
@@ -363,14 +361,14 @@ sub _deleteRecords {
     }
 
     $queryCriteria .= "</delete>&commit=true";
-    print "The deletion query string is: \n" . "$queryCriteria \n";
+    #print "The deletion query string is: \n" . "$queryCriteria \n";
 
 	my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?stream.body=".$queryCriteria;
-	print "The final deletion query string is: \n" . "$solrQuery \n";
+	#print "The final deletion query string is: \n" . "$solrQuery \n";
 	
 	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
 	
-	print "\nRaw response: \n" . $solr_response->{response} . "\n";
+	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	return $solr_response;
 }
 
@@ -469,7 +467,7 @@ sub _toXML
 sub _rawDsToSolrDs
 {
     my ($self, $docs) = @_;
-	print "\nInput data:\n". Dumper($docs);
+	#print "\nInput data:\n". Dumper($docs);
     my $ds = [];
     for my $doc (@$docs) {
     	my $d = [];
@@ -487,7 +485,7 @@ sub _rawDsToSolrDs
     	push @$ds, {field => $d};
     }
     $ds = { doc => $ds };
-    print "\noutput data:\n" .Dumper($ds);
+    #print "\noutput data:\n" .Dumper($ds);
     return $ds;
 }
 #
