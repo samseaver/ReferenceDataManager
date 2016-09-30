@@ -315,7 +315,7 @@ sub _searchSolr {
         $qStr =~ s/ AND $//g;
     }
     $queryFields .= "$qStr";
-    #print "The query string is: \n" . "&$queryFields \n";
+    print "The query string is: \n" . "&$queryFields \n";
 	
 	my $solrCore = "/$searchCore"; 
   	my $sort = "&sort=genome_id asc";
