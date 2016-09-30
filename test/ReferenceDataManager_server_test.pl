@@ -22,7 +22,7 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 eval {
     $impl->_testInsert2Solr();
     my $solr_ret = $impl->_listGenomesInSolr();
-    print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
+    #print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
     my $ds = {
     	'workspace_name' => 'KBasePublicRichGenomesV5',
 		'object_id' => 'kb|ws.2869.obj.72243'
