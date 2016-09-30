@@ -286,7 +286,7 @@ sub _searchSolr {
 	# If output format is not passed set it to XML
     $resultFormat = "xml" unless $resultFormat;
     my $DEFAULT_FIELD_CONNECTOR = "AND";
-	
+	print "Inputs: " . $self->{_SOLR_URL}."/$searchCore/select?"; 
 	# Build the queryFields string with $searchQuery and $searchParams
 	my $queryFields = "";
     if (! $searchQuery) {
