@@ -153,7 +153,7 @@ sub util_create_report {
 		}]
 	});
 }
-#################### methods for accessing SOLR #######################
+#################### methods for accessing SOLR using its web interface#######################
 # method name: _sendRequest
 # Internal Method used for sending HTTP
 # url : Requested url
@@ -280,8 +280,6 @@ sub _searchSolr {
     $resultFormat = "xml" unless $resultFormat;
     my $DEFAULT_FIELD_CONNECTOR = "AND";
 	
-	my $url = "$self->{_SOLR_SEARCH_URL}";
-	
 	# Build the queryFields string with $searchQuery and $searchParams
 	my $queryFields = "";
     if (! $searchQuery) {
@@ -335,6 +333,44 @@ sub _searchSolr {
 		print "\n\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
 		print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	}
+	return $solr_response;
+}
+
+#
+# method name: _deleteRecords
+# Internal Method: to delete record(s) in SOLR that matches the given id(s) in the query
+# parameters:
+# $criteria is a hash that holds the conditions for field(s) to be deleted, see the example below:
+# $criteria {
+#   'object_id' => 'kb|ws.2869.obj.72243',
+#   'workspace_name' => 'KBasePublicRichGenomesV5'
+#}
+#
+sub _deleteRecords {
+	my ($self, $searchCore, $criteria) = @_;
+
+	my $solrCore = "/$searchCore";
+	
+	# Build the <query/> string that concatenates all the criteria into query tags
+	my $queryCriteria = "<delete>";
+    if (! $criteria) {
+        $self->{is_error} = 1;
+        $self->{errmsg} = "No deletion criteria specified";
+        return undef;
+    }
+	foreach my $key (keys %$criteria) {
+        $queryCriteria .= "<query>$key:". URI::Escape::uri_escape($criteria->{$key}) . "</query>";
+    }
+
+    $queryCriteria .= "</delete>&commit=true";
+    print "The deletion query string is: \n" . "$queryCriteria \n";
+
+	my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?stream.body=".$queryCriteria;
+	print "The final deletion query string is: \n" . "$solrQuery \n";
+	
+	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
+	
+	print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	return $solr_response;
 }
 
