@@ -20,14 +20,15 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
-    $impl->_testInsert2Solr();
     my $solr_ret = $impl->_listGenomesInSolr();
     #print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
     my $ds = {
     	'workspace_name' => 'KBasePublicRichGenomesV5',
-		'object_id' => 'kb|ws.2869.obj.72243'
+	'genome_id' => ''kb|g.0''
 	};
-    #$impl->_deleteRecords("QZtest", $ds);
+    $impl->_deleteRecords("QZtest", $ds);
+    $impl->_testInsert2Solr();
+
     $solr_ret = $impl->_listGenomesInSolr();
     print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
     exit 1;
