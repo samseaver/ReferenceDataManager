@@ -388,8 +388,8 @@ sub _testInsert2Solr
 	"genome_id"=>"kb|g.0",
 	"genome_source_id"=>"83333.1"}
 	];
-
-	if (!$self->_addXML2Solr($ds)) {
+	my $core = "QZtest";
+	if (!$self->_addXML2Solr($core, $ds)) {
    		print "\n Error: " . $self->_error->{response};
    		exit 1;
 	}
@@ -418,11 +418,11 @@ sub _testInsert2Solr
 #
 sub _addXML2Solr
 {
-    my ($self, $params) = @_;
+    my ($self, $solrCore, $params) = @_;
     my $ds = $self->_rawDsToSolrDs($params);
     my $doc = $self->_toXML($params, 'add');
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
-    my $url = "$self->{_SOLR_POST_URL}?commit=" . $commit;
+    my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
 
     return 1 if ($self->_parseResponse($response));
@@ -717,7 +717,7 @@ sub new
     if (! $self->{_SOLR_URL}) {
         $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
     }
-    $self->{_SOLR_POST_URL} = "$self->{_SOLR_URL}/update";
+    $self->{_SOLR_POST_URL} = $self->{_SOLR_URL};
     $self->{_AUTOCOMMIT} = 1;
     $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
     $self->{_CT_JSON} = { Content_Type => 'text/json'};
