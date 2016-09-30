@@ -337,15 +337,18 @@ sub _searchSolr {
 	}
 	return $solr_response;
 }
+
 sub _testInsert2Solr
 {
 	my ($self) = @_;
-	my $ds = [ {
+	my $ds = [ 
+	{
         object_id => "kb|ws.2869.obj.72243",
         workspace_name => "KBasePublicRichGenomesV5",
         genome_id => "kb|g.239993",
         genome_source_id => "1331250.3"
-	} ];
+	} 
+	];
 
 	if (!$self->_insert2Solr($ds)) {
    		print "\n Error: " . $self->_error->{response};
@@ -377,7 +380,7 @@ sub _testInsert2Solr
 sub _insert2Solr
 {
     my ($self, $params) = @_;
-    #my $ds = $self->_rawDsToSolrDs($params);
+    my $ds = $self->_rawDsToSolrDs($params);
     my $doc = $self->_toXML($params, 'add');
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_POST_URL}?commit=" . $commit;
@@ -433,19 +436,19 @@ sub _rawDsToSolrDs
 	print "\nInput data:\n". Dumper($docs);
     my $ds = [];
     for my $doc (@$docs) {
-    my $d = [];
-    for my $field (keys %$doc) {
-        my $values = $doc->{$field};
-		print "$field => " . Dumper($values);
-        if (scalar @$values ){
-        for my $val (@$values) {
-            push @$d, {name => $field, content => $val};
-        }
-        } else {
-        push @$d, { name => $field, content => $values};
-        }
-    }
-    push @$ds, {field => $d};
+    	my $d = [];
+    	for my $field (keys %$doc) {
+        	my $values = $doc->{$field};
+			print "$field => " . Dumper($values);
+        	if (scalar (@$values) ){
+        		for my $val (@$values) {
+            		push @$d, {name => $field, content => $val};
+        		}
+        	} else {
+        		push @$d, { name => $field, content => $values};
+        	}
+    	}
+    	push @$ds, {field => $d};
     }
     $ds = { doc => $ds };
     print "\noutput data:\n" .Dumper($ds);
