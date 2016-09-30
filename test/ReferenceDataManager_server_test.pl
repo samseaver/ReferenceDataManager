@@ -24,7 +24,7 @@ eval {
     #print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
     my $ds = {
     	'workspace_name' => 'KBasePublicRichGenomesV5',
-	'genome_id' => ''kb|g.0''
+	'genome_id' => 'kb|g.0'
 	};
     $impl->_deleteRecords("QZtest", $ds);
     $impl->_testInsert2Solr();
