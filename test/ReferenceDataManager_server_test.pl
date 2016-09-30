@@ -23,7 +23,15 @@ eval {
     $impl->_testInsert2Solr();
     my $solr_ret = $impl->_listGenomesInSolr();
     print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
-    
+    my $ds = {
+    	'workspace_name' => 'KBasePublicRichGenomesV5',
+		'object_id' => 'kb|ws.2869.obj.72243'
+	};
+    $impl->_deleteRecords("QZtest", $ds);
+    $solr_ret = $impl->_listGenomesInSolr();
+    print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
+    exit 1;
+	
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
     #Testing the list_reference_genomes function
