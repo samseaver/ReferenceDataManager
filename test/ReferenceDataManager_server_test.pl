@@ -27,7 +27,7 @@ eval {
     	'workspace_name' => 'KBasePublicRichGenomesV5',
 		'object_id' => 'kb|ws.2869.obj.72243'
 	};
-    $impl->_deleteRecords("QZtest", $ds);
+    #$impl->_deleteRecords("QZtest", $ds);
     $solr_ret = $impl->_listGenomesInSolr();
     print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
     exit 1;
