@@ -188,7 +188,7 @@ sub _sendRequest
 
     # set data for posting
     $request->content($data);
-	print "The HTTP request: \n" . Dumper($request) . "\n";
+	#print "The HTTP request: \n" . Dumper($request) . "\n";
 	
     # Send request and receive the response
     my $response = $ua->request($request);
@@ -650,7 +650,7 @@ sub new
         $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
     }
     $self->{_SOLR_POST_URL} = "$self->{_SOLR_URL}/update";
-    $self->{_AUTOCOMMIT} = 0;
+    $self->{_AUTOCOMMIT} = 1;
     $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
     $self->{_CT_JSON} = { Content_Type => 'text/json'};
     
