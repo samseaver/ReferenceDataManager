@@ -383,23 +383,10 @@ sub _testInsert2Solr
 {
 	my ($self) = @_;
 	my $ds = [
-	{"object_id"=>"kb|ws.2869.obj.3","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3026","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2696","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3024","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3025","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2289","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2288","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3020","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2125","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2285","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2284","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2287","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2286","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2281","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2280","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2283","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	{"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2282","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"}
+	{"object_id"=>"kb|ws.2869.obj.3",
+	"workspace_name"=>"KBasePublicRichGenomesV5",
+	"genome_id"=>"kb|g.0",
+	"genome_source_id"=>"83333.1"}
 	];
 
 	if (!$self->_addXML2Solr($ds)) {
