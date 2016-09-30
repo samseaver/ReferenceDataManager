@@ -383,24 +383,6 @@ sub _testInsert2Solr
 {
 	my ($self) = @_;
 	my $ds = [
-          {
-            'genome_id' => 'kb|g.0',
-            'object_id' => 'kb|ws.2869.obj.3',
-            'workspace_name' => 'KBasePublicRichGenomesV5',
-            'genome_source_id' => '83333.1'
-          },
-          {
-            'genome_source_id' => '83333.1',
-            'workspace_name' => 'KBasePublicRichGenomesV5',
-            'genome_id' => 'kb|g.0',
-            'object_id' => 'kb|ws.2869.obj.2/features/kb|g.0.peg.3026'
-          },
-          {
-            'genome_source_id' => '1331250.3',
-            'workspace_name' => 'KBasePublicRichGenomesV5',
-            'object_id' => 'kb|ws.2869.obj.72243',
-            'genome_id' => 'kb|g.239993'
-          },
 	  {
 	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3805",
 	    "workspace_name"=>"KBasePublicRichGenomesV5",
@@ -430,7 +412,7 @@ sub _testInsert2Solr
 	    "workspace_name"=>"KBasePublicRichGenomesV5",
 	    "genome_id"=>"kb|g.0",
 	    "genome_source_id"=>"83333.1"
-	    }
+	  }
         ];
 
 	my $core = "QZtest";
