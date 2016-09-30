@@ -154,7 +154,7 @@ sub util_create_report {
 	});
 }
 #################### methods for accessing SOLR #######################
-#
+# method name: _sendRequest
 # Internal Method used for sending HTTP
 # url : Requested url
 # method : HTTP method
@@ -162,7 +162,7 @@ sub util_create_report {
 # headers : headers as key => value pair
 # data : if binary it will as sequence of character
 #          if text it will be key => value pair
-sub _request
+sub _sendRequest
 {
     my ($self, $url, $method, $dataType, $headers, $data) = @_;
 
@@ -188,7 +188,8 @@ sub _request
 
     # set data for posting
     $request->content($data);
-
+	print "The HTTP request: \n" . Dumper($request) . "\n";
+	
     # Send request and receive the response
     my $response = $ua->request($request);
     $out->{responsecode} = $response->code();
@@ -236,7 +237,7 @@ sub _parseResponse
 #
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
-sub _list_genomes_in_solr {
+sub _listGenomesInSolr {
 	my ($self) = @_;
 	my $count = 10;
 	my $start = 0;
@@ -254,10 +255,10 @@ sub _list_genomes_in_solr {
 	};
 	my $query = { q => "*" };
 	my $core = "QZtest";
-	return $self->_search_solr($core, $params, $query, "json", $grp);
+	return $self->_searchSolr($core, $params, $query, "json", $grp);
 }
 #
-# method name: _search_solr
+# method name: _searchSolr
 # Internal Method: to execute a search in SOLR according to the passed parameters
 # parameters:
 # $searchParams is a hash, see the example below:
@@ -271,7 +272,7 @@ sub _list_genomes_in_solr {
 #   count => $count
 #}
 #
-sub _search_solr {
+sub _searchSolr {
 	my ($self, $searchCore, $searchParams, $searchQuery, $resultFormat, $groupOption, $skipEscape) = @_;
 	$skipEscape = {} unless $skipEscape;
 	
@@ -319,7 +320,7 @@ sub _search_solr {
 	my $solrQuery = $self->{_SOLR_URL}.$solrCore."/select?".$queryFields.$solrGroup;
 	print "Query string:\n$solrQuery\n";
 	
-	my $solr_response = $self->_request("$solrQuery", "GET");
+	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
 	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	
 	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
@@ -346,7 +347,7 @@ sub _testInsert2solr
         genome_source_id => "1331250.3"
 	} ];
 
-	if (!$self->_insert2solr($ds)) {
+	if (!$self->_insert2Solr($ds)) {
    		print "\n Error: " . $self->_error->{response};
    		exit 1;
 	}
@@ -360,7 +361,7 @@ sub _testInsert2solr
 	}	
 }
 #
-# method name: _insert2solr
+# method name: _insert2Solr
 # Internal method: to add documents to solr for indexing.
 # It sends a xml http request.  First it will convert the raw datastructure to required ds then it will convert 
 # this ds to xml. This xml will be posted to Apache solr for indexing.
@@ -373,14 +374,14 @@ sub _testInsert2solr
 #
 # Check error method for for getting the error details for last command
 #
-sub _insert2solr
+sub _insert2Solr
 {
     my ($self, $params) = @_;
     #my $ds = $self->_rawDsToSolrDs($params);
     my $doc = $self->_toXML($params, 'add');
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_POST_URL}?commit=" . $commit;
-    my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $doc);
+    my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
 
     return 1 if ($self->_parseResponse($response));
     return 0;
