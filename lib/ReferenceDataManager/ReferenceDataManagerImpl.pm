@@ -297,7 +297,7 @@ sub _searchSolr {
 	foreach my $key (keys %$searchParams) {
         $queryFields .= "$key=". URI::Escape::uri_escape($searchParams->{$key}) . "&";
     }
-	
+	print "The query fields: \n" . $queryFields. "\n";
 	# Add solr query to queryString
     my $qStr = "q=";
     if (defined $searchQuery->{q}) {
