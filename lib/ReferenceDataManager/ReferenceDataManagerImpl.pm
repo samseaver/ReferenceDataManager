@@ -1,5 +1,5 @@
 package ReferenceDataManager::ReferenceDataManagerImpl;
-#use strict;
+use strict;
 use Bio::KBase::Exceptions;
 # Use Semantic Versioning (2.0.0-rc.1)
 # http://semver.org 
