@@ -286,7 +286,7 @@ sub _searchSolr {
 	# If output format is not passed set it to XML
     $resultFormat = "xml" unless $resultFormat;
     my $DEFAULT_FIELD_CONNECTOR = "AND";
-	print "Inputs: " . $self->{_SOLR_URL}."/$searchCore/select?"; 
+
 	# Build the queryFields string with $searchQuery and $searchParams
 	my $queryFields = "";
     if (! $searchQuery) {
@@ -411,7 +411,7 @@ sub _testInsert2Solr
 	else
 	{
         print "Added a new set of docs for indexing:\n" . Dumper($ds) . "\n";
-		if (!$self->_commit()) {
+		if (!$self->_commit($core)) {
     		print "\n Error: " . $self->_error->{response};
     		exit 1;
 		}
@@ -582,8 +582,8 @@ sub _autocommit
 #
 sub _commit
 {
-    my ($self) = @_;
-    my $url = $self->{_SOLR_POST_URL};
+    my ($self, $core) = @_;
+    my $url = $self->{_SOLR_URL} . "/$core/update";
     my $cmd = $self->_toXML('true', 'commit');
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
 
