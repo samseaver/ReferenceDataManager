@@ -1,4 +1,4 @@
-#use strict;
+use strict;
 use Data::Dumper;
 use Test::More;
 use Config::Simple;
