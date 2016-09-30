@@ -337,7 +337,7 @@ sub _searchSolr {
 	}
 	return $solr_response;
 }
-sub _testInsert2solr
+sub _testInsert2Solr
 {
 	my ($self) = @_;
 	my $ds = [ {
