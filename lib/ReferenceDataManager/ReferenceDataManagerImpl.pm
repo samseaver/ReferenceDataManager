@@ -401,11 +401,36 @@ sub _testInsert2Solr
             'object_id' => 'kb|ws.2869.obj.72243',
             'genome_id' => 'kb|g.239993'
           },
-	  {"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3805","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	  {"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3806","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	  {"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2695","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	  {"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3800","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"},
-	  {"object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3801","workspace_name"=>"KBasePublicRichGenomesV5","genome_id"=>"kb|g.0","genome_source_id"=>"83333.1"}
+	  {
+	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3805",
+	    "workspace_name"=>"KBasePublicRichGenomesV5",
+	    "genome_id"=>"kb|g.0",
+	    "genome_source_id"=>"83333.1"
+	    },
+	  {
+	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3806",
+	    "workspace_name"=>"KBasePublicRichGenomesV5",
+	    "genome_id"=>"kb|g.0",
+	    "genome_source_id"=>"83333.1"
+	    },
+	  {
+	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2695",
+	    "workspace_name"=>"KBasePublicRichGenomesV5",
+	    "genome_id"=>"kb|g.0",
+	    "genome_source_id"=>"83333.1"
+	    },
+	  {
+	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3800",
+	    "workspace_name"=>"KBasePublicRichGenomesV5",
+	    "genome_id"=>"kb|g.0",
+	    "genome_source_id"=>"83333.1"
+	    },
+	  {
+	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3801",
+	    "workspace_name"=>"KBasePublicRichGenomesV5",
+	    "genome_id"=>"kb|g.0",
+	    "genome_source_id"=>"83333.1"
+	    }
         ];
 
 	my $core = "QZtest";
