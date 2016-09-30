@@ -502,7 +502,7 @@ sub _commit
     my ($self) = @_;
     my $url = $self->{_SOLR_POST_URL};
     my $cmd = $self->_toXML('true', 'commit');
-    my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $cmd);
+    my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
 
     return 1 if ($self->_parseResponse($response));
     return 0;
