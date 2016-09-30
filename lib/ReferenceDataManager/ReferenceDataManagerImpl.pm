@@ -188,7 +188,7 @@ sub _sendRequest
 
     # set data for posting
     $request->content($data);
-	#print "The HTTP request: \n" . Dumper($request) . "\n";
+	print "The HTTP request: \n" . Dumper($request) . "\n";
 	
     # Send request and receive the response
     my $response = $ua->request($request);
@@ -315,7 +315,6 @@ sub _searchSolr {
         $qStr =~ s/ AND $//g;
     }
     $queryFields .= "$qStr";
-    #print "The query string is: \n" . "&$queryFields \n";
 	
 	my $solrCore = "/$searchCore"; 
   	my $sort = "&sort=genome_id asc";
