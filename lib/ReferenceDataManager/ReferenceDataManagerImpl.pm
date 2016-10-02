@@ -350,32 +350,33 @@ sub _searchSolr {
 #   'workspace_name' => 'KBasePublicRichGenomesV5'
 #}
 #
-sub _deleteRecords {
-	my ($self, $searchCore, $criteria) = @_;
+sub _deleteRecords
+{
+        my ($self, $searchCore, $criteria) = @_;
 
-	my $solrCore = "/$searchCore";
-	
-	# Build the <query/> string that concatenates all the criteria into query tags
-	my $queryCriteria = "<delete>";
+        my $solrCore = "/$searchCore";
+
+        # Build the <query/> string that concatenates all the criteria into query tags
+        my $queryCriteria = "<delete>";
     if (! $criteria) {
         $self->{is_error} = 1;
         $self->{errmsg} = "No deletion criteria specified";
         return undef;
     }
-	foreach my $key (keys %$criteria) {
+        foreach my $key (keys %$criteria) {
         $queryCriteria .= "<query>$key:". URI::Escape::uri_escape($criteria->{$key}) . "</query>";
     }
 
     $queryCriteria .= "</delete>&commit=true";
     #print "The deletion query string is: \n" . "$queryCriteria \n";
 
-	my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?stream.body=".$queryCriteria;
-	#print "The final deletion query string is: \n" . "$solrQuery \n";
-	
-	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
-	
-	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
-	return $solr_response;
+        my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?stream.body=".$queryCriteria;
+        print "The final deletion query string is: \n" . "$solrQuery \n";
+
+        my $solr_response = $self->_sendRequest("$solrQuery", "GET");
+
+        #print "\nRaw response: \n" . $solr_response->{response} . "\n";
+        return $solr_response;
 }
 
 sub _testInsert2Solr
@@ -430,8 +431,8 @@ sub _testInsert2Solr
 }
 #
 # method name: _addXML2Solr
-# Internal method: to add documents to solr for indexing.
-# It sends a xml http request.  First it will convert the raw datastructure to required ds then it will convert 
+# Internal method: to add XML documents to solr for indexing.
+# It sends a xml http request.  First it will convert the raw datastructure to required ds then it will convert
 # this ds to xml. This xml will be posted to Apache solr for indexing.
 # Depending on the flag AUTOCOMMIT the documents will be indexed immediatly or on commit is issued.
 # parameters:
@@ -440,13 +441,12 @@ sub _testInsert2Solr
 #    1 for successful posting of the xml document
 #    0 for any failure
 #
-# Check error method for for getting the error details for last command
 #
 sub _addXML2Solr
 {
     my ($self, $solrCore, $params) = @_;
     my $ds = $self->_rawDsToSolrDs($params);
-    my $doc = $self->_toXML($params, 'add');
+    my $doc = $self->_toXML($ds, 'add');
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
@@ -456,9 +456,33 @@ sub _addXML2Solr
 }
 
 #
+# method name: _toXML
 # Internal Method
 # This function will convert the datastructe to XML document
 # For XML Formatted Index Updates
+#
+# The XML schema recognized by the update handler for adding documents is very straightforward:
+# The <add> element introduces one or more documents to be added.
+# The <doc> element introduces the fields making up a document.
+# The <field> element presents the content for a specific field.
+# For example:
+# <add>
+#  <doc>
+#    <field name="authors">Patrick Eagar</field>
+#    <field name="subject">Sports</field>
+#    <field name="dd">796.35</field>
+#    <field name="numpages">128</field>
+#    <field name="desc"></field>
+#    <field name="price">12.40</field>
+#    <field name="title" boost="2.0">Summer of the all-rounder: Test and championship cricket in England 1982</field>
+#    <field name="isbn">0002166313</field>
+#    <field name="yearpub">1982</field>
+#    <field name="publisher">Collins</field>
+#  </doc>
+#  <doc boost="2.5">
+#  ...
+#  </doc>
+#</add>
 # Index update commands can be sent as XML message to the update handler using Content-type: application/xml or Content-type: text/xml.
 # For adding Documents
 #
@@ -499,28 +523,6 @@ sub _toXML
 #    ...
 #    ]
 #
-# The XML schema recognized by the update handler for adding documents is very straightforward:
-# The <add> element introduces one more documents to be added.
-# The <doc> element introduces the fields making up a document.
-# The <field> element presents the content for a specific field.
-# For example:
-# <add>
-#  <doc>
-#    <field name="authors">Patrick Eagar</field>
-#    <field name="subject">Sports</field>
-#    <field name="dd">796.35</field>
-#    <field name="numpages">128</field>
-#    <field name="desc"></field>
-#    <field name="price">12.40</field>
-#    <field name="title" boost="2.0">Summer of the all-rounder: Test and championship cricket in England 1982</field>
-#    <field name="isbn">0002166313</field>
-#    <field name="yearpub">1982</field>
-#    <field name="publisher">Collins</field>
-#  </doc>
-#  <doc boost="2.5">
-#  ...
-#  </doc>
-#</add>
 sub _rawDsToSolrDs
 {
     my ($self, $docs) = @_;
@@ -589,19 +591,17 @@ sub _autocommit
 #    1 for success
 #    0 for any failure
 #
-# Check error method for for getting the error details for last command
 #
 sub _commit
 {
-    my ($self, $core) = @_;
-    my $url = $self->{_SOLR_URL} . "/$core/update";
+    my ($self) = @_;
+    my $url = $self->{_SOLR_POST_URL};
     my $cmd = $self->_toXML('true', 'commit');
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
 
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
-
 #
 # method name: _rollback
 #    This method is used for issuing rollback on transaction that
@@ -612,14 +612,13 @@ sub _commit
 #    1 for success
 #    0 for any failure
 #
-# Check error method for for getting the error details for last command
 #
 sub _rollback
 {
     my ($self) = @_;
     my $url = $self->{_SOLR_POST_URL};
     my $cmd = $self->_toXML('', 'rollback');
-    my $response = $self->_request($url, 'POST', undef, $self->{_CT_XML}, $cmd);
+    my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
 
     return 1 if ($self->_parseResponse($response));
     return 0;
@@ -635,13 +634,12 @@ sub _rollback
 #    1 for success
 #    0 for any failure
 #
-# Check error method for for getting the error details for last command
 #
 sub _exists
 {
     my ($self, $id) = @_;
     my $url = "$self->{_SOLR_SEARCH_URL}?q=id:$id";
-    my $response = $self->_request($url, 'GET');
+    my $response = $self->_sendRequest($url, 'GET');
     my $status = ($self->_parseResponse($response));
     if ($status) {
     my $xs = new XML::Simple();
@@ -682,8 +680,6 @@ sub _clear_error
     $self->{is_error} = 0;
     $self->{error} = undef;
 }
-
-
 
 #
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
