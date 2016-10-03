@@ -397,8 +397,9 @@ sub _testActionsInSolr
 	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
     
 	#3. list all the contents in core "genomes", without group option
-	$grpOption = "";
+	#$grpOption = "";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", $grpOption );
+	print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 wipe out the whole QZtest content!
 	my $ds = {
@@ -406,55 +407,23 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-    $impl->_deleteRecords("QZtest", $ds)
+    #$impl->_deleteRecords("QZtest", $ds)
 	
 	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
 	my $grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
-	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 		
-	if (!$self->_commit($core)) {
-    		print "\n Error: " . $self->_error->{response};
-    		exit 1;
+	if (!$self->_commit("QZtest")) {
+    	print "\n Error: " . $self->_error->{response};
+    	exit 1;
 	}
 	
 	#5 populate core QZtest with list of document from "genomes"
-	my $ds = [
-	  {
-	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3805",
-	    "workspace_name"=>"KBasePublicRichGenomesV5",
-	    "genome_id"=>"kb|g.0",
-	    "genome_source_id"=>"83333.1"
-	    },
-	  {
-	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3806",
-	    "workspace_name"=>"KBasePublicRichGenomesV5",
-	    "genome_id"=>"kb|g.0",
-	    "genome_source_id"=>"83333.1"
-	    },
-	  {
-	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.2695",
-	    "workspace_name"=>"KBasePublicRichGenomesV5",
-	    "genome_id"=>"kb|g.0",
-	    "genome_source_id"=>"83333.1"
-	    },
-	  {
-	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3800",
-	    "workspace_name"=>"KBasePublicRichGenomesV5",
-	    "genome_id"=>"kb|g.0",
-	    "genome_source_id"=>"83333.1"
-	    },
-	  {
-	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3801",
-	    "workspace_name"=>"KBasePublicRichGenomesV5",
-	    "genome_id"=>"kb|g.0",
-	    "genome_source_id"=>"83333.1"
-	  }
-        ];
-
+	my $ds = [];
 	my $core = "QZtest";
-	if (!$self->_addXML2Solr($core, $ds)) {
-   		print "\n Error: " . $self->_error->{response};
+	if ($ds && !$self->_addXML2Solr($core, $ds)) {
+   		print "\n Error: empty doc set or " . $self->_error->{response};
    		exit 1;
 	}
 	else
