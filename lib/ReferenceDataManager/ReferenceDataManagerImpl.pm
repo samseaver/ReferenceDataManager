@@ -404,12 +404,12 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-    #$self->_deleteRecords("QZtest", $ds)
+    $self->_deleteRecords("QZtest", $ds)
 	
 	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
 	my $grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	#print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
+	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
 		
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
