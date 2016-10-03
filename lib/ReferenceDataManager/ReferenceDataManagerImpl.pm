@@ -431,12 +431,13 @@ sub _testActionsInSolr
 	"location_strand":"+","locations":"[[\"kb|g.239991.c.174\", 195951, \"+\", 321, 0]]","roles":"hypothetical protein",
 	"cs_db_version":"V5","_version_":1488194788598480898}')
 ;
+print Dumper( $docs);
 	my $solrCore = "QZtest";
 	my $url_c = "$self->{_SOLR_URL}/$solrCore/update?commit=true";
 	my $genome_json = $json->pretty->encode($docs);
 	my $genome_file = "genomeName.json";
 	
-	`curl $url_c -H 'Content-type:application/json' --data-binary $genome_json`;
+	#`curl $url_c -H 'Content-type:application/json' --data-binary $genome_json`;
 
 	open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
 	print FH "$genome_json";
