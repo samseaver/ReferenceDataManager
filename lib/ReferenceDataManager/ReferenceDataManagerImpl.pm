@@ -246,12 +246,12 @@ sub _parseResponse
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
 sub _listGenomesInSolr {
-	my ($self) = @_;
+	my ($self, $solrCore, $grp) = @_;
 	my $count = 10;
 	my $start = 0;
 	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
-	my $grp = "";#"genome_id";
+	
 	my $params = {
 		fl => "genome_id",
 		wt => "json",
@@ -262,8 +262,7 @@ sub _listGenomesInSolr {
 		count => $count
 	};
 	my $query = { q => "*" };
-	my $core = "QZtest";
-	return $self->_searchSolr($core, $params, $query, "json", $grp);
+	return $self->_searchSolr($solrCore, $params, $query, "json", $grp);
 }
 #
 # method name: _searchSolr
@@ -380,20 +379,46 @@ sub _deleteRecords
         return $solr_response;
 }
 
-sub _testInsert2Solr
+sub _testActionsInSolr
 {
 	my ($self) = @_;
 	$self -> _autocommit(0);
 	
+	#1. check if the server is reachable
 	if (! $self->_ping()) {
 		print "\n Error: " . $self->_error->{response};
 		exit 1;
 	}
-	else
-	{
-		print "\nThe server responds!\n";
+	print "\nThe server is alive!\n";
+	
+	#2. list all the contents in core "QZtest", with group option specified
+	my $grpOption = "genome_id";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
+	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+    
+	#3. list all the contents in core "genomes", without group option
+	$grpOption = "";
+	$solr_ret = $self -> _listGenomesInSolr( "genomes", $grpOption );
+	
+	#4.1 wipe out the whole QZtest content!
+	my $ds = {
+    	#'workspace_name' => 'KBasePublicRichGenomesV5',
+		#'genome_id' => 'kb|g.0'
+		'*' => '*' 
+	};
+    $impl->_deleteRecords("QZtest", $ds)
+	
+	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
+	my $grpOption = "genome_id";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
+	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+		
+	if (!$self->_commit($core)) {
+    		print "\n Error: " . $self->_error->{response};
+    		exit 1;
 	}
-
+	
+	#5 populate core QZtest with list of document from "genomes"
 	my $ds = [
 	  {
 	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3805",
