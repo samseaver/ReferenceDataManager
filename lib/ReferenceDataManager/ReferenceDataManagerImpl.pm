@@ -391,12 +391,12 @@ sub _testActionsInSolr
 	#2. list all the contents in core "QZtest", with group option specified
 	my $grpOption = "genome_id";
 	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret->{response}) . "\n";
+	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
     
 	#3. list all the contents in core "genomes", without group option
 	#$grpOption = "";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", "genome_id", $grpOption );
-	#print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret->{response}) . "\n";
+	#print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 wipe out the whole QZtest content!
 	my $ds = {
@@ -409,7 +409,7 @@ sub _testActionsInSolr
 	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
 	my $grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
+	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#5.1 populate core QZtest with list of document from "genomes"
 	my $gdocs = decode_json('[
@@ -452,8 +452,8 @@ sub _testActionsInSolr
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	my $grpOption = "";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "object_id", $grpOption );
-	print "\nList of genomes in QZtest after insertion: \n" . Dumper($solr_ret->{response}) . "\n";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	print "\nList of genomes in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
 		
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
@@ -481,7 +481,7 @@ sub _addXML2Solr
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
-    #print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
+    print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
