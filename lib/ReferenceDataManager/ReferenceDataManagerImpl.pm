@@ -434,7 +434,7 @@ sub _testActionsInSolr
 	my $solrCore = "QZtest";
 	my $url_c = "$self->{_SOLR_URL}/$solrCore/update?commit=true";
 	my $genome_json = $json->pretty->encode($docs);
-	my $genome_file = "$genome_name.json";
+	my $genome_file = "genomeName.json";
 	
 	`curl $url_c -H 'Content-type:application/json' --data-binary $genome_json`;
 
