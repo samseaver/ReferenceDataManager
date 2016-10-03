@@ -21,13 +21,7 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     my $solr_ret = $impl->_listGenomesInSolr();
-    print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
-    my $ds = {
-    	'workspace_name' => 'KBasePublicRichGenomesV5',
-	'genome_id' => 'kb|g.0'
-	};
-    $impl->_deleteRecords("QZtest", $ds);
-    $impl->_testInsert2Solr();
+    $impl->_testActionsInSolr();
 
     $solr_ret = $impl->_listGenomesInSolr();
     print "\nlist of genomes: \n" . Dumper($solr_ret) . "\n";
