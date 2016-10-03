@@ -390,12 +390,12 @@ sub _testActionsInSolr
 	#2. list all the contents in core "QZtest", with group option specified
 	my $grpOption = "genome_id";
 	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret->{response}) . "\n";
+	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret->{response}) . "\n";
     
 	#3. list all the contents in core "genomes", without group option
 	#$grpOption = "";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", "genome_id", $grpOption );
-	print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret->{response}) . "\n";
+	#print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret->{response}) . "\n";
 	
 	#4.1 wipe out the whole QZtest content!
 	my $ds = {
