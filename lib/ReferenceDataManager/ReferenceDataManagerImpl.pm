@@ -598,7 +598,7 @@ sub _commit
     my $url = $self->{_SOLR_POST_URL};
     my $cmd = $self->_toXML('true', 'commit');
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
-
+    print Dumper($response);
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
