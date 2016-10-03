@@ -476,7 +476,7 @@ genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 6278733
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	my $grpOption = "";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", ""object_id"", $grpOption );
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "object_id", $grpOption );
 	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
 		
 	if (!$self->_commit("QZtest")) {
