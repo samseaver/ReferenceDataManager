@@ -241,6 +241,7 @@ sub _parseResponse
     $self->{error}->{errmsg} = $@;
     return 0;
 }
+
 #
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
@@ -382,7 +383,7 @@ sub _deleteRecords
 sub _testInsert2Solr
 {
 	my ($self) = @_;
-	$self -> autocommit(0);
+	$self -> _autocommit(0);
 	my $ds = [
 	  {
 	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3805",
