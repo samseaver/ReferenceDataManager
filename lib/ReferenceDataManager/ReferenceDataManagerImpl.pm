@@ -379,6 +379,7 @@ sub _testActionsInSolr
 {
 	my ($self) = @_;
 	$self -> _autocommit(0);
+	my $json = JSON->new->allow_nonref;
 	
 	#1. check if the server is reachable
 	if (! $self->_ping()) {
