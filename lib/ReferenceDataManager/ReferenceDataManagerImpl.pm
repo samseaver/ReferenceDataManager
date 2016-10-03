@@ -385,8 +385,8 @@ sub _testInsert2Solr
 	my ($self) = @_;
 	$self -> _autocommit(0);
 	
-	if (! $solr->_ping()) {
-		print "\n Error: " . $solr->error->{response};
+	if (! $self->_ping()) {
+		print "\n Error: " . $self->_error->{response};
 		exit 1;
 	}
 	else
@@ -678,10 +678,10 @@ sub _exists
 #
 sub _ping
 {
-    #print "In ping server at " . $self->{_SOLR_PING_URL} . "\n";
     my ($self, $errors) = @_;
     my $response = $self->_request($self->{_SOLR_PING_URL}, 'GET');
-print("Ping's response: " . $response);
+	print "Ping's response:\n" . Dumper($response) . "\n";
+	
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
@@ -691,6 +691,26 @@ sub _clear_error
     my ($self) = @_;
     $self->{is_error} = 0;
     $self->{error} = undef;
+}
+
+#
+# method name: _error
+# returns the errors details that was occured during last transaction action.
+# params : -
+# returns : response details includes the following details
+#    {
+#       url => 'url which is being accessed',
+#       response => 'response from server',
+#       code => 'response code',
+#       errmsg => 'for any internal error error msg'
+#     }
+#
+# Check error method for for getting the error details for last command
+#
+sub _error
+{
+    my ($self) = @_;
+    return $self->{error};
 }
 
 #
