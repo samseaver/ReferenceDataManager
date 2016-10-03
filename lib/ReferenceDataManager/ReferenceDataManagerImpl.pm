@@ -246,14 +246,14 @@ sub _parseResponse
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
 sub _listGenomesInSolr {
-	my ($self, $solrCore, $grp) = @_;
+	my ($self, $solrCore, $fields, $grp) = @_;
 	my $count = 100;
 	my $start = 0;
 	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
 	
 	my $params = {
-		fl => "genome_id",
+		fl => $fields, #"genome_id",
 		wt => "json",
 		#rows => $count,
 		sort => "genome_id asc",
@@ -389,12 +389,12 @@ sub _testActionsInSolr
 	
 	#2. list all the contents in core "QZtest", with group option specified
 	my $grpOption = "genome_id";
-	my $solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
+	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
 	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret->{response}) . "\n";
     
 	#3. list all the contents in core "genomes", without group option
 	#$grpOption = "";
-	$solr_ret = $self -> _listGenomesInSolr( "genomes", $grpOption );
+	$solr_ret = $self -> _listGenomesInSolr( "genomes", "genome_id", $grpOption );
 	print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret->{response}) . "\n";
 	
 	#4.1 wipe out the whole QZtest content!
@@ -407,7 +407,7 @@ sub _testActionsInSolr
 	
 	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
 	my $grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
 	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
 		
 	if (!$self->_commit("QZtest")) {
@@ -415,7 +415,7 @@ sub _testActionsInSolr
     	exit 1;
 	}
 	
-	#5 populate core QZtest with list of document from "genomes"
+	#5.1 populate core QZtest with list of document from "genomes"
 	my $docs = '
 	<doc>
 <str name="object_id">kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060</str>
@@ -467,12 +467,22 @@ genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 6278733
 	}
 	else
 	{
-        print "Added a new set of docs for indexing:\n" . Dumper($ds) . "\n";
+        print "Added a new set of docs for indexing:\n" . Dumper($docs) . "\n";
 		if (!$self->_commit($core)) {
     		print "\n Error: " . $self->_error->{response};
     		exit 1;
 		}
-	}	
+	}
+	
+	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
+	my $grpOption = "";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", ""object_id"", $grpOption );
+	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
+		
+	if (!$self->_commit("QZtest")) {
+    	print "\n Error: " . $self->_error->{response};
+    	exit 1;
+	}
 }
 #
 # method name: _addXML2Solr
@@ -506,7 +516,7 @@ sub _addSolrDoc2Solr
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
-    print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
+    print "After request sent by _addSolrDoc2Solr:\n" . Dumper($response) ."\n";
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
