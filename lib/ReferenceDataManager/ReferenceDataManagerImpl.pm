@@ -382,6 +382,7 @@ sub _deleteRecords
 sub _testInsert2Solr
 {
 	my ($self) = @_;
+	$self -> autocommit(0);
 	my $ds = [
 	  {
 	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3805",
