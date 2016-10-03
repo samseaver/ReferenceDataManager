@@ -596,8 +596,8 @@ sub _autocommit
 #
 sub _commit
 {
-    my ($self) = @_;
-    my $url = $self->{_SOLR_POST_URL};
+    my ($self, $solrCore) = @_;
+    my $url = $self->{_SOLR_POST_URL} . "/$solrCore/update";
     my $cmd = $self->_toXML('true', 'commit');
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
     print Dumper($response);
@@ -617,8 +617,8 @@ sub _commit
 #
 sub _rollback
 {
-    my ($self) = @_;
-    my $url = $self->{_SOLR_POST_URL};
+    my ($self, $solrCore) = @_;
+    my $url = $self->{_SOLR_POST_URL} . "/$solrCore/update";
     my $cmd = $self->_toXML('', 'rollback');
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
 
@@ -742,6 +742,7 @@ sub new
         $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
     }
     $self->{_SOLR_POST_URL} = $self->{_SOLR_URL};
+    $self->{_SOLR_PING_URL} = "$self->{_SOLR_URL}/select";
     $self->{_AUTOCOMMIT} = 1;
     $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
     $self->{_CT_JSON} = { Content_Type => 'text/json'};
