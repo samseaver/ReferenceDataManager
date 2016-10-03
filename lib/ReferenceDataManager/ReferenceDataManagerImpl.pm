@@ -404,7 +404,7 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-    $self->_deleteRecords("QZtest", $ds)
+    $self->_deleteRecords("QZtest", $ds);
 	
 	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
 	my $grpOption = "genome_id";
