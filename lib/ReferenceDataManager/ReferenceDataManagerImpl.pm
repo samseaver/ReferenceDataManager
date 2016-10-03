@@ -416,14 +416,32 @@ sub _testActionsInSolr
 	}
 	
 	#5.1 populate core QZtest with list of document from "genomes"
-	my $docs = [
-	{"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060","workspace_name":"KBasePublicRichGenomesV5","object_type":"KBaseSearch.Feature","object_name":"kb|g.239991.featureset/features/kb|g.239991.CDS.5060","genome_id":"kb|g.239991","feature_id":"kb|g.239991.CDS.5060","genome_source":"KBase Central Store","genome_source_id":"1331199.3","feature_source_id":"fig|1331199.3.peg.5167","protein_translation_length":106,"dna_sequence_length":321,"feature_type":"CDS","function":"hypothetical protein","aliases":"genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 627873319","scientific_name":"Bordetella bronchiseptica 00-P-2796","genome_dna_size":5551777,"num_contigs":179,"num_cds":5244,"domain":"Bacteria","taxonomy":["Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae","Bordetella","Bordetella bronchiseptica 00-P-2796"],"gc_content":67.87861,"location_contig":"kb|g.239991.c.174","location_begin":195951,"location_end":196271,"location_strand":"+","locations":"[[\"kb|g.239991.c.174\", 195951, \"+\", 321, 0]]","roles":"hypothetical protein","cs_db_version":"V5","_version_":1488194788598480898},
-	{"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.4502","workspace_name":"KBasePublicRichGenomesV5","object_type":"KBaseSearch.Feature","object_name":"kb|g.239991.featureset/features/kb|g.239991.CDS.4502","genome_id":"kb|g.239991","feature_id":"kb|g.239991.CDS.4502","genome_source":"KBase Central Store","genome_source_id":"1331199.3","feature_source_id":"fig|1331199.3.peg.4794","protein_translation_length":241,"dna_sequence_length":726,"feature_type":"CDS","function":"Branched-chain amino acid transport ATP-binding protein LivF (TC 3.A.1.4.1)","aliases":"genbank_locus_tag : L490_1284 :: genbank_protein_id : KCV30894.1 :: GI : 627873702","scientific_name":"Bordetella bronchiseptica 00-P-2796","genome_dna_size":5551777,"num_contigs":179,"num_cds":5244,"domain":"Bacteria","taxonomy":["Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae","Bordetella","Bordetella bronchiseptica 00-P-2796"],"gc_content":67.87861,"location_contig":"kb|g.239991.c.172","location_begin":168465,"location_end":169190,"location_strand":"+","locations":"[[\"kb|g.239991.c.172\", 168465, \"+\", 726, 0]]","roles":"Branched-chain amino acid transport ATP-binding protein LivF (TC 3.A.1.4.1)","cs_db_version":"V5","_version_":1488194788599529472}
-	];
-	
-	my $core = "QZtest";
+	my $docs = decode_json('{
+	"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060","workspace_name":"KBasePublicRichGenomesV5",
+	"object_type":"KBaseSearch.Feature","object_name":"kb|g.239991.featureset/features/kb|g.239991.CDS.5060",
+	"genome_id":"kb|g.239991","feature_id":"kb|g.239991.CDS.5060","genome_source":"KBase Central Store",
+	"genome_source_id":"1331199.3","feature_source_id":"fig|1331199.3.peg.5167","protein_translation_length":106,
+	"dna_sequence_length":321,"feature_type":"CDS","function":"hypothetical protein",
+	"aliases":"genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 627873319",
+	"scientific_name":"Bordetella bronchiseptica 00-P-2796","genome_dna_size":5551777,"num_contigs":179,
+	"num_cds":5244,"domain":"Bacteria",
+	"taxonomy":["Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae","Bordetella","Bordetella bronchiseptica 00-P-2796"],
+	"gc_content":67.87861,"location_contig":"kb|g.239991.c.174","location_begin":195951,"location_end":196271,
+	"location_strand":"+","locations":"[[\"kb|g.239991.c.174\", 195951, \"+\", 321, 0]]","roles":"hypothetical protein",
+	"cs_db_version":"V5","_version_":1488194788598480898}')
+;
+	my $solrCore = "QZtest";
 	my $url_c = "$self->{_SOLR_URL}/$solrCore/update?commit=true";
-	`curl $url_c -H 'Content-type:application/json' -d '$docs'`;
+	my $genome_json = $json->pretty->encode($docs);
+	my $genome_file = "$genome_name.json";
+	
+	`curl $url_c -H 'Content-type:application/json' --data-binary $genome_json`;
+
+	open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
+	print FH "$genome_json";
+	close FH;
+	
+	`curl $url_c -H 'Content-type:application/json' --data-binary @"$genome_file"`;
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	my $grpOption = "";
