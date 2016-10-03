@@ -188,7 +188,7 @@ sub _sendRequest
 
     # set data for posting
     $request->content($data);
-	print "The HTTP request: \n" . Dumper($request) . "\n";
+	#print "The HTTP request: \n" . Dumper($request) . "\n";
 	
     # Send request and receive the response
     my $response = $ua->request($request);
@@ -462,7 +462,7 @@ sub _addXML2Solr
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
-    print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
+    #print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
@@ -610,7 +610,7 @@ sub _commit
     my $url = $self->{_SOLR_POST_URL} . "/$solrCore/update";
     my $cmd = $self->_toXML('true', 'commit');
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
-    print Dumper($response);
+
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
@@ -680,7 +680,7 @@ sub _ping
 {
     my ($self, $errors) = @_;
     my $response = $self->_sendRequest($self->{_SOLR_PING_URL}, 'GET');
-	print "Ping's response:\n" . Dumper($response) . "\n";
+	#print "Ping's response:\n" . Dumper($response) . "\n";
 	
     return 1 if ($self->_parseResponse($response));
     return 0;
@@ -773,7 +773,7 @@ sub new
     }
     $self->{_SOLR_POST_URL} = $self->{_SOLR_URL};
     $self->{_SOLR_PING_URL} = "$self->{_SOLR_URL}/select";
-    $self->{_AUTOCOMMIT} = 1;
+    $self->{_AUTOCOMMIT} = 0;
     $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
     $self->{_CT_JSON} = { Content_Type => 'text/json'};
     
