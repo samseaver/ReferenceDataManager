@@ -408,7 +408,7 @@ sub _testActionsInSolr
 	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
 	my $grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
+	#print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
 		
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
@@ -421,7 +421,7 @@ sub _testActionsInSolr
 <str name="object_id">kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060</str>
 <str name="workspace_name">KBasePublicRichGenomesV5</str>
 <str name="genome_id">kb|g.239991</str>
-<str name="genome_source">KBase Central Store</str>
+<str name="genome_source_id">1331199.3</str>
 </doc>
 ';
 	my $core = "QZtest";
