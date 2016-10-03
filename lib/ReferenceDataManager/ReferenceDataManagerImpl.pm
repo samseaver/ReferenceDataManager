@@ -461,7 +461,7 @@ genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 6278733
 <long name="_version_">1488194788598480898</long>
 </doc>';
 	my $core = "QZtest";
-	if ($ds && !$self->_addSolrDoc2Solr($core, $ds)) {
+	if ($docs && !$self->_addSolrDoc2Solr($core, $docs)) {
    		print "\n Error: empty doc set or " . $self->_error->{response};
    		exit 1;
 	}
