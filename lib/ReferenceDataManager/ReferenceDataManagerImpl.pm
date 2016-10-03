@@ -431,7 +431,7 @@ sub _testActionsInSolr
 	"location_strand":"+","locations":"[[\"kb|g.239991.c.174\", 195951, \"+\", 321, 0]]","roles":"hypothetical protein",
 	"cs_db_version":"V5","_version_":1488194788598480898}')
 ;
-print Dumper( $docs);
+
 	my $solrCore = "QZtest";
 	my $url_c = "$self->{_SOLR_URL}/$solrCore/update?commit=true";
 	my $genome_json = $json->pretty->encode($docs);
@@ -439,11 +439,13 @@ print Dumper( $docs);
 	
 	#`curl $url_c -H 'Content-type:application/json' --data-binary $genome_json`;
 
-	open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
-	print FH "$genome_json";
-	close FH;
+	#open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
+	#print FH "$genome_json";
+	#close FH;
 	
-	`curl $url_c -H 'Content-type:application/json' --data-binary @"$genome_file"`;
+	#`curl $url_c -H 'Content-type:application/json' --data-binary @"$genome_file"`;
+	
+	$self -> _addXML2Solr($solrCore, $docs);
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	my $grpOption = "";
