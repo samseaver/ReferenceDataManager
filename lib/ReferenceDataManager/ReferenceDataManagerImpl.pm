@@ -679,7 +679,7 @@ sub _exists
 sub _ping
 {
     my ($self, $errors) = @_;
-    my $response = $self->_request($self->{_SOLR_PING_URL}, 'GET');
+    my $response = $self->_sendRequest($self->{_SOLR_PING_URL}, 'GET');
 	print "Ping's response:\n" . Dumper($response) . "\n";
 	
     return 1 if ($self->_parseResponse($response));
