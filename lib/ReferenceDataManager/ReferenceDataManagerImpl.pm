@@ -393,7 +393,7 @@ sub _testActionsInSolr
 	
 	#2. list all the contents in core "QZtest", with group option specified
 	my $grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
+	my $solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
 	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
     
 	#3. list all the contents in core "genomes", without group option
