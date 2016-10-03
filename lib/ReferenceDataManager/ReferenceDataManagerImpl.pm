@@ -420,33 +420,10 @@ sub _testActionsInSolr
 	<doc>
 <str name="object_id">kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060</str>
 <str name="workspace_name">KBasePublicRichGenomesV5</str>
-<str name="object_type">KBaseSearch.Feature</str>
-<str name="object_name">kb|g.239991.featureset/features/kb|g.239991.CDS.5060</str>
 <str name="genome_id">kb|g.239991</str>
-<str name="feature_id">kb|g.239991.CDS.5060</str>
 <str name="genome_source">KBase Central Store</str>
-<str name="genome_source_id">1331199.3</str>
-<str name="feature_source_id">fig|1331199.3.peg.5167</str>
-<int name="protein_translation_length">106</int>
-<int name="dna_sequence_length">321</int>
-<str name="feature_type">CDS</str>
-<str name="function">hypothetical protein</str>
-<str name="aliases">genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 627873319</str>
-<str name="scientific_name">Bordetella bronchiseptica 00-P-2796</str>
-<long name="genome_dna_size">5551777</long>
-<int name="num_contigs">179</int>
-<int name="num_cds">5244</int>
-<str name="domain">Bacteria</str>
-<float name="gc_content">67.87861</float>
-<str name="location_contig">kb|g.239991.c.174</str>
-<int name="location_begin">195951</int>
-<int name="location_end">196271</int>
-<str name="location_strand">+</str>
-<str name="locations">[["kb|g.239991.c.174", 195951, "+", 321, 0]]</str>
-<str name="roles">hypothetical protein</str>
-<str name="cs_db_version">V5</str>
-<long name="_version_">1488194788598480898</long>
-</doc>';
+</doc>
+';
 	my $core = "QZtest";
 	if ($docs && !$self->_addSolrDoc2Solr($core, $docs)) {
    		print "\n Error: empty doc set or " . $self->_error->{response};
