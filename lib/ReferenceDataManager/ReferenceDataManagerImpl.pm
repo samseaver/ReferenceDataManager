@@ -450,7 +450,7 @@ sub _addXML2Solr
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
-    print "After request sent by _addXML2Solr:\n" . $response ."\n";
+    print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
