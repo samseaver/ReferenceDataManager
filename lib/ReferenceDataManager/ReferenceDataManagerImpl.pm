@@ -384,6 +384,16 @@ sub _testInsert2Solr
 {
 	my ($self) = @_;
 	$self -> _autocommit(0);
+	
+	if (! $solr->_ping()) {
+		print "\n Error: " . $solr->error->{response};
+		exit 1;
+	}
+	else
+	{
+		print "\nThe server responds!\n";
+	}
+
 	my $ds = [
 	  {
 	    "object_id"=>"kb|ws.2869.obj.2/features/kb|g.0.peg.3805",
