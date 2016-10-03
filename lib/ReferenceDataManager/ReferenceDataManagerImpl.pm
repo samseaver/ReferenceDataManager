@@ -247,7 +247,7 @@ sub _parseResponse
 #
 sub _listGenomesInSolr {
 	my ($self, $solrCore, $grp) = @_;
-	my $count = 10;
+	my $count = 100;
 	my $start = 0;
 	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
@@ -255,11 +255,10 @@ sub _listGenomesInSolr {
 	my $params = {
 		fl => "genome_id",
 		wt => "json",
-		rows => $count,
+		#rows => $count,
 		sort => "genome_id asc",
 		hl => "false",
-		start => $start,
-		count => $count
+		start => $start
 	};
 	my $query = { q => "*" };
 	return $self->_searchSolr($solrCore, $params, $query, "json", $grp);
@@ -335,7 +334,7 @@ sub _searchSolr {
 	if($groupOption){
 		my @solr_genome_records = @{$solr_response->{response}->{grouped}->{genome_id}->{groups}};
 		print "\n\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
-		print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
+		#print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	}
 	return $solr_response;
 }
@@ -352,12 +351,11 @@ sub _searchSolr {
 #
 sub _deleteRecords
 {
-        my ($self, $searchCore, $criteria) = @_;
+	my ($self, $searchCore, $criteria) = @_;
+	my $solrCore = "/$searchCore";
 
-        my $solrCore = "/$searchCore";
-
-        # Build the <query/> string that concatenates all the criteria into query tags
-        my $queryCriteria = "<delete>";
+	# Build the <query/> string that concatenates all the criteria into query tags
+	my $queryCriteria = "<delete>";
     if (! $criteria) {
         $self->{is_error} = 1;
         $self->{errmsg} = "No deletion criteria specified";
@@ -370,13 +368,11 @@ sub _deleteRecords
     $queryCriteria .= "</delete>&commit=true";
     #print "The deletion query string is: \n" . "$queryCriteria \n";
 
-        my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?stream.body=".$queryCriteria;
-        print "The final deletion query string is: \n" . "$solrQuery \n";
+	my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?stream.body=".$queryCriteria;
+	#print "The final deletion query string is: \n" . "$solrQuery \n";
 
-        my $solr_response = $self->_sendRequest("$solrQuery", "GET");
-
-        #print "\nRaw response: \n" . $solr_response->{response} . "\n";
-        return $solr_response;
+	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
+	return $solr_response;
 }
 
 sub _testActionsInSolr
@@ -394,12 +390,12 @@ sub _testActionsInSolr
 	#2. list all the contents in core "QZtest", with group option specified
 	my $grpOption = "genome_id";
 	my $solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
-	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret->{response}) . "\n";
     
 	#3. list all the contents in core "genomes", without group option
 	#$grpOption = "";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", $grpOption );
-	print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
+	print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret->{response}) . "\n";
 	
 	#4.1 wipe out the whole QZtest content!
 	my $ds = {
@@ -407,12 +403,12 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-    #$impl->_deleteRecords("QZtest", $ds)
+    #$self->_deleteRecords("QZtest", $ds)
 	
 	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
 	my $grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", $grpOption );
-	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
+	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
 		
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
@@ -420,9 +416,52 @@ sub _testActionsInSolr
 	}
 	
 	#5 populate core QZtest with list of document from "genomes"
-	my $ds = [];
+	my $docs = '
+	<doc>
+<str name="object_id">kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060</str>
+<str name="workspace_name">KBasePublicRichGenomesV5</str>
+<str name="object_type">KBaseSearch.Feature</str>
+<str name="object_name">
+kb|g.239991.featureset/features/kb|g.239991.CDS.5060
+</str>
+<str name="genome_id">kb|g.239991</str>
+<str name="feature_id">kb|g.239991.CDS.5060</str>
+<str name="genome_source">KBase Central Store</str>
+<str name="genome_source_id">1331199.3</str>
+<str name="feature_source_id">fig|1331199.3.peg.5167</str>
+<int name="protein_translation_length">106</int>
+<int name="dna_sequence_length">321</int>
+<str name="feature_type">CDS</str>
+<str name="function">hypothetical protein</str>
+<str name="aliases">
+genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 627873319
+</str>
+<str name="scientific_name">Bordetella bronchiseptica 00-P-2796</str>
+<long name="genome_dna_size">5551777</long>
+<int name="num_contigs">179</int>
+<int name="num_cds">5244</int>
+<str name="domain">Bacteria</str>
+<arr name="taxonomy">
+<str>Bacteria</str>
+<str>Proteobacteria</str>
+<str>Betaproteobacteria</str>
+<str>Burkholderiales</str>
+<str>Alcaligenaceae</str>
+<str>Bordetella</str>
+<str>Bordetella bronchiseptica 00-P-2796</str>
+</arr>
+<float name="gc_content">67.87861</float>
+<str name="location_contig">kb|g.239991.c.174</str>
+<int name="location_begin">195951</int>
+<int name="location_end">196271</int>
+<str name="location_strand">+</str>
+<str name="locations">[["kb|g.239991.c.174", 195951, "+", 321, 0]]</str>
+<str name="roles">hypothetical protein</str>
+<str name="cs_db_version">V5</str>
+<long name="_version_">1488194788598480898</long>
+</doc>';
 	my $core = "QZtest";
-	if ($ds && !$self->_addXML2Solr($core, $ds)) {
+	if ($ds && !$self->_addSolrDoc2Solr($core, $ds)) {
    		print "\n Error: empty doc set or " . $self->_error->{response};
    		exit 1;
 	}
@@ -460,7 +499,17 @@ sub _addXML2Solr
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
-
+sub _addSolrDoc2Solr
+{
+    my ($self, $solrCore, $params) = @_;
+    my $doc = "<add>$params</add>";
+    my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
+    my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
+    my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
+    print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
+    return 1 if ($self->_parseResponse($response));
+    return 0;
+}
 #
 # method name: _toXML
 # Internal Method
