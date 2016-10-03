@@ -410,11 +410,6 @@ sub _testActionsInSolr
 	my $grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
 	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret->{response}) . "\n";
-		
-	if (!$self->_commit("QZtest")) {
-    	print "\n Error: " . $self->_error->{response};
-    	exit 1;
-	}
 	
 	#5.1 populate core QZtest with list of document from "genomes"
 	my $gdocs = decode_json('[
@@ -434,7 +429,7 @@ sub _testActionsInSolr
 	{"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.4502","workspace_name":"KBasePublicRichGenomesV5","object_type":"KBaseSearch.Feature","object_name":"kb|g.239991.featureset/features/kb|g.239991.CDS.4502","genome_id":"kb|g.239991","feature_id":"kb|g.239991.CDS.4502","genome_source":"KBase Central Store","genome_source_id":"1331199.3","feature_source_id":"fig|1331199.3.peg.4794","protein_translation_length":241,"dna_sequence_length":726,"feature_type":"CDS","function":"Branched-chain amino acid transport ATP-binding protein LivF (TC 3.A.1.4.1)","aliases":"genbank_locus_tag : L490_1284 :: genbank_protein_id : KCV30894.1 :: GI : 627873702","scientific_name":"Bordetella bronchiseptica 00-P-2796","genome_dna_size":5551777,"num_contigs":179,"num_cds":5244,"domain":"Bacteria","taxonomy":["Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae","Bordetella","Bordetella bronchiseptica 00-P-2796"],"gc_content":67.87861,"location_contig":"kb|g.239991.c.172","location_begin":168465,"location_end":169190,"location_strand":"+","locations":"[[\"kb|g.239991.c.172\", 168465, \"+\", 726, 0]]","roles":"Branched-chain amino acid transport ATP-binding protein LivF (TC 3.A.1.4.1)","cs_db_version":"V5","_version_":1488194788599529472}
 	]')
 ;
-print Dumper($gdocs);
+	#print Dumper($gdocs);
 	my $solrCore = "QZtest";
 	my $url_c = "$self->{_SOLR_URL}/$solrCore/update?commit=true";
 	my $genome_json = $json->pretty->encode($gdocs);
@@ -449,6 +444,11 @@ print Dumper($gdocs);
 	#`curl $url_c -H 'Content-type:application/json' --data-binary @"$genome_file"`;
 	
 	$self -> _addXML2Solr($solrCore, $gdocs);
+			
+	if (!$self->_commit("QZtest")) {
+    	print "\n Error: " . $self->_error->{response};
+    	exit 1;
+	}
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	my $grpOption = "";
