@@ -195,12 +195,12 @@ sub _testActionsInSolr
 	
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
-    for (my $gi=0; $gi < @{$genome_docs}; $gi++) 
-	{print Dumper($genome_docs->[$gi]);
-		my $gdoc = decode_json('"['.$genome_docs->[$gi].']"');
-		print Dumper($gdoc);
-		$self -> _addXML2Solr($solrCore, $gdoc);
-	}		
+    #for (my $gi=0; $gi < @{$genome_docs}; $gi++) 
+	#{print Dumper($genome_docs->[$gi]);
+		my $gdocs = decode_json('"'.$genome_docs->[$gi].'"');
+		#print Dumper($gdocs);
+		#$self -> _addXML2Solr($solrCore, $gdoc);
+	#}		
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
     	exit 1;
