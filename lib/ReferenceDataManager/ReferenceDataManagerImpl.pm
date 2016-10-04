@@ -181,12 +181,12 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-    $self->_deleteRecords("QZtest", $ds);
+    #$self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
 	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
+	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	#print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
@@ -195,8 +195,12 @@ sub _testActionsInSolr
 	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
 	#4.2 list all the refernece genomes from the Gene Bank
-	$self->list_reference_genomes();
-	
+	$genebank_ret = $self->list_reference_genomes({
+            refseq => 1,
+            update_only => 0
+        });
+	print "\nGene bank genome list: \n" . Dumper($genebank_ret). "\n";
+	exit 1;
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
 	#$self -> _addXML2Solr($solrCore, $genome_docs);
