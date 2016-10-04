@@ -39,16 +39,6 @@ sub util_initialize_call {
 	$self->{_provenance} = $ctx->provenance();
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	$self->util_timestamp(DateTime->now()->datetime());
-	
-	#SOLR specific parameters
-    if (! $self->{_SOLR_URL}) {
-        $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
-    }
-    $self->{_SOLR_POST_URL} = $self->{_SOLR_URL};
-    $self->{_SOLR_PING_URL} = "$self->{_SOLR_URL}/select";
-    $self->{_AUTOCOMMIT} = 0;
-    $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
-    $self->{_CT_JSON} = { Content_Type => 'text/json'};
 	return $params;
 }
 
@@ -164,92 +154,92 @@ sub util_create_report {
 	});
 }
 #################### methods for accessing SOLR using its web interface#######################
-# method name: _sendRequest
-# Internal Method used for sending HTTP
-# url : Requested url
-# method : HTTP method
-# dataType : Type of data posting (binary or text)
-# headers : headers as key => value pair
-# data : if binary it will as sequence of character
-#          if text it will be key => value pair
-sub _sendRequest
-{
-    my ($self, $url, $method, $dataType, $headers, $data) = @_;
-
-    # Intialize the request params if not specified
-    $dataType = ($dataType) ? $dataType : 'text';
-    $method = ($method) ? $method : 'POST';
-    $url = ($url) ? $url : $self->{_SOLR_URL};
-    $headers = ($headers) ?  $headers : {};
-    $data = ($data) ? $data: '';
-	
-    my $out = {};
-
-    # create a HTTP request
-    my $ua = LWP::UserAgent->new;
-    my $request = HTTP::Request->new;
-    $request->method($method);
-    $request->uri($url);
-
-    # set headers
-    foreach my $header (keys %$headers) {
-        $request->header($header =>  $headers->{$header});
-    }
-
-    # set data for posting
-    $request->content($data);
-	print "The HTTP request: \n" . Dumper($request) . "\n";
-	
-    # Send request and receive the response
-    my $response = $ua->request($request);
-    $out->{responsecode} = $response->code();
-    $out->{response} = $response->content;
-    $out->{url} = $url;
-    return $out;
-}
-
 #
-# Internal Method: to parse solr server response
-# Responses from Solr take the form shown here:
-#<response>
-#  <lst name="responseHeader">
-#    <int name="status">0</int>
-#    <int name="QTime">127</int>
-#  </lst>
-#</response>
-#
-sub _parseResponse
+# method name: _testActionsInSolr
+sub _testActionsInSolr
 {
-    my ($self, $response, $responseType) = @_;
+	my ($self) = @_;
+	$self -> _autocommit(0);
+	my $json = JSON->new->allow_nonref;
+	
+	#1. check if the server is reachable
+	if (! $self->_ping()) {
+		print "\n Error: " . $self->_error->{response};
+		exit 1;
+	}
+	print "\nThe server is alive!\n";
+	
+	#2. list all the contents in core "QZtest", with group option specified
+	my $grpOption = "genome_id";
+	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+	
+	#3.1 wipe out the whole QZtest content!
+	my $ds = {
+    	#'workspace_name' => 'KBasePublicRichGenomesV5',
+		#'genome_id' => 'kb|g.0'
+		'*' => '*' 
+	};
+    $self->_deleteRecords("QZtest", $ds);
+	
+	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
+	$grpOption = "genome_id";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
+	
+	#4. list all the contents in core "genomes", without group option--get the first 100 rows
+	#$grpOption = "";
+	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
+	#print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
+	
+	#5.1 populate core QZtest with the list of document from "genomes"
+	my $gdocs = decode_json('[
+	{
+	"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060","workspace_name":"KBasePublicRichGenomesV5",
+	"object_type":"KBaseSearch.Feature","object_name":"kb|g.239991.featureset/features/kb|g.239991.CDS.5060",
+	"genome_id":"kb|g.239991","feature_id":"kb|g.239991.CDS.5060","genome_source":"KBase Central Store",
+	"genome_source_id":"1331199.3","feature_source_id":"fig|1331199.3.peg.5167","protein_translation_length":106,
+	"dna_sequence_length":321,"feature_type":"CDS","function":"hypothetical protein",
+	"aliases":"genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 627873319",
+	"scientific_name":"Bordetella bronchiseptica 00-P-2796","genome_dna_size":5551777,"num_contigs":179,
+	"num_cds":5244,"domain":"Bacteria",
+	"taxonomy":["Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae","Bordetella","Bordetella bronchiseptica 00-P-2796"],
+	"gc_content":67.87861,"location_contig":"kb|g.239991.c.174","location_begin":195951,"location_end":196271,
+	"location_strand":"+","locations":"[[\"kb|g.239991.c.174\", 195951, \"+\", 321, 0]]","roles":"hypothetical protein",
+	"cs_db_version":"V5"},
+	{"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.4502","workspace_name":"KBasePublicRichGenomesV5","object_type":"KBaseSearch.Feature","object_name":"kb|g.239991.featureset/features/kb|g.239991.CDS.4502","genome_id":"kb|g.239991","feature_id":"kb|g.239991.CDS.4502","genome_source":"KBase Central Store","genome_source_id":"1331199.3","feature_source_id":"fig|1331199.3.peg.4794","protein_translation_length":241,"dna_sequence_length":726,"feature_type":"CDS","function":"Branched-chain amino acid transport ATP-binding protein LivF (TC 3.A.1.4.1)","aliases":"genbank_locus_tag : L490_1284 :: genbank_protein_id : KCV30894.1 :: GI : 627873702","scientific_name":"Bordetella bronchiseptica 00-P-2796","genome_dna_size":5551777,"num_contigs":179,"num_cds":5244,"domain":"Bacteria","taxonomy":["Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae","Bordetella","Bordetella bronchiseptica 00-P-2796"],"gc_content":67.87861,"location_contig":"kb|g.239991.c.172","location_begin":168465,"location_end":169190,"location_strand":"+","locations":"[[\"kb|g.239991.c.172\", 168465, \"+\", 726, 0]]","roles":"Branched-chain amino acid transport ATP-binding protein LivF (TC 3.A.1.4.1)","cs_db_version":"V5"}
+	]')
+;
+	#print Dumper($gdocs);
+	my $solrCore = "QZtest";
+	my $url_c = "$self->{_SOLR_URL}/$solrCore/update?commit=true";
+	my $genome_json = $json->pretty->encode($gdocs);
+	my $genome_file = "genomeName.json";
+	
+	#`curl $url_c -H 'Content-type:application/json' --data-binary $genome_json`;
 
-    # Clear the error fields
-    $self->{is_error} = 0;
-    $self->{error} = undef;
-
-    $responseType = "xml" unless $responseType;
-
-    # Check for successfull request/response
-    if ($response->{responsecode} eq "200") {
-           if ($responseType eq "json") {
-                my $resRef = JSON::from_json($response->{response});
-                if ($resRef->{responseHeader}->{status} eq 0) {
-                        return 1;
-                }
-            } else {
-                my $xs = new XML::Simple();
-                my $xmlRef;
-                eval {
-                        $xmlRef = $xs->XMLin($response->{response});
-                };
-                if ($xmlRef->{lst}->{'int'}->{status}->{content} eq 0){
-                        return 1;
-                }
-            }
-    }
-    $self->{is_error} = 1;
-    $self->{error} = $response;
-    $self->{error}->{errmsg} = $@;
-    return 0;
+	#open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
+	#print FH "$genome_json";
+	#close FH;
+	
+	#`curl $url_c -H 'Content-type:application/json' --data-binary @"$genome_file"`;
+	
+	#$self -> _addXML2Solr($solrCore, $gdocs);
+			
+	if (!$self->_commit("QZtest")) {
+    	print "\n Error: " . $self->_error->{response};
+    	exit 1;
+	}
+	
+	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
+	$grpOption = "";
+	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	#print "\nList of genomes in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
+		
+	if (!$self->_commit("QZtest")) {
+    	print "\n Error: " . $self->_error->{response};
+    	exit 1;
+	}
 }
 
 #
@@ -385,91 +375,95 @@ sub _deleteRecords
 	return $solr_response;
 }
 
-sub _testActionsInSolr
+#
+# method name: _sendRequest
+# Internal Method used for sending HTTP
+# url : Requested url
+# method : HTTP method
+# dataType : Type of data posting (binary or text)
+# headers : headers as key => value pair
+# data : if binary it will as sequence of character
+#          if text it will be key => value pair
+sub _sendRequest
 {
-	my ($self) = @_;
-	$self -> _autocommit(0);
-	my $json = JSON->new->allow_nonref;
-	
-	#1. check if the server is reachable
-	if (! $self->_ping()) {
-		print "\n Error: " . $self->_error->{response};
-		exit 1;
-	}
-	print "\nThe server is alive!\n";
-	
-	#2. list all the contents in core "QZtest", with group option specified
-	my $grpOption = "genome_id";
-	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
-	
-	#3.1 wipe out the whole QZtest content!
-	my $ds = {
-    	#'workspace_name' => 'KBasePublicRichGenomesV5',
-		#'genome_id' => 'kb|g.0'
-		'*' => '*' 
-	};
-    $self->_deleteRecords("QZtest", $ds);
-	
-	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
-	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
-	
-	#4. list all the contents in core "genomes", without group option--get the first 100 rows
-	#$grpOption = "";
-	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
-	#print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
-	
-	#5.1 populate core QZtest with the list of document from "genomes"
-	my $gdocs = decode_json('[
-	{
-	"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060","workspace_name":"KBasePublicRichGenomesV5",
-	"object_type":"KBaseSearch.Feature","object_name":"kb|g.239991.featureset/features/kb|g.239991.CDS.5060",
-	"genome_id":"kb|g.239991","feature_id":"kb|g.239991.CDS.5060","genome_source":"KBase Central Store",
-	"genome_source_id":"1331199.3","feature_source_id":"fig|1331199.3.peg.5167","protein_translation_length":106,
-	"dna_sequence_length":321,"feature_type":"CDS","function":"hypothetical protein",
-	"aliases":"genbank_locus_tag : L490_0473 :: genbank_protein_id : KCV30532.1 :: GI : 627873319",
-	"scientific_name":"Bordetella bronchiseptica 00-P-2796","genome_dna_size":5551777,"num_contigs":179,
-	"num_cds":5244,"domain":"Bacteria",
-	"taxonomy":["Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae","Bordetella","Bordetella bronchiseptica 00-P-2796"],
-	"gc_content":67.87861,"location_contig":"kb|g.239991.c.174","location_begin":195951,"location_end":196271,
-	"location_strand":"+","locations":"[[\"kb|g.239991.c.174\", 195951, \"+\", 321, 0]]","roles":"hypothetical protein",
-	"cs_db_version":"V5"},
-	{"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.4502","workspace_name":"KBasePublicRichGenomesV5","object_type":"KBaseSearch.Feature","object_name":"kb|g.239991.featureset/features/kb|g.239991.CDS.4502","genome_id":"kb|g.239991","feature_id":"kb|g.239991.CDS.4502","genome_source":"KBase Central Store","genome_source_id":"1331199.3","feature_source_id":"fig|1331199.3.peg.4794","protein_translation_length":241,"dna_sequence_length":726,"feature_type":"CDS","function":"Branched-chain amino acid transport ATP-binding protein LivF (TC 3.A.1.4.1)","aliases":"genbank_locus_tag : L490_1284 :: genbank_protein_id : KCV30894.1 :: GI : 627873702","scientific_name":"Bordetella bronchiseptica 00-P-2796","genome_dna_size":5551777,"num_contigs":179,"num_cds":5244,"domain":"Bacteria","taxonomy":["Bacteria","Proteobacteria","Betaproteobacteria","Burkholderiales","Alcaligenaceae","Bordetella","Bordetella bronchiseptica 00-P-2796"],"gc_content":67.87861,"location_contig":"kb|g.239991.c.172","location_begin":168465,"location_end":169190,"location_strand":"+","locations":"[[\"kb|g.239991.c.172\", 168465, \"+\", 726, 0]]","roles":"Branched-chain amino acid transport ATP-binding protein LivF (TC 3.A.1.4.1)","cs_db_version":"V5"}
-	]')
-;
-	#print Dumper($gdocs);
-	my $solrCore = "QZtest";
-	my $url_c = "$self->{_SOLR_URL}/$solrCore/update?commit=true";
-	my $genome_json = $json->pretty->encode($gdocs);
-	my $genome_file = "genomeName.json";
-	
-	#`curl $url_c -H 'Content-type:application/json' --data-binary $genome_json`;
+    my ($self, $url, $method, $dataType, $headers, $data) = @_;
 
-	#open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
-	#print FH "$genome_json";
-	#close FH;
+    # Intialize the request params if not specified
+    $dataType = ($dataType) ? $dataType : 'text';
+    $method = ($method) ? $method : 'POST';
+    $url = ($url) ? $url : $self->{_SOLR_URL};
+    $headers = ($headers) ?  $headers : {};
+    $data = ($data) ? $data: '';
 	
-	#`curl $url_c -H 'Content-type:application/json' --data-binary @"$genome_file"`;
+    my $out = {};
+
+    # create a HTTP request
+    my $ua = LWP::UserAgent->new;
+    my $request = HTTP::Request->new;
+    $request->method($method);
+    $request->uri($url);
+
+    # set headers
+    foreach my $header (keys %$headers) {
+        $request->header($header =>  $headers->{$header});
+    }
+
+    # set data for posting
+    $request->content($data);
+	print "The HTTP request: \n" . Dumper($request) . "\n";
 	
-	#$self -> _addXML2Solr($solrCore, $gdocs);
-			
-	if (!$self->_commit("QZtest")) {
-    	print "\n Error: " . $self->_error->{response};
-    	exit 1;
-	}
-	
-	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
-	$grpOption = "";
-	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
-	#print "\nList of genomes in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
-		
-	if (!$self->_commit("QZtest")) {
-    	print "\n Error: " . $self->_error->{response};
-    	exit 1;
-	}
+    # Send request and receive the response
+    my $response = $ua->request($request);
+    $out->{responsecode} = $response->code();
+    $out->{response} = $response->content;
+    $out->{url} = $url;
+    return $out;
 }
+
+#
+# Internal Method: to parse solr server response
+# Responses from Solr take the form shown here:
+#<response>
+#  <lst name="responseHeader">
+#    <int name="status">0</int>
+#    <int name="QTime">127</int>
+#  </lst>
+#</response>
+#
+sub _parseResponse
+{
+    my ($self, $response, $responseType) = @_;
+
+    # Clear the error fields
+    $self->{is_error} = 0;
+    $self->{error} = undef;
+
+    $responseType = "xml" unless $responseType;
+
+    # Check for successfull request/response
+    if ($response->{responsecode} eq "200") {
+           if ($responseType eq "json") {
+                my $resRef = JSON::from_json($response->{response});
+                if ($resRef->{responseHeader}->{status} eq 0) {
+                        return 1;
+                }
+            } else {
+                my $xs = new XML::Simple();
+                my $xmlRef;
+                eval {
+                        $xmlRef = $xs->XMLin($response->{response});
+                };
+                if ($xmlRef->{lst}->{'int'}->{status}->{content} eq 0){
+                        return 1;
+                }
+            }
+    }
+    $self->{is_error} = 1;
+    $self->{error} = $response;
+    $self->{error}->{errmsg} = $@;
+    return 0;
+}
+
 #
 # method name: _addXML2Solr
 # Internal method: to add XML documents to solr for indexing.
@@ -798,6 +792,17 @@ sub new
     	refseq => "RefSeq_Genomes"
     };
     
+		
+	#SOLR specific parameters
+    if (! $self->{_SOLR_URL}) {
+        $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
+    }
+    $self->{_SOLR_POST_URL} = $self->{_SOLR_URL};
+    $self->{_SOLR_PING_URL} = "$self->{_SOLR_URL}/select";
+    $self->{_AUTOCOMMIT} = 0;
+    $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
+    $self->{_CT_JSON} = { Content_Type => 'text/json'};
+	
     #END_CONSTRUCTOR
 
     if ($self->can('_init_instance'))
