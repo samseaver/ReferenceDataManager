@@ -508,7 +508,7 @@ sub _toXML
     } else {
     $xml = $xs->XMLout($params, rootname => $rootnode);
     }
-	#print "\n$xml\n";
+	print "\n$xml\n";
     return $xml;
 }
 
