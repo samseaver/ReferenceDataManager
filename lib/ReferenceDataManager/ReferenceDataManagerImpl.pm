@@ -188,7 +188,7 @@ sub _testActionsInSolr
 	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#4. list all the contents in core "genomes", without group option--get the first 100 rows
-	#$grpOption = "";
+	$grpOption = "";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
 	#print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
 	
