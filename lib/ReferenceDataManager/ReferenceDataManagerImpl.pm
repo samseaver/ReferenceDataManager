@@ -39,6 +39,16 @@ sub util_initialize_call {
 	$self->{_provenance} = $ctx->provenance();
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	$self->util_timestamp(DateTime->now()->datetime());
+	
+	#SOLR specific parameters
+    if (! $self->{_SOLR_URL}) {
+        $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
+    }
+    $self->{_SOLR_POST_URL} = $self->{_SOLR_URL};
+    $self->{_SOLR_PING_URL} = "$self->{_SOLR_URL}/select";
+    $self->{_AUTOCOMMIT} = 0;
+    $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
+    $self->{_CT_JSON} = { Content_Type => 'text/json'};
 	return $params;
 }
 
@@ -787,14 +797,6 @@ sub new
     	phytozome => "Phytozome_Genomes",
     	refseq => "RefSeq_Genomes"
     };
-    if (! $self->{_SOLR_URL}) {
-        $self->{_SOLR_URL} = "http://kbase.us/internal/solr-ci/search";
-    }
-    $self->{_SOLR_POST_URL} = $self->{_SOLR_URL};
-    $self->{_SOLR_PING_URL} = "$self->{_SOLR_URL}/select";
-    $self->{_AUTOCOMMIT} = 0;
-    $self->{_CT_XML} = { Content_Type => 'text/xml; charset=utf-8' };
-    $self->{_CT_JSON} = { Content_Type => 'text/json'};
     
     #END_CONSTRUCTOR
 
