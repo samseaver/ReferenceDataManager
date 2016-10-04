@@ -195,12 +195,24 @@ sub _testActionsInSolr
 	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
 	#4.2 list all the refernece genomes from the Gene Bank
+	my $genebank_ret = $self->list_reference_genomes({
+        refseq => 1,
+        update_only => 0
+    });
+	#print "\nGene bank genome list: \n" . Dumper($genomesLoaded_ret). "\n";
 	my $genomesLoaded_ret = $self->load_genomes({
-            genomes => [$ret->[0]],
+            genomes => [$genebank_ret->[0]],
             index_in_solr => 0
         });
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
 	
+	$ret = $impl->update_loaded_genomes_v1({
+ 	genomeData => [$genomesLoaded_ret->[0]],    
+        refseq => 1,
+	formats => "gbf"
+        });
+	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
+	exit;
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
 	#$self -> _addXML2Solr($solrCore, $genome_docs);
