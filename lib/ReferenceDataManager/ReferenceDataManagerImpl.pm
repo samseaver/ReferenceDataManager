@@ -181,7 +181,7 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-    $self->_deleteRecords("QZtest", $ds);
+    #$self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
 	$grpOption = "genome_id";
@@ -200,16 +200,16 @@ sub _testActionsInSolr
         update_only => 0
     });
 	#print "\nGene bank genome list: \n" . Dumper($genomesLoaded_ret). "\n";
-	#my $genomesLoaded_ret = $self->load_genomes({
-            #genomes => [$genebank_ret->[0]],
-            #index_in_solr => 0
-        #});
-	#print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
+	my $genomesLoaded_ret = $self->load_genomes({
+            #enomes => [$genebank_ret->[0]],
+            index_in_solr => 0
+        });
+	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
 	
 	my $ret = $self->update_loaded_genomes_v1({
  	genomeData => [$genebank_ret->[0]],    
         refseq => 1,
-	formats => "gbf"
+		formats => "gbff"
         });
 	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
 	exit;
