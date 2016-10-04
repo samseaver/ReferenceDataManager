@@ -197,7 +197,7 @@ sub _testActionsInSolr
 	my $solrCore = "QZtest";
     for (my $gi=0; $gi < @{$genome_docs}; $gi++) 
 	{print Dumper($genome_docs->[$gi]);
-		my $gdoc = decode_json($genome_docs->[$gi]);
+		my $gdoc = decode_json('"'.$genome_docs->[$gi].'"');
 		print Dumper($gdoc);
 		$self -> _addXML2Solr($solrCore, $gdoc);
 	}		
