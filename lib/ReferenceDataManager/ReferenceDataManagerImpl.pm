@@ -190,7 +190,7 @@ sub _testActionsInSolr
 	#4. list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
-	print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
+	print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret-{response}->{response}->{docs}) . "\n";
 	
 	#5.1 populate core QZtest with the list of document from "genomes"
 	my $gdocs = decode_json('[
