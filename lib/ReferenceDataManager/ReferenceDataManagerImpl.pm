@@ -224,7 +224,7 @@ sub _testActionsInSolr
 #
 sub _listGenomesInSolr {
 	my ($self, $solrCore, $fields, $grp) = @_;
-	my $count = 10;#2,147,483,647 is integer's maximum value
+	my $count = 2;#2,147,483,647 is integer's maximum value
 	my $start = 0;
 	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
