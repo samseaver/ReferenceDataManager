@@ -547,10 +547,10 @@ sub _rawDsToSolrDs
 			#print "$field => " . Dumper($values);
         	if (ref($values) eq 'ARRAY' && scalar (@$values) ){
         		for my $val (@$values) {
-            		push @$d, {name => $field, content => $val};
+            		push @$d, {name => $field, content => $val} unless $val eq '_version_';
         		}
         	} else {
-        		push @$d, { name => $field, content => $values};
+        		push @$d, { name => $field, content => $values} unless $values eq '_version_';; 
         	}
     	}
     	push @$ds, {field => $d};
