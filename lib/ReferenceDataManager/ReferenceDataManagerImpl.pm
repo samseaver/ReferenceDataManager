@@ -156,6 +156,7 @@ sub util_create_report {
 #################### methods for accessing SOLR using its web interface#######################
 #
 # method name: _testActionsInSolr
+#
 sub _testActionsInSolr
 {
 	my ($self) = @_;
@@ -187,22 +188,19 @@ sub _testActionsInSolr
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
 	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
-	#4. list all the contents in core "genomes", without group option--get the first 100 rows
+	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
-	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
-	my $genome_docs = $solr_ret->{response}->{response}->{docs};
+	#$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
+	#my $genome_docs = $solr_ret->{response}->{response}->{docs};
 	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
+	
+	#4.2 list all the refernece genomes from the Gene Bank
+	$self->list_reference_genomes();
 	
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
-    #for (my $gi=0; $gi < @{$genome_docs}; $gi++) 
-	#{
-	 	#my $gdoc = $genome_docs->[$gi];
-		#my $gdocs = decode_json(@{$genome_docs});
-		#print Dumper($gdoc);
-		#$self -> _addXML2Solr($solrCore, $gdoc);
-	#}	
-	$self -> _addXML2Solr($solrCore, $genome_docs);
+	#$self -> _addXML2Solr($solrCore, $genome_docs);
+	
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
     	exit 1;
