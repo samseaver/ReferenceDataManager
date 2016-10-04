@@ -207,7 +207,7 @@ sub _testActionsInSolr
 	#print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
 	
 	my $ret = $self->update_loaded_genomes_v1({
- 	genomeData => [$genomesLoaded_ret->[0]],    
+ 	genomeData => [$genebank_ret->[0]],    
         refseq => 1,
 	formats => "gbf"
         });
