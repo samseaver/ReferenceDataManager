@@ -485,17 +485,7 @@ sub _addXML2Solr
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
-sub _addSolrDoc2Solr
-{
-    my ($self, $solrCore, $params) = @_;
-    my $doc = "<add>$params</add>";
-    my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
-    my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
-    my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
-    print "After request sent by _addSolrDoc2Solr:\n" . Dumper($response) ."\n";
-    return 1 if ($self->_parseResponse($response));
-    return 0;
-}
+
 #
 # method name: _toXML
 # Internal Method
