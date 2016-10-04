@@ -701,8 +701,8 @@ sub _exists
 #
 sub _ping
 {
-	print "Pinging server: $self->{_SOLR_PING_URL}\n";
     my ($self, $errors) = @_;
+	print "Pinging server: $self->{_SOLR_PING_URL}\n";
     my $response = $self->_sendRequest($self->{_SOLR_PING_URL}, 'GET');
 	#print "Ping's response:\n" . Dumper($response) . "\n";
 	
