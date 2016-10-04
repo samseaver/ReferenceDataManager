@@ -1862,7 +1862,7 @@ sub update_loaded_genomes_v1
     my $msg = "";
     $output = [];
     my $solrServer = $self->{_SOLR_URL};#$ENV{KBASE_SOLR};
-    my $solrFormat=&wt=csv&csv.separator=%09&csv.mv.separator=;";#"&wt=json";
+    my $solrFormat="&wt=csv&csv.separator=%09&csv.mv.separator=;";#"&wt=json";
     my $genome_data = $params->{genomeData};
     my $count = 0;
     for (my $i=0; $i < @{$genome_data}; $i++) {
