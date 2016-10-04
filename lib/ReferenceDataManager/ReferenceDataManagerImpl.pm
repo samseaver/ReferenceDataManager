@@ -200,11 +200,11 @@ sub _testActionsInSolr
         update_only => 0
     });
 	#print "\nGene bank genome list: \n" . Dumper($genomesLoaded_ret). "\n";
-	my $genomesLoaded_ret = $self->load_genomes({
-            genomes => [$genebank_ret->[0]],
-            index_in_solr => 0
-        });
-	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
+	#my $genomesLoaded_ret = $self->load_genomes({
+            #genomes => [$genebank_ret->[0]],
+            #index_in_solr => 0
+        #});
+	#print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
 	
 	my $ret = $self->update_loaded_genomes_v1({
  	genomeData => [$genomesLoaded_ret->[0]],    
