@@ -253,6 +253,7 @@ sub _listGenomesInSolr {
 		start => $start
 	};
 	my $query = { q => "*" };
+	
 	return $self->_searchSolr($solrCore, $params, $query, "json", $grp);
 }
 #
@@ -1677,8 +1678,8 @@ sub update_loaded_genomes
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-	my $msg = "Invalid arguments passed to update_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+		my $msg = "Invalid arguments passed to update_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+		Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
 							       method_name => 'update_loaded_genomes');
     }
 
@@ -1692,26 +1693,26 @@ sub update_loaded_genomes
     my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
 
     my $count = 0;
-    my $updated_genomes = list_reference_genomes(refseq => 1, update_only => 0);
+    my $ref_genomes = list_reference_genomes(refseq => 1, update_only => 0);
     my $loaded_genomes = list_loaded_genomes(refseq => 1);
-    my @genomes_in_solr = list_genomes_in_solr();    
+    my @genomes_in_solr = _listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
 
-    for (my $i=0; $i <@{ $updated_genomes }; $i++) {
-	my $genome = $updated_genomes->[$i];
+    for (my $i=0; $i <@{ $ref_genomes }; $i++) {
+		my $genome = $ref_genomes->[$i];
 	
-	#check if the genome is already present in the database by querying SOLR
+		#check if the genome is already present in the database by querying SOLR
     	my $gnstatus = checkGenomeStatus( $genome, \@genomes_in_solr);
 
-	if ($gnstatus=~/(new|updated)/i){
-	   $count ++;
-	   load_genomes( genomes => $genome, index_in_solr => 0 );
-	   push(@{$output},$genome);
-	   if ($count < 10) {
-		   $msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
-		}
-	}else{
+		if ($gnstatus=~/(new|updated)/i){
+	   		$count ++;
+	   		load_genomes( genomes => $genome, index_in_solr => 1 );
+	   		push(@{$output},$genome);
+	   		if ($count < 10) {
+		   		$msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
+			}
+		}else{
 		# Current version already in KBase, check for annotation updates
-	}
+		}
     }
     
     if ($params->{create_report}) {
@@ -1861,16 +1862,16 @@ sub update_loaded_genomes_v1
     my $msg = "";
     $output = [];
     my $solrServer = $self->{_SOLR_URL};#$ENV{KBASE_SOLR};
-    my $solrFormat="&wt=csv&csv.separator=%09&csv.mv.separator=;";
-    my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
+    my $solrFormat=&wt=csv&csv.separator=%09&csv.mv.separator=;";#"&wt=json";
     my $genome_data = $params->{genomeData};
     my $count = 0;
     for (my $i=0; $i < @{$genome_data}; $i++) {
 	my $genome = $genome_data->[$i];
+	print "In update_loaded_genomes_v1:\n" . Dumper($genome). "\n";
 	
 	#check if the genome is already present in the database by querying SOLR
-    	my $gnstatus;
-  	my $core = "/genomes";
+    my $gnstatus;
+  	my $core = "/QZtest";
   	my $query = "/select?q=genome_id:".$genome->{id}."*"; 
   	my $fields = "&fl=genome_source,genome_id,genome_name";
   	my $rows = "&rows=100";
