@@ -402,7 +402,7 @@ sub _testActionsInSolr
     $self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
-	my $grpOption = "genome_id";
+	$grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
 	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
@@ -451,9 +451,9 @@ sub _testActionsInSolr
 	}
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
-	my $grpOption = "";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
-	print "\nList of genomes in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
+	$grpOption = "";
+	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	#print "\nList of genomes in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
 		
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
