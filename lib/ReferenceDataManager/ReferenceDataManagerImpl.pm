@@ -255,7 +255,7 @@ sub _listGenomesInSolr {
 	my $params = {
 		fl => $fields, #"genome_id",
 		wt => "json",
-		#rows => $count,
+		rows => $count,
 		sort => "genome_id asc",
 		hl => "false",
 		start => $start
@@ -392,13 +392,8 @@ sub _testActionsInSolr
 	my $grpOption = "genome_id";
 	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
 	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
-    
-	#3. list all the contents in core "genomes", without group option
-	#$grpOption = "";
-	$solr_ret = $self -> _listGenomesInSolr( "genomes", "genome_id", $grpOption );
-	#print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
 	
-	#4.1 wipe out the whole QZtest content!
+	#3.1 wipe out the whole QZtest content!
 	my $ds = {
     	#'workspace_name' => 'KBasePublicRichGenomesV5',
 		#'genome_id' => 'kb|g.0'
@@ -406,12 +401,17 @@ sub _testActionsInSolr
 	};
     $self->_deleteRecords("QZtest", $ds);
 	
-	#4.2 confirm the contents in core "QZtest" are gone, with group option specified
+	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
 	my $grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
 	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
-	#5.1 populate core QZtest with list of document from "genomes"
+	#4. list all the contents in core "genomes", without group option--get the first 100 rows
+	#$grpOption = "";
+	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
+	#print "\nList of genomes in core 'genomes': \n" . Dumper($solr_ret) . "\n";
+	
+	#5.1 populate core QZtest with the list of document from "genomes"
 	my $gdocs = decode_json('[
 	{
 	"object_id":"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060","workspace_name":"KBasePublicRichGenomesV5",
@@ -443,7 +443,7 @@ sub _testActionsInSolr
 	
 	#`curl $url_c -H 'Content-type:application/json' --data-binary @"$genome_file"`;
 	
-	$self -> _addXML2Solr($solrCore, $gdocs);
+	#$self -> _addXML2Solr($solrCore, $gdocs);
 			
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
