@@ -195,7 +195,7 @@ sub _testActionsInSolr
 	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
 	#4.2 list all the refernece genomes from the Gene Bank
-	$genebank_ret = $self->list_reference_genomes({
+	my $genebank_ret = $self->list_reference_genomes({
             refseq => 1,
             update_only => 0
         });
