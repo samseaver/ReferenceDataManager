@@ -47,7 +47,7 @@ eval {
         $ret = $impl->update_loaded_genomes_v1({
  	genomeData => [$ret->[0]],    
         refseq => 1,
-	formats => "gbf"
+	formats => "gbff"
         });
     };
     ok(!$@,"update_loaded_genomes command successful");
