@@ -1096,6 +1096,7 @@ sub list_loaded_genomes
     				workspace => $wsname
     			});
     		}
+			print "\nWorkspace info:\n". Dumper($wsoutput) ."\n";
     		my $maxid = $wsoutput->[4];
     		my $pages = ceil($maxid/10000);
     		for (my $m=0; $m < $pages; $m++) {
