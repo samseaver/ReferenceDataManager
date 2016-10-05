@@ -804,7 +804,7 @@ sub new
     $self->{_workspace_map} = {
     	ensembl => "Ensembl_Genomes",
     	phytozome => "Phytozome_Genomes",
-    	refseq => "ReferenceTaxons"#"KBaseExampleData"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
+    	refseq => "kkeller:1454440703158"#"ReferenceTaxons"#"KBaseExampleData"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
     };
     
 		
@@ -1117,7 +1117,7 @@ sub list_loaded_genomes
     		for (my $m=0; $m < $pages; $m++) {
     			$wsoutput = $self->util_ws_client()->list_objects({
 	    			workspaces => [$wsname],
-	    			type => "KBaseGenomes.Genome",
+	    			type => "KBaseGenomes.Genome-8.0",
 	    			minObjectID => 10000*$m,
 	    			maxObjectID => 10000*($m+1)
 	    		});
