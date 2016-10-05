@@ -172,8 +172,8 @@ sub _testActionsInSolr
 	
 	#2. list all the contents in core "QZtest", with group option specified
 	my $grpOption = "genome_id";
-	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+	#my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
 	
 	#3.1 wipe out the whole QZtest content!
 	my $ds = {
@@ -181,7 +181,7 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-	#$self->_deleteRecords("QZtest", $ds);
+	$self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
 	#$grpOption = "genome_id";
@@ -190,20 +190,18 @@ sub _testActionsInSolr
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
-	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
-	my $genome_docs = $solr_ret->{response}->{response}->{docs};
+	#$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
+	#my $genome_docs = $solr_ret->{response}->{response}->{docs};
 	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
-	$self -> _addXML2Solr($solrCore, $genome_docs);
+	#$self -> _addXML2Solr($solrCore, $genome_docs);
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
-	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
-	
-	exit 1;
+	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	#print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
 	
 	#6.1 list all the refernece genomes from the Gene Bank
 	my $genebank_ret = $self->list_reference_genomes({
@@ -212,14 +210,26 @@ sub _testActionsInSolr
     });
 	print "\nGene bank genome list: \n" . Dumper($genebank_ret->[0]). "\n";
 
-	#6.2 list all the refernece genomes loaded into KBase
+	#6.2 list all the refernece genomes already loaded into KBase	
+	my $KBgenomes_ret = $self->list_loaded_genomes({
+            refseq => 1
+	});
+	print "\nKBase genome list: \n" . Dumper($KBgenomes_ret). "\n";	
+	exit 1;
+	#6.3 Index all the refernece genomes already in KBase
+	my $solrGenomes_ret = $self->index_genomes_in_solr({
+		genomes => $KBgenomes_ret
+	});
+	print "\nSolr genome list: \n" . Dumper($solrGenomes_ret). "\n";	
+	
+	#6.4 load genomes from the Gene Bank to KBase	
 	my $genomesLoaded_ret = $self->load_genomes({
             genomes => [$genebank_ret->[0]],
             index_in_solr => 0
 	});
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
 	
-	#6.3 list all the refernece genomes updated
+	#6.5 list all the refernece genomes updated
 	my $ret = $self->update_loaded_genomes_v1({
  	genomeData => [$genebank_ret->[0]],    
         refseq => 1,
@@ -1571,7 +1581,7 @@ sub index_genomes_in_solr
 				push @solr_records, $record;
 	    	}
 		}
-		#print Dumper (\@solr_records);
+		print Dumper (\@solr_records);
 
 		my $genome_json = $json->pretty->encode(\@solr_records);
 
@@ -1579,7 +1589,7 @@ sub index_genomes_in_solr
 
 	#open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
 	#print FH "$genome_json";
-	close FH;
+	#close FH;
 
 	#`$Bin/post_solr_update.sh genomes $genome_file`;#By default we assume all to be indexed--if $opt->index=~/y|yes|true|1/i;
 		push (@{$output}, $kbase_genome_data);
