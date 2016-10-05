@@ -211,7 +211,7 @@ sub _testActionsInSolr
 	#print "\nGene bank genome list: \n" . Dumper($genebank_ret). "\n";
 		
 	#$self -> _addXML2Solr($solrCore, $genebank_ret);#get missing mandatory uniqueKey field: object_id error
-	$grpOption = "";
+	$grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr( $solrCore, "*", $grpOption );
 	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
 	exit 1;
