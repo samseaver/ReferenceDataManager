@@ -915,7 +915,7 @@ sub list_reference_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_reference_genomes
-    #$params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	ensembl => 0,#todo
     	phytozome => 0,#todo
@@ -1075,7 +1075,7 @@ sub list_loaded_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_loaded_genomes
-    #$params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	ensembl => 0,
     	phytozome => 0,
@@ -1264,7 +1264,7 @@ sub load_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN load_genomes
-    #$params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	data => undef,
     	genomes => [],
@@ -1458,7 +1458,7 @@ sub index_genomes_in_solr
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN index_genomes_in_solr
-    #$params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	genomes => [],
         create_report => 0,
@@ -1708,7 +1708,7 @@ sub update_loaded_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN update_loaded_genomes
-    #$params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_initialize_call($params,$ctx);
     
     my $msg = "";
     $output = [];
@@ -1870,7 +1870,7 @@ sub update_loaded_genomes_v1
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN update_loaded_genomes_v1
-    #$params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	ensembl => 0,#todo
     	phytozome => 0,#todo
