@@ -199,7 +199,7 @@ sub _testActionsInSolr
         refseq => 1,
         update_only => 0
     });
-	#print "\nGene bank genome list: \n" . Dumper($genomesLoaded_ret). "\n";
+	print "\nGene bank genome list: \n" . Dumper($genebank_ret->[0]). "\n";
 	my $genomesLoaded_ret = $self->load_genomes({
             genomes => [$genebank_ret->[0]],
             index_in_solr => 0
