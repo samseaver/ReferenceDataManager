@@ -208,8 +208,14 @@ sub _testActionsInSolr
         refseq => 1,
         update_only => 0
     });
-	print "\nGene bank genome list: \n" . Dumper($genebank_ret->[0]). "\n";
-
+	print "\nGene bank genome list: \n" . Dumper($genebank_ret). "\n";
+		
+	$self -> _addXML2Solr($solrCore, $genebank_ret);
+	$grpOption = "id";
+	my $solr_ret = $self -> _listGenomesInSolr( $solrCore, "*", $grpOption );
+	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
+	exit 1;
+	
 	#6.2 list all the refernece genomes already loaded into KBase	
 	my $KBgenomes_ret = $self->list_loaded_genomes({
             refseq => 1
@@ -237,8 +243,6 @@ sub _testActionsInSolr
         });
 	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
 	exit 1;
-	
-	$self -> _addXML2Solr($solrCore, $genebank_ret);
 	
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
@@ -1264,7 +1268,7 @@ sub load_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN load_genomes
-    $params = $self->util_initialize_call($params,$ctx);
+    #$params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	data => undef,
     	genomes => [],
@@ -1458,7 +1462,7 @@ sub index_genomes_in_solr
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN index_genomes_in_solr
-    $params = $self->util_initialize_call($params,$ctx);
+    #$params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	genomes => [],
         create_report => 0,
@@ -1708,7 +1712,7 @@ sub update_loaded_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN update_loaded_genomes
-    $params = $self->util_initialize_call($params,$ctx);
+    #$params = $self->util_initialize_call($params,$ctx);
     
     my $msg = "";
     $output = [];
@@ -1870,7 +1874,7 @@ sub update_loaded_genomes_v1
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN update_loaded_genomes_v1
-    $params = $self->util_initialize_call($params,$ctx);
+    #$params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	ensembl => 0,#todo
     	phytozome => 0,#todo
