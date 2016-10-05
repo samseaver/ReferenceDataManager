@@ -181,7 +181,7 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-	$self->_deleteRecords("QZtest", $ds);
+	#$self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
 	#$grpOption = "genome_id";
@@ -196,31 +196,30 @@ sub _testActionsInSolr
 	
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
-	$self -> _addXML2Solr($solrCore, $genome_docs);
+	#$self -> _addXML2Solr($solrCore, $genome_docs);
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	$grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
-	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
+	#print "\nList of docs in QZtest after insertion 1: \n" . Dumper($solr_ret) . "\n";
 	
 	#6.1 list all the refernece genomes from the Gene Bank
 	my $genebank_ret = $self->list_reference_genomes({
         refseq => 1,
         update_only => 0
     });
-	#print "\nGene bank genome list: \n" . Dumper($genebank_ret). "\n";
+	print "\nGene bank genome list: \n" . Dumper($genebank_ret->[0]). "\n";
 		
 	#$self -> _addXML2Solr($solrCore, $genebank_ret);#get missing mandatory uniqueKey field: object_id error
 	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr( $solrCore, "*", $grpOption );
-	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
-	exit 1;
+	#$solr_ret = $self -> _listGenomesInSolr( $solrCore, "*", $grpOption );
+	#print "\nList of docs in QZtest after insertion 2: \n" . Dumper($solr_ret) . "\n";
 	
 	#6.2 list all the refernece genomes already loaded into KBase	
 	my $KBgenomes_ret = $self->list_loaded_genomes({
             refseq => 1
 	});
-	print "\nKBase genome list: \n" . Dumper($KBgenomes_ret). "\n";	
+	print "\nKBase genome list: \n" . Dumper($KBgenomes_ret->[0]). "\n";	
 	exit 1;
 	#6.3 Index all the refernece genomes already in KBase
 	my $solrGenomes_ret = $self->index_genomes_in_solr({
