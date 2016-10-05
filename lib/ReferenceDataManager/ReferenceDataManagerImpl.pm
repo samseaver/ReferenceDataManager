@@ -1084,7 +1084,7 @@ sub list_loaded_genomes
 	my $config_file = $ENV{'KB_DEPLOYMENT_CONFIG'};
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	my $config = new Config::Simple($config_file)->get_block('ReferenceDataManager');
-	my $ws_url = $config->{"workspace-url"};
+	my $ws_url = "https://ci.kbase.us/services/ws";#$config->{"workspace-url"};
 	$self->{workspace_url} = $ws_url;
 	print "workspace url: \n$self->{workspace_url}\n";
     $params = $self->util_args($params,[],{
