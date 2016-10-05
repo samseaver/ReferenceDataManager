@@ -21,6 +21,7 @@ use Bio::KBase::AuthToken;
 use Bio::KBase::workspace::Client;
 use GenomeFileUtil::GenomeFileUtilClient;
 use Config::IniFiles;
+use Config::Simple;
 use POSIX;
 use FindBin qw($Bin);
 use JSON;
@@ -1079,8 +1080,11 @@ sub list_loaded_genomes
     my($output);
     #BEGIN list_loaded_genomes
     #$params = $self->util_initialize_call($params,$ctx);
-	print "workspace url: \n$self->{workspace_url}\n";
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
+	my $config = new Config::Simple($config_file)->get_block('ReferenceDataManager');
+	my $ws_url = $config->{"workspace-url"};
+	$self->{workspace_url} = $ws_url;
+	print "workspace url: \n$self->{workspace_url}\n";
     $params = $self->util_args($params,[],{
     	ensembl => 0,
     	phytozome => 0,
