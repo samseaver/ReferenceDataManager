@@ -1460,16 +1460,17 @@ sub index_genomes_in_solr
     #BEGIN index_genomes_in_solr
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
-    	genomes => [],
+    	genomes => {},
         create_report => 0,
     	workspace_name => undef
     });
     my $json = JSON->new->allow_nonref;
     my @solr_records;
     $output = [];
-
-    foreach my $kbase_genome_data (@$params)
-    {
+	my $genomes = $params->{genomes};
+	for (my $i=0; $i < @{$genomes}; $i++) {
+		my $kbase_genome_data = $genomes->[$i];
+		
 		my $record;
 		my $ws_name = $kbase_genome_data->{workspace_name};
 		my $ws_genome_name = $kbase_genome_data->{id}; 
