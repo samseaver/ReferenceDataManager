@@ -1096,6 +1096,9 @@ sub list_loaded_genomes
     				workspace => $wsname
     			});
     		}
+			else {
+				print "No workspace client found: $self->util_ws_client()\n";
+			}
 			print "\nWorkspace info:\n". Dumper($wsoutput) ."\n";
     		my $maxid = $wsoutput->[4];
     		my $pages = ceil($maxid/10000);
