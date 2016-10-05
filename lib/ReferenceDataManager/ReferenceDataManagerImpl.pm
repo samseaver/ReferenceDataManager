@@ -164,16 +164,16 @@ sub _testActionsInSolr
 	my $json = JSON->new->allow_nonref;
 	
 	#1. check if the server is reachable
-	if (! $self->_ping()) {
-		print "\n Error: " . $self->_error->{response};
-		exit 1;
-	}
-	print "\nThe server is alive!\n";
+	#if (! $self->_ping()) {
+		#print "\n Error: " . $self->_error->{response};
+		#exit 1;
+	#}
+	#print "\nThe server is alive!\n";
 	
 	#2. list all the contents in core "QZtest", with group option specified
-	my $grpOption = "genome_id";
-	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+	#my $grpOption = "genome_id";
+	#my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
 	
 	#3.1 wipe out the whole QZtest content!
 	my $ds = {
@@ -181,12 +181,12 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-    #$self->_deleteRecords("QZtest", $ds);
+	#$self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
 	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
+	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	#print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
@@ -201,7 +201,7 @@ sub _testActionsInSolr
     });
 	#print "\nGene bank genome list: \n" . Dumper($genomesLoaded_ret). "\n";
 	my $genomesLoaded_ret = $self->load_genomes({
-            #enomes => [$genebank_ret->[0]],
+            genomes => [$genebank_ret->[0]],
             index_in_solr => 0
         });
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
@@ -212,7 +212,7 @@ sub _testActionsInSolr
 		formats => "gbff"
         });
 	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
-	exit;
+	exit 1;
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
 	#$self -> _addXML2Solr($solrCore, $genome_docs);
