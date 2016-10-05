@@ -199,7 +199,7 @@ sub _testActionsInSolr
 	$self -> _addXML2Solr($solrCore, $genome_docs);
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
-	$grpOption = "";
+	$grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
 	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
 	
