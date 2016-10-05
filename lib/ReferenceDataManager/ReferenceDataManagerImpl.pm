@@ -178,7 +178,7 @@ sub _testActionsInSolr
 	
 	#3.1 wipe out the whole QZtest content!
 	my $ds = {
-    	'workspace_name' => 'KBasePublicRichGenomesV5',
+    	#'workspace_name' => 'KBasePublicRichGenomesV5',
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
@@ -220,14 +220,14 @@ sub _testActionsInSolr
 	my $KBgenomes_ret = $self->list_loaded_genomes({
             refseq => 1
 	});
-	print "\nKBase genome list: \n" . Dumper($KBgenomes_ret->[0]). "\n";	
-	exit 1;
+	print "\nKBase genome list: \n" . Dumper($KBgenomes_ret). "\n";	
+	
 	#6.3 Index all the refernece genomes already in KBase
 	my $solrGenomes_ret = $self->index_genomes_in_solr({
 		genomes => $KBgenomes_ret
 	});
 	print "\nSolr genome list: \n" . Dumper($solrGenomes_ret). "\n";	
-	
+	exit 1;
 	#6.4 load genomes from the Gene Bank to KBase	
 	my $genomesLoaded_ret = $self->load_genomes({
             genomes => [$genebank_ret->[0]],
@@ -1084,9 +1084,10 @@ sub list_loaded_genomes
 	my $config_file = $ENV{'KB_DEPLOYMENT_CONFIG'};
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	my $config = new Config::Simple($config_file)->get_block('ReferenceDataManager');
-	my $ws_url = $config->{"workspace-url"};#"https://ci.kbase.us/services/ws";#
+	my $ws_url = $config->{"workspace-url"};#"https://ci.kbase.us/services/ws";
 	$self->{workspace_url} = $ws_url;
 	print "workspace url: \n$self->{workspace_url}\n";
+	
     $params = $self->util_args($params,[],{
     	ensembl => 0,
     	phytozome => 0,
@@ -1100,17 +1101,12 @@ sub list_loaded_genomes
     for (my $i=0; $i < @{$sources}; $i++) {
     	if ($params->{$sources->[$i]} == 1) {
     		my $wsname = $self->util_workspace_names($sources->[$i]);
-			print "Workspace name: $wsname\n";
     		my $wsoutput;
     		if(defined($self->util_ws_client())){
     			$wsoutput = $self->util_ws_client()->get_workspace_info({
     				workspace => $wsname
     			});
-				print "Workspace client found: $self->util_ws_client()\n";
     		}
-			else {
-				print "No workspace client found: $self->util_ws_client()\n";
-			}
 			print "\nWorkspace info:\n". Dumper($wsoutput) ."\n";
     		my $maxid = $wsoutput->[4];
     		my $pages = ceil($maxid/10000);
@@ -1484,7 +1480,7 @@ sub index_genomes_in_solr
     {
 		my $record;
 		my $ws_name = $kbase_genome_data->{workspace_name};
-		my $ws_genome_name = $kbase_genome_data->{name}; 
+		my $ws_genome_name = $kbase_genome_data->{id}; 
 		my $genome_source = $kbase_genome_data->{source};
 		my $ws_genome_metadata  = `ws-get -w $ws_name $ws_genome_name -m`;
 		my @genome_metadata = split(/\n/, $ws_genome_metadata);
