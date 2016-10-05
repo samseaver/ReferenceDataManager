@@ -804,7 +804,7 @@ sub new
     $self->{_workspace_map} = {
     	ensembl => "Ensembl_Genomes",
     	phytozome => "Phytozome_Genomes",
-    	refseq => "KBaseExampleData";#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
+    	refseq => "KBaseExampleData"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
     };
     
 		
