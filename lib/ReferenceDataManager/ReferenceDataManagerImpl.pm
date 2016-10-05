@@ -190,18 +190,18 @@ sub _testActionsInSolr
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
-	#$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
-	#my $genome_docs = $solr_ret->{response}->{response}->{docs};
+	my $solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
+	my $genome_docs = $solr_ret->{response}->{response}->{docs};
 	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
-	#$self -> _addXML2Solr($solrCore, $genome_docs);
+	$self -> _addXML2Solr($solrCore, $genome_docs);
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	$grpOption = "genome_id";
-	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
-	#print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
 	
 	#6.1 list all the refernece genomes from the Gene Bank
 	my $genebank_ret = $self->list_reference_genomes({
@@ -210,9 +210,9 @@ sub _testActionsInSolr
     });
 	#print "\nGene bank genome list: \n" . Dumper($genebank_ret). "\n";
 		
-	$self -> _addXML2Solr($solrCore, $genebank_ret);
+	#$self -> _addXML2Solr($solrCore, $genebank_ret);#get missing mandatory uniqueKey field: object_id error
 	$grpOption = "";
-	my $solr_ret = $self -> _listGenomesInSolr( $solrCore, "*", $grpOption );
+	$solr_ret = $self -> _listGenomesInSolr( $solrCore, "*", $grpOption );
 	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
 	exit 1;
 	
