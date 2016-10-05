@@ -181,15 +181,15 @@ sub _testActionsInSolr
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-	$self->_deleteRecords("QZtest", $ds);
+	#$self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
-	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
+	#$grpOption = "genome_id";
+	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	#print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
-	$grpOption = "";
+	$grpOption = "genome_id";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
 	my $genome_docs = $solr_ret->{response}->{response}->{docs};
 	print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
