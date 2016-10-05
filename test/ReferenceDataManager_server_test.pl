@@ -139,6 +139,6 @@ if (defined($err)) {
     }
     sub method {
         my($self) = @_;
-        print STDERR "TEST_METHOD\n";
+        return "TEST_METHOD";
     }
 }
