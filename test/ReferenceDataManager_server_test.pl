@@ -137,4 +137,8 @@ if (defined($err)) {
         my($self,$msg) = @_;
         print STDERR $msg."\n";
     }
+    sub method {
+        my($self) = @_;
+        print STDERR "TEST_METHOD\n";
+    }
 }
