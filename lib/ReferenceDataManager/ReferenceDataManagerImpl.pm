@@ -171,7 +171,7 @@ sub _testActionsInSolr
 	#print "\nThe server is alive!\n";
 	
 	#2. list all the contents in core "QZtest", with group option specified
-	#my $grpOption = "genome_id";
+	my $grpOption = "genome_id";
 	#my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
 	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
 	
@@ -225,7 +225,7 @@ sub _testActionsInSolr
 	
 	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
 	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
 	print "\nList of genomes in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
 		
 	if (!$self->_commit("QZtest")) {
