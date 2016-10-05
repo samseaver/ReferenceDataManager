@@ -200,6 +200,7 @@ sub _testActionsInSolr
         update_only => 0
     });
 	print "\nGene bank genome list: \n" . Dumper($genebank_ret->[0]). "\n";
+	$self->{_workspace_map}->{refseq} = "RefSeqTest";
 	my $genomesLoaded_ret = $self->load_genomes({
             genomes => [$genebank_ret->[0]],
             index_in_solr => 0
