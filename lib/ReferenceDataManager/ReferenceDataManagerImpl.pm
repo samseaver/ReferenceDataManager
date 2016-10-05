@@ -192,7 +192,7 @@ sub _testActionsInSolr
 	$grpOption = "";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
 	my $genome_docs = $solr_ret->{response}->{response}->{docs};
-	print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
+	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
