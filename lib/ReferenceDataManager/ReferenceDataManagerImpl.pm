@@ -1079,6 +1079,7 @@ sub list_loaded_genomes
     my($output);
     #BEGIN list_loaded_genomes
     #$params = $self->util_initialize_call($params,$ctx);
+	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
     $params = $self->util_args($params,[],{
     	ensembl => 0,
     	phytozome => 0,
