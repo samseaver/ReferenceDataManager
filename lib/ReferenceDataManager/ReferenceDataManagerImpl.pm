@@ -208,7 +208,7 @@ sub _testActionsInSolr
         refseq => 1,
         update_only => 0
     });
-	print "\nGene bank genome list: \n" . Dumper($genebank_ret). "\n";
+	#print "\nGene bank genome list: \n" . Dumper($genebank_ret). "\n";
 		
 	$self -> _addXML2Solr($solrCore, $genebank_ret);
 	$grpOption = "id";
@@ -545,7 +545,7 @@ sub _toXML
     } else {
     $xml = $xs->XMLout($params, rootname => $rootnode);
     }
-	#print "\n$xml\n";
+	print "\n$xml\n";
     return $xml;
 }
 
