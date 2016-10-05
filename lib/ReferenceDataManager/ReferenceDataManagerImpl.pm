@@ -164,49 +164,62 @@ sub _testActionsInSolr
 	my $json = JSON->new->allow_nonref;
 	
 	#1. check if the server is reachable
-	#if (! $self->_ping()) {
+	if (! $self->_ping()) {
 		#print "\n Error: " . $self->_error->{response};
 		#exit 1;
-	#}
-	#print "\nThe server is alive!\n";
+	}
+	print "\nThe server is alive!\n";
 	
 	#2. list all the contents in core "QZtest", with group option specified
 	my $grpOption = "genome_id";
-	#my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
 	
 	#3.1 wipe out the whole QZtest content!
 	my $ds = {
-    	#'workspace_name' => 'KBasePublicRichGenomesV5',
+    	'workspace_name' => 'KBasePublicRichGenomesV5',
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
-	#$self->_deleteRecords("QZtest", $ds);
+	$self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
 	$grpOption = "genome_id";
-	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	#print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
-	#$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
-	#my $genome_docs = $solr_ret->{response}->{response}->{docs};
-	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
+	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
+	my $genome_docs = $solr_ret->{response}->{response}->{docs};
+	print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
-	#4.2 list all the refernece genomes from the Gene Bank
+	#5.1 populate core QZtest with the list of document from "genomes", one by one
+	my $solrCore = "QZtest";
+	$self -> _addXML2Solr($solrCore, $genome_docs);
+	
+	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
+	$grpOption = "";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	print "\nList of docs in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
+	
+	exit 1;
+	
+	#6.1 list all the refernece genomes from the Gene Bank
 	my $genebank_ret = $self->list_reference_genomes({
         refseq => 1,
         update_only => 0
     });
 	print "\nGene bank genome list: \n" . Dumper($genebank_ret->[0]). "\n";
-	$self->{_workspace_map}->{refseq} = "RefSeqTest";
+
+	#6.2 list all the refernece genomes loaded into KBase
 	my $genomesLoaded_ret = $self->load_genomes({
             genomes => [$genebank_ret->[0]],
             index_in_solr => 0
-        });
+	});
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
 	
+	#6.3 list all the refernece genomes updated
 	my $ret = $self->update_loaded_genomes_v1({
  	genomeData => [$genebank_ret->[0]],    
         refseq => 1,
@@ -214,9 +227,7 @@ sub _testActionsInSolr
         });
 	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
 	exit 1;
-	#5.1 populate core QZtest with the list of document from "genomes", one by one
-	my $solrCore = "QZtest";
-	#$self -> _addXML2Solr($solrCore, $genome_docs);
+	
 	$self -> _addXML2Solr($solrCore, $genebank_ret);
 	
 	if (!$self->_commit("QZtest")) {
@@ -224,11 +235,6 @@ sub _testActionsInSolr
     	exit 1;
 	}
 	
-	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
-	$grpOption = "genome_id";
-	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
-	print "\nList of genomes in QZtest after insertion: \n" . Dumper($solr_ret) . "\n";
-		
 	if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
     	exit 1;
