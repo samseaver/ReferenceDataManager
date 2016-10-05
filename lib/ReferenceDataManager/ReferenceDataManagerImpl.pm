@@ -189,7 +189,7 @@ sub _testActionsInSolr
 	#print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
-	$grpOption = "genome_id";
+	$grpOption = "";
 	$solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
 	my $genome_docs = $solr_ret->{response}->{response}->{docs};
 	print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
@@ -531,7 +531,7 @@ sub _toXML
     } else {
     $xml = $xs->XMLout($params, rootname => $rootnode);
     }
-	print "\n$xml\n";
+	#print "\n$xml\n";
     return $xml;
 }
 
@@ -790,7 +790,7 @@ sub new
     $self->{_workspace_map} = {
     	ensembl => "Ensembl_Genomes",
     	phytozome => "Phytozome_Genomes",
-    	refseq => "RefSeq_Genomes"
+    	refseq => "RefSeq_Genomes"#"KBasePublicRichGenomesV5"
     };
     
 		
