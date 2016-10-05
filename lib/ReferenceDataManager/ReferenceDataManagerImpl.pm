@@ -1079,6 +1079,7 @@ sub list_loaded_genomes
     my($output);
     #BEGIN list_loaded_genomes
     #$params = $self->util_initialize_call($params,$ctx);
+	print "workspace url: \n$self->{workspace_url}\n";
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
     $params = $self->util_args($params,[],{
     	ensembl => 0,
@@ -1093,12 +1094,13 @@ sub list_loaded_genomes
     for (my $i=0; $i < @{$sources}; $i++) {
     	if ($params->{$sources->[$i]} == 1) {
     		my $wsname = $self->util_workspace_names($sources->[$i]);
-			print "Find workspace name: $wsname\n";
+			print "Workspace name: $wsname\n";
     		my $wsoutput;
     		if(defined($self->util_ws_client())){
     			$wsoutput = $self->util_ws_client()->get_workspace_info({
     				workspace => $wsname
     			});
+				print "Workspace client found: $self->util_ws_client()\n";
     		}
 			else {
 				print "No workspace client found: $self->util_ws_client()\n";
