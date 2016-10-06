@@ -1476,7 +1476,7 @@ sub index_genomes_in_solr
 		my $genome_source = $kbase_genome_data->{source};
 		my $ws_genome_metadata = {};
 		if(defined($self->util_ws_client())){
-    		$ws_genome_metadata = $self->util_ws_client()->get_objects({
+    		$ws_genome_metadata = $self->util_ws_client()->get_object({
 				id => $ws_genome_name,
 				workspace => $ws_name});#`ws-get -w $ws_name $ws_genome_name -m`;	
 			print "ws_genome_metadata: \n" . Dumper($ws_genome_metadata) . "\nwith workspace_name$ws_name";
