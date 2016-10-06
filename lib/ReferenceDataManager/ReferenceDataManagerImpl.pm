@@ -580,27 +580,26 @@ sub _rawDsToSolrDs
     my $ds = [];
 	if( ref($docs) eq 'ARRAY' && scalar (@$docs) ) {
     	for my $doc (@$docs) {
-    	my $d = [];
-		
-    	for my $field (keys %$doc) {
-        	my $values = $doc->{$field};
-			#print "$field => " . Dumper($values);
-        	if (ref($values) eq 'ARRAY' && scalar (@$values) ){
-        		for my $val (@$values) {
-            		push @$d, {name => $field, content => $val} unless $field eq '_version_';
+    		my $d = [];		
+    		for my $field (keys %$doc) {
+        		my $values = $doc->{$field};
+				#print "$field => " . Dumper($values);
+        		if (ref($values) eq 'ARRAY' && scalar (@$values) ){
+        			for my $val (@$values) {
+            			push @$d, {name => $field, content => $val} unless $field eq '_version_';
+        			}
+        		} else {
+        			push @$d, { name => $field, content => $values} unless $field eq '_version_'; 
         		}
-        	} else {
-        		push @$d, { name => $field, content => $values} unless $field eq '_version_'; 
-        	}
+    		}
+    		push @$ds, {field => $d};
     	}
-    	push @$ds, {field => $d};
-    	}
+	}
 	else {
-		my $d = [];
-		
+		my $d = [];	
     	for my $field (keys %$docs) {
         	my $values = $doc->{$field};
-			#print "$field => " . Dumper($values);
+			print "$field => " . Dumper($values);
         	if (ref($values) eq 'ARRAY' && scalar (@$values) ){
         		for my $val (@$values) {
             		push @$d, {name => $field, content => $val} unless $field eq '_version_';
@@ -611,8 +610,9 @@ sub _rawDsToSolrDs
     	}
     	push @$ds, {field => $d};
     }
+	
     $ds = { doc => $ds };
-    #print "\noutput data:\n" .Dumper($ds);
+    print "\noutput data:\n" .Dumper($ds);
     return $ds;
 }
 #
