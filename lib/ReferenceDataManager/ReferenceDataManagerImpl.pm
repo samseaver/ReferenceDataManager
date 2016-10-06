@@ -1474,27 +1474,26 @@ sub index_genomes_in_solr
 		my $ws_name = $kbase_genome_data->{workspace_name};
 		my $ws_genome_name = $kbase_genome_data->{id}; 
 		my $genome_source = $kbase_genome_data->{source};
+		my $ws_genome_obj_metadata = {};
 		my $ws_genome_metadata = {};
 		my $ws_genome_object_info = {};
 		if(defined($self->util_ws_client())){
     		$ws_genome_object_info = $self->util_ws_client()->get_object({
-				id => $ws_genome_name,
+				id => $ws_genome_id,
 				workspace => $ws_name});
-			$ws_genome_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
-			print "ws_genome_metadata: \n" . Dumper($ws_genome_metadata) . "\n";
-		}
-		
-		my @genome_metadata = split(/\n/, $ws_genome_metadata);
+			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
+			$ws_genome_usr_metadata = $ws_genome_obj_metadata->{metadata}
+			print "ws_genome_usr_metadata: \n" . Dumper($ws_genome_usr_metadata) . "\n";
+		}		
+		my $genome_metadata = $ws_genome_usr_metadata;
 
-		foreach my $metadata (@genome_metadata){
-	  		my ($ws_genome_id) = $metadata=~/Object ID:(\d+)/ if $metadata=~/Object ID:(\d+)/;
-		}
+	  	my $ws_genome_id = $ws_genome_obj_metadata->{[11]};
 		
-		$record->{workspace_name} = $ws_name; # KBasePublicRichGenomesV5
-		$record->{object_id} = $ws_genome_name; #"kb|ws.".$ws_id.".obj."."$ws_genome_id"; # kb|ws.2869.obj.9837
+		$record->{workspace_name} = $ws_name; # 
+		$record->{object_id} = $ws_genome_id; #"kb|ws.".$ws_id.".obj."."$ws_genome_id"; # kb|ws.2869.obj.9837
 		$record->{object_name} = $ws_genome_name; # kb|g.3397
-		$record->{object_type} = "KBaseGenomes.Genome-8.0"; # KBaseSearch.Genome-5.0 / KBaseGenomes.Genome-8.0
-
+		$record->{object_type} = $ws_genome_obj_metadata->{[1]};#"KBaseGenomes.Genome-8.0"; 
+print "after metadata\n";
 		# Get genome info
 		my $ws_genome  = $json->decode(`ws-get -w $ws_name $ws_genome_name`);
 		$record->{genome_id} = $ws_genome_name; #$ws_genome->{id}; # kb|g.3397
