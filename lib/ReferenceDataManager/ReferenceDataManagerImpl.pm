@@ -578,8 +578,10 @@ sub _rawDsToSolrDs
     my ($self, $docs) = @_;
 	#print "\nInput data:\n". Dumper($docs);
     my $ds = [];
-    for my $doc (@$docs) {
+	if( ref($docs) eq 'ARRAY' && scalar (@$docs) ) {
+    	for my $doc (@$docs) {
     	my $d = [];
+		
     	for my $field (keys %$doc) {
         	my $values = $doc->{$field};
 			#print "$field => " . Dumper($values);
@@ -588,7 +590,23 @@ sub _rawDsToSolrDs
             		push @$d, {name => $field, content => $val} unless $field eq '_version_';
         		}
         	} else {
-        		push @$d, { name => $field, content => $values} unless $field eq '_version_';; 
+        		push @$d, { name => $field, content => $values} unless $field eq '_version_'; 
+        	}
+    	}
+    	push @$ds, {field => $d};
+    	}
+	else {
+		my $d = [];
+		
+    	for my $field (keys %$docs) {
+        	my $values = $doc->{$field};
+			#print "$field => " . Dumper($values);
+        	if (ref($values) eq 'ARRAY' && scalar (@$values) ){
+        		for my $val (@$values) {
+            		push @$d, {name => $field, content => $val} unless $field eq '_version_';
+        		}
+        	} else {
+        		push @$d, { name => $field, content => $values} unless $field eq '_version_'; 
         	}
     	}
     	push @$ds, {field => $d};
