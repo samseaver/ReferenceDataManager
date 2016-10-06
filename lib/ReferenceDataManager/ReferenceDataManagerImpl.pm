@@ -228,6 +228,7 @@ sub _testActionsInSolr
 	});
 	print "\nSolr genome list: \n" . Dumper($solrGenomes_ret). "\n";	
 	exit 1;
+	
 	#6.4 load genomes from the Gene Bank to KBase	
 	my $genomesLoaded_ret = $self->load_genomes({
             genomes => [$genebank_ret->[0]],
@@ -1465,7 +1466,7 @@ sub index_genomes_in_solr
     	workspace_name => undef
     });
     my $json = JSON->new->allow_nonref;
-    my @solr_records;
+    my $solr_records = [];
     $output = [];
 	my $genomes = $params->{genomes};
 	for (my $i=0; $i < @{$genomes}; $i++) {
@@ -1521,7 +1522,9 @@ sub index_genomes_in_solr
 		#$genome->{has_publications}=$ws_genome->{};
 
 		push (@{solr_records}, $record);
-
+		my $solrCore = "QZtest";
+		self -> _addXML2Solr($solrCore, $solr_records);
+		
 		#print Dumper(\@{solr_records});
 
 		push (@{$output}, $kbase_genome_data);
