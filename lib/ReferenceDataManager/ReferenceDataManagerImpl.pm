@@ -227,7 +227,7 @@ sub _testActionsInSolr
 		genomes => $KBgenomes_ret
 	});
 	print "\nSolr genome list: \n" . Dumper($solrGenomes_ret). "\n";	
-	exit 1;
+	exit 0;
 	
 	#6.4 load genomes from the Gene Bank to KBase	
 	my $genomesLoaded_ret = $self->load_genomes({
