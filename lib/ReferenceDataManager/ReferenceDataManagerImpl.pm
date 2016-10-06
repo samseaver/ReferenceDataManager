@@ -1486,7 +1486,7 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
-			print "ws_genome_obj_data: \n" . Dumper($ws_genome_obj_data->{assembly_ref}) . "\n";
+			#print "ws_genome_obj_data: \n" . Dumper($ws_genome_obj_data) . "\n";
 		}		
 		my $genome_metadata = $ws_genome_usr_metadata;
 
@@ -1496,7 +1496,7 @@ sub index_genomes_in_solr
 		$record->{object_id} = $ws_obj_id; #"kb|ws.".$ws_id.".obj."."$ws_genome_id"; # kb|ws.2869.obj.9837
 		$record->{object_name} = $ws_genome_name; # kb|g.3397
 		$record->{object_type} = $ws_genome_obj_metadata->[1];#"KBaseGenomes.Genome-8.0"; 
-print "after metadata\n";
+
 		# Get genome info
 		my $ws_genome  = $ws_genome_obj_data;#$json->decode(`ws-get -w $ws_name $ws_genome_name`);
 		$record->{genome_id} = $ws_genome_name; #$ws_genome->{id}; # kb|g.3397
@@ -1510,7 +1510,7 @@ print "after metadata\n";
 		$record->{num_contigs} = $ws_genome->{num_contigs};
 		$record->{complete} = $ws_genome->{complete}; # int 
 		$record->{gc_content} = $ws_genome->{gc_content};
-
+print "after assembly\n:$ws_genome->{counts_map}";
 		# Get taxon info
 		my $ws_taxon = $json->decode(`ws-get $ws_genome->{taxon_ref}`);
 		$record->{scientific_name} = $ws_taxon->{scientific_name};
