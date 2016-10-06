@@ -1486,7 +1486,7 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
-			print "ws_genome_obj_data: \n" . Dumper($ws_genome_obj_data->{external_source_id}) . "\n";
+			print "ws_genome_obj_data: \n" . Dumper($ws_genome_obj_data->{assembly_ref}) . "\n";
 		}		
 		my $genome_metadata = $ws_genome_usr_metadata;
 
@@ -1498,17 +1498,17 @@ sub index_genomes_in_solr
 		$record->{object_type} = $ws_genome_obj_metadata->[1];#"KBaseGenomes.Genome-8.0"; 
 print "after metadata\n";
 		# Get genome info
-		my $ws_genome  = $json->decode(`ws-get -w $ws_name $ws_genome_name`);
+		my $ws_genome  = $ws_genome_obj_data;#$json->decode(`ws-get -w $ws_name $ws_genome_name`);
 		$record->{genome_id} = $ws_genome_name; #$ws_genome->{id}; # kb|g.3397
-		$record->{genome_source} = $genome_source; # $ws_genome->{external_source}; # KBase Central Store
-		$record->{genome_source_id} = $ws_genome->{external_source_id}; # 83332.12
+		$record->{genome_source} = $ws_genome->{source};#$genome_source; $ws_genome->{external_source}; # KBase Central Store
+		$record->{genome_source_id} = $ws_genome->{source_id};#$ws_genome->{external_source_id}; # 83332.12
 		$record->{num_cds} = $ws_genome->{counts_map}->{CDS};
 
 		# Get assembly info
-		my $ws_assembly = $json->decode(`ws-get $ws_genome->{assembly_ref}`);
-		$record->{genome_dna_size} = $ws_assembly->{dna_size};
-		$record->{num_contigs} = $ws_assembly->{num_contigs};
-		$record->{complete} = ""; #$ws_genome->{complete}; # type?? 
+		my $ws_assembly = $ws_genome->{assembly_ref};#json->decode(`ws-get $ws_genome->{assembly_ref}`);
+		$record->{genome_dna_size} = $ws_genome->{dna_size};
+		$record->{num_contigs} = $ws_genome->{num_contigs};
+		$record->{complete} = $ws_genome->{complete}; # int 
 		$record->{gc_content} = $ws_genome->{gc_content};
 
 		# Get taxon info
