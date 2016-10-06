@@ -1523,7 +1523,7 @@ sub index_genomes_in_solr
 
 		push (@{solr_records}, $record);
 		my $solrCore = "QZtest";
-		self -> _addXML2Solr($solrCore, @{solr_records});
+		$self -> _addXML2Solr($solrCore, @{solr_records});
 		
 		#print Dumper(\@{solr_records});
 
