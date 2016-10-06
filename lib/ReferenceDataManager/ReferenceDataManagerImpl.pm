@@ -612,7 +612,7 @@ sub _rawDsToSolrDs
     }
 	
     $ds = { doc => $ds };
-    print "\noutput data:\n" .Dumper($ds);
+    #print "\noutput data:\n" .Dumper($ds);
     return $ds;
 }
 #
