@@ -1486,7 +1486,7 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
-			print "ws_genome_obj_data: \n" . Dumper($ws_genome_obj_data) . "\n";
+			print "ws_genome_obj_data: \n" . Dumper($ws_genome_obj_data->{external_source_id}) . "\n";
 		}		
 		my $genome_metadata = $ws_genome_usr_metadata;
 
