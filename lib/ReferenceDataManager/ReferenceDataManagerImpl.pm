@@ -1483,17 +1483,17 @@ sub index_genomes_in_solr
 				id => $ws_genome_name,
 				workspace => $ws_name});
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
-			$ws_genome_usr_metadata = $ws_genome_obj_metadata->{[10]};
+			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
 			print "ws_genome_usr_metadata: \n" . Dumper($ws_genome_usr_metadata) . "\n";
 		}		
 		my $genome_metadata = $ws_genome_usr_metadata;
 
-	  	my $ws_genome_id = $ws_genome_obj_metadata->{[11]};
+	  	my $ws_genome_id = $ws_genome_obj_metadata->[11];
 		
 		$record->{workspace_name} = $ws_name; # 
 		$record->{object_id} = $ws_genome_id; #"kb|ws.".$ws_id.".obj."."$ws_genome_id"; # kb|ws.2869.obj.9837
 		$record->{object_name} = $ws_genome_name; # kb|g.3397
-		$record->{object_type} = $ws_genome_obj_metadata->{[1]};#"KBaseGenomes.Genome-8.0"; 
+		$record->{object_type} = $ws_genome_obj_metadata->[1];#"KBaseGenomes.Genome-8.0"; 
 print "after metadata\n";
 		# Get genome info
 		my $ws_genome  = $json->decode(`ws-get -w $ws_name $ws_genome_name`);
