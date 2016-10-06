@@ -17,6 +17,7 @@ my $cfg = Config::IniFiles->new(-file=>$config_file);
 my $wsInstance = $cfg->val('ReferenceDataManager','workspace-url');
 die "no workspace-url defined" unless $wsInstance;
 
+
 #my $config = new Config::Simple($config_file)->get_block('ReferenceDataManager');
 #my $ws_url = $config->{"workspace-url"};
 #my $ws_name = undef;
@@ -27,6 +28,7 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
+	$impl->{'workspace-url'} = $wsInstance;
     $impl->_testActionsInSolr();
 	exit 1;#to not go further
 	
