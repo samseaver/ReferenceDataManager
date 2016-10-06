@@ -1474,12 +1474,13 @@ sub index_genomes_in_solr
 		my $ws_name = $kbase_genome_data->{workspace_name};
 		my $ws_genome_name = $kbase_genome_data->{id}; 
 		my $genome_source = $kbase_genome_data->{source};
+		
 		my $ws_genome_obj_metadata = {};
-		my $ws_genome_metadata = {};
+		my $ws_genome_usr_metadata = {};
 		my $ws_genome_object_info = {};
 		if(defined($self->util_ws_client())){
     		$ws_genome_object_info = $self->util_ws_client()->get_object({
-				id => $ws_genome_id,
+				id => $ws_genome_name,
 				workspace => $ws_name});
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->{metadata}
