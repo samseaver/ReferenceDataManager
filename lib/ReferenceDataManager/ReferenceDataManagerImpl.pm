@@ -1519,24 +1519,13 @@ sub index_genomes_in_solr
 		$record->{taxonomy} =~s/ *; */;/g;
 		#$record->{tax_id} = $ws_taxon->{taxonomy_id};
 		$record->{domain} = $ws_taxon->{Domain};
-#print "after taxon:\n";
 		#$genome->{genome_publications}=$ws_genome->{};
 		#$genome->{has_publications}=$ws_genome->{};
 
 		push (@{solr_records}, $record);
 
-		print Dumper(\@{solr_records});
+		#print Dumper(\@{solr_records});
 
-
-		my $genome_json = $json->pretty->encode(\@solr_records);
-
-		my $genome_file = $self->{scratch}."$ws_genome_name.json";
-
-	#open FH, ">$genome_file" or die "Cannot write to genome.json: $!";
-	#print FH "$genome_json";
-	#close FH;
-
-	#`$Bin/post_solr_update.sh genomes $genome_file`;#By default we assume all to be indexed--if $opt->index=~/y|yes|true|1/i;
 		push (@{$output}, $kbase_genome_data);
     }
         
