@@ -1473,7 +1473,8 @@ sub index_genomes_in_solr
 		
 		my $record;
 		my $ws_name = $kbase_genome_data->{workspace_name};
-		print "kbase_genome_date: \n" . Dumper($kbase_genome_data) . "\nwith workspace_name$ws_name";
+		print "$ws_name\n";
+		print "kbase_genome_data: \n" . Dumper($kbase_genome_data) . "\nwith workspace_name$ws_name";
 		my $ws_genome_name = $kbase_genome_data->{id}; 
 		my $genome_source = $kbase_genome_data->{source};
 		my $ws_genome_metadata  = `ws-get -w $ws_name $ws_genome_name -m`;
