@@ -1488,7 +1488,6 @@ sub index_genomes_in_solr
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
 			#print "ws_genome_obj_data: \n" . Dumper($ws_genome_obj_data) . "\n";
 		}		
-		my $genome_metadata = $ws_genome_usr_metadata;
 
 	  	my $ws_obj_id = $ws_genome_obj_metadata->[11];
 		
@@ -1510,15 +1509,16 @@ sub index_genomes_in_solr
 		$record->{num_contigs} = $ws_genome->{num_contigs};
 		$record->{complete} = $ws_genome->{complete}; # int 
 		$record->{gc_content} = $ws_genome->{gc_content};
-print "after assembly\n:$ws_genome->{counts_map}->{CDS}";
+		$record->{md5} = $ws_genome->{md5};
+
 		# Get taxon info
-		my $ws_taxon = $json->decode(`ws-get $ws_genome->{taxon_ref}`);
-		$record->{scientific_name} = $ws_taxon->{scientific_name};
-		$record->{taxonomy} = $ws_taxon->{scientific_lineage};
+		my $ws_taxon = $ws_genome_usr_metadata;#$json->decode(`ws-get $ws_genome->{taxon_ref}`);
+		$record->{scientific_name} = $ws_taxon->{scientific name};
+		$record->{taxonomy} = $ws_taxon->{Taxonomy};
 		$record->{taxonomy} =~s/ *; */;/g;
 		#$record->{tax_id} = $ws_taxon->{taxonomy_id};
-		$record->{domain} = $ws_taxon->{domain};
-
+		$record->{domain} = $ws_taxon->{Domain};
+print "after taxon:\n";
 		#$genome->{genome_publications}=$ws_genome->{};
 		#$genome->{has_publications}=$ws_genome->{};
 
