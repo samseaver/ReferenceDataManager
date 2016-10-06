@@ -1491,7 +1491,7 @@ sub index_genomes_in_solr
 
 	  	my $ws_obj_id = $ws_genome_obj_metadata->[11];
 		
-		$record->{workspace_name} = $ws_name; # 
+		$record->{workspace_name} = $ws_name; 
 		$record->{object_id} = $ws_obj_id; #"kb|ws.".$ws_id.".obj."."$ws_genome_id"; # kb|ws.2869.obj.9837
 		$record->{object_name} = $ws_genome_name; # kb|g.3397
 		$record->{object_type} = $ws_genome_obj_metadata->[1];#"KBaseGenomes.Genome-8.0"; 
@@ -1513,7 +1513,7 @@ sub index_genomes_in_solr
 
 		# Get taxon info
 		my $ws_taxon = $ws_genome_usr_metadata;#$json->decode(`ws-get $ws_genome->{taxon_ref}`);
-		$record->{scientific_name} = $ws_taxon->{scientific name};
+		$record->{scientific_name} = $ws_taxon->{scientific_name};
 		$record->{taxonomy} = $ws_taxon->{Taxonomy};
 		$record->{taxonomy} =~s/ *; */;/g;
 		#$record->{tax_id} = $ws_taxon->{taxonomy_id};
