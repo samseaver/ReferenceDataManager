@@ -1475,11 +1475,13 @@ sub index_genomes_in_solr
 		my $ws_genome_name = $kbase_genome_data->{id}; 
 		my $genome_source = $kbase_genome_data->{source};
 		my $ws_genome_metadata = {};
+		my $ws_genome_object_info = {};
 		if(defined($self->util_ws_client())){
-    		$ws_genome_metadata = $self->util_ws_client()->get_object({
+    		$ws_genome_object_info = $self->util_ws_client()->get_object({
 				id => $ws_genome_name,
-				workspace => $ws_name});#`ws-get -w $ws_name $ws_genome_name -m`;	
-			print "ws_genome_metadata: \n" . Dumper($ws_genome_metadata) . "\nwith workspace_name$ws_name";
+				workspace => $ws_name});
+			$ws_genome_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
+			print "ws_genome_metadata: \n" . Dumper($ws_genome_metadata) . "\n";
 		}
 		
 		my @genome_metadata = split(/\n/, $ws_genome_metadata);
