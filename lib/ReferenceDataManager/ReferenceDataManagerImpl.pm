@@ -1099,7 +1099,7 @@ sub list_loaded_genomes
     				workspace => $wsname
     			});
     		}
-			print "\nWorkspace info:\n". Dumper($wsoutput) ."\n";
+			
     		my $maxid = $wsoutput->[4];
     		my $pages = ceil($maxid/10000);
     		for (my $m=0; $m < $pages; $m++) {
@@ -1477,7 +1477,8 @@ sub index_genomes_in_solr
 		my $ws_genome_metadata = {};
 		if(defined($self->util_ws_client())){
     		$ws_genome_metadata = $self->util_ws_client()->get_objects({
-				object_refs => "$ws_name/$ws_genome_name"});#`ws-get -w $ws_name $ws_genome_name -m`;	
+				id => $ws_genome_name,
+				workspace => $ws_name});#`ws-get -w $ws_name $ws_genome_name -m`;	
 			print "ws_genome_metadata: \n" . Dumper($ws_genome_metadata) . "\nwith workspace_name$ws_name";
 		}
 		
