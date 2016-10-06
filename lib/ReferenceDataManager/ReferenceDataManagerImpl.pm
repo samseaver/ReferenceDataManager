@@ -1483,7 +1483,7 @@ sub index_genomes_in_solr
 				id => $ws_genome_name,
 				workspace => $ws_name});
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
-			$ws_genome_usr_metadata = $ws_genome_obj_metadata->{metadata};
+			$ws_genome_usr_metadata = $ws_genome_obj_metadata->{[10]};
 			print "ws_genome_usr_metadata: \n" . Dumper($ws_genome_usr_metadata) . "\n";
 		}		
 		my $genome_metadata = $ws_genome_usr_metadata;
