@@ -1510,7 +1510,7 @@ sub index_genomes_in_solr
 		$record->{num_contigs} = $ws_genome->{num_contigs};
 		$record->{complete} = $ws_genome->{complete}; # int 
 		$record->{gc_content} = $ws_genome->{gc_content};
-print "after assembly\n:$ws_genome->{counts_map}";
+print "after assembly\n:$ws_genome->{counts_map}->{CDS}";
 		# Get taxon info
 		my $ws_taxon = $json->decode(`ws-get $ws_genome->{taxon_ref}`);
 		$record->{scientific_name} = $ws_taxon->{scientific_name};
