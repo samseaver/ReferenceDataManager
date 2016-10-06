@@ -33,7 +33,7 @@ use XML::Simple;
 #The first thing every function should do is call this function
 sub util_initialize_call {
 	my ($self,$params,$ctx) = @_;
-	print("Starting ".$ctx->method()." method.\n");
+	#print("Starting ".$ctx->method()." method.\n");
 	$self->{_token} = $ctx->token();
 	$self->{_username} = $ctx->user_id();
 	$self->{_method} = $ctx->method();
@@ -1474,9 +1474,10 @@ sub index_genomes_in_solr
 		my $ws_name = $kbase_genome_data->{workspace_name};
 		my $ws_genome_name = $kbase_genome_data->{id}; 
 		my $genome_source = $kbase_genome_data->{source};
+		print "workspace setting...\n";
 		my $ws_genome_metadata  = `ws-get -w $ws_name $ws_genome_name -m`;
 		
-		print "kws_genome_metadata: \n" . Dumper($ws_genome_metadata) . "\nwith workspace_name$ws_name";
+		print "ws_genome_metadata: \n" . Dumper($ws_genome_metadata) . "\nwith workspace_name$ws_name";
 		
 		my @genome_metadata = split(/\n/, $ws_genome_metadata);
 
