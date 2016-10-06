@@ -1469,15 +1469,14 @@ sub index_genomes_in_solr
     $output = [];
 	my $genomes = $params->{genomes};
 	for (my $i=0; $i < @{$genomes}; $i++) {
-		my $kbase_genome_data = $genomes->[$i];
-		
 		my $record;
+		my $kbase_genome_data = $genomes->[$i];
 		my $ws_name = $kbase_genome_data->{workspace_name};
 		my $ws_genome_name = $kbase_genome_data->{id}; 
 		my $genome_source = $kbase_genome_data->{source};
 		my $ws_genome_metadata  = `ws-get -w $ws_name $ws_genome_name -m`;
 		
-		print "kbase_genome_metadata: \n" . Dumper($kbase_genome_metadata) . "\nwith workspace_name$ws_name";
+		print "kws_genome_metadata: \n" . Dumper($ws_genome_metadata) . "\nwith workspace_name$ws_name";
 		
 		my @genome_metadata = split(/\n/, $ws_genome_metadata);
 
