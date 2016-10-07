@@ -277,7 +277,7 @@ sub _testLoadGenomes{
           'file' => 'GCF_000010525.1_ASM1052v1',
           'name' => 'ASM1052v1'
 	}];
-	my $wsname => 'kkeller:1454440703158';	
+	my $wsname = 'kkeller:1454440703158';	
 	
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
