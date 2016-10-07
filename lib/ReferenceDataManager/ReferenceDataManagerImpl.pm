@@ -1305,16 +1305,17 @@ sub load_genomes
 	$genomes = $params->{genomes};
    }
    for (my $i=0; $i < @{$genomes}; $i++) {
-	my $genome = $genomes->[$i];
-	print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
-	my $wsname = $self->util_workspace_names($genome->{source});
-	
-	if(defined($self->util_ws_client())){
+	  my $genome = $genomes->[$i];
+
+	 my $wsname = $self->util_workspace_names($genome->{source});	
+	 #adding these lines to see if the workspace is set this way
+	 if(defined($self->util_ws_client())){
     	$wsoutput = $self->util_ws_client()->get_workspace_info({
     		workspace => $wsname
     	});
-    }
-	if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
+     }
+	 print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
+	 if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
 		my $genutilout = $loader->genbank_to_genome({
 			file => {
 				ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
