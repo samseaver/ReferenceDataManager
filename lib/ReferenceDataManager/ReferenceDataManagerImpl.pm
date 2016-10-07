@@ -1525,11 +1525,13 @@ sub index_genomes_in_solr
 		#my $ws_assembly = $ws_genome->{assembly_ref};#json->decode(`ws-get $ws_genome->{assembly_ref}`);
 		$record->{genome_dna_size} = $ws_genome->{dna_size};#3867594
 		$record->{num_contigs} = $ws_genome->{num_contigs};#304
-		#$record->{contigset_ref} = $ws_genome->{contigset_ref};#"6/11/1"#ERROR: [doc=12] unknown field \'contigset_ref\'		$record->{domain} = $ws_genome->{domain};
-		$record->{scientific_name} = $ws_genome->{scientific_name};		
-		$record->{genetic_code} = $ws_genome->{genetic_code};
+		$record->{scientific_name} = $ws_genome->{scientific_name};
+		$record->{domain} = $ws_genome->{domain};
 		$record->{gc_content} = $ws_genome->{gc_content};
-		$record->{complete} = $ws_genome->{complete}; # 1		
+		$record->{complete} = $ws_genome->{complete}; # 1	
+		
+		#$record->{contigset_ref} = $ws_genome->{contigset_ref};#"6/11/1"#ERROR: [doc=12] unknown field \'contigset_ref\'							
+		#$record->{genetic_code} = $ws_genome->{genetic_code};#ERROR: [doc=12] unknown field \'genetic_code\'		
 		#$record->{md5} = $ws_genome->{md5};#'9afd25f3e46a18b3b3d176a7e33a4c48': [doc=12] unknown field \'md5\'
 		
 		# Get taxon info
