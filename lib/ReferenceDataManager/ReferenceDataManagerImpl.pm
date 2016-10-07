@@ -1504,7 +1504,7 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
-			#print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
+			print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data->[0])."\n";
 		}		
 
 		my $ws_obj_id = $ws_genome_obj_metadata->[11];
@@ -1519,8 +1519,8 @@ sub index_genomes_in_solr
 		$record->{genome_id} = $ws_genome_name; #$ws_genome->{id}; # kb|g.3397
 		$record->{genome_source} = $ws_genome->{source};#$genome_source; $ws_genome->{external_source}; # KBase Central Store
 		$record->{genome_source_id} = $ws_genome->{source_id};#$ws_genome->{external_source_id}; # 83332.12
-		$record->{num_cds} = $ws_genome->{counts_map}->{CDS};
-
+		#$record->{num_cds} = $ws_genome->{counts_map}->{CDS};#ERROR: [doc=12] Error adding field \'num_cds\'=\'\'
+		
 		# Get assembly info
 		#my $ws_assembly = $ws_genome->{assembly_ref};#json->decode(`ws-get $ws_genome->{assembly_ref}`);
 		$record->{genome_dna_size} = $ws_genome->{dna_size};
@@ -1539,7 +1539,7 @@ sub index_genomes_in_solr
 		
 		# Get feature info####
 		my $ws_features = $ws_genome->{features};
-		print "$ws_features:\n".Dumper($ws_features)."\n";
+		#print "$ws_features:\n".Dumper($ws_features->[0])."\n";
 		#$record->{feature_source_id} = $ws_features->{feature_source_id}; #fig|83333.1.peg.3182
 		#$record->{feature_id} = $ws_features->{feature_id}; #kb|g.0.peg.3026
 		#$record->{feature_type} = $ws_features->{feature_type};#CDS
