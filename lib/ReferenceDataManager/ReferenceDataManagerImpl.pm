@@ -1334,10 +1334,10 @@ sub load_genomes
 			id => $genome->{id},
 			workspace_name => $wsname,
 			source_id => $genome->{id},
-		        accession => $genome->{accession},
+		    accession => $genome->{accession},
 			name => $genome->{name},
-    			ftp_dir => $genome->{ftp_dir},
-    			version => $genome->{version},
+    		ftp_dir => $genome->{ftp_dir},
+    		version => $genome->{version},
 			source => $genome->{source},
 			domain => $genome->{domain}
 		};
@@ -1499,7 +1499,7 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
-			print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data->{taxon_ref})."\n";
+			#print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
 		}		
 
 		my $ws_obj_id = $ws_genome_obj_metadata->[11];
@@ -1525,18 +1525,20 @@ sub index_genomes_in_solr
 		$record->{gc_content} = $ws_genome->{gc_content};
 		$record->{complete} = $ws_genome->{complete}; # 1	
 		
+		#ERROR: [doc=12] unknown field--meaning the Solr schema does not include these fields, we could modify the schema if needed
 		#$record->{contigset_ref} = $ws_genome->{contigset_ref};#"6/11/1"#ERROR: [doc=12] unknown field \'contigset_ref\'							
 		#$record->{genetic_code} = $ws_genome->{genetic_code};#ERROR: [doc=12] unknown field \'genetic_code\'		
-		#$record->{md5} = $ws_genome->{md5};#'9afd25f3e46a18b3b3d176a7e33a4c48': [doc=12] unknown field \'md5\'
+ 		#$record->{md5} = $ws_genome->{md5};#'9afd25f3e46a18b3b3d176a7e33a4c48':ERROR: [doc=12] unknown field \'md5\'
 		
 		# Get taxon info
 		my $ws_taxon = $ws_genome->{taxon_ref};#$ws_genome_usr_metadata;#$json->decode(`ws-get $ws_genome->{taxon_ref}`);
 		$record->{taxonomy} = $ws_genome->{taxonomy};#Bacteria; Rhodobacter CACIA 14H1'
 		#$record->{tax_id} = $ws_genome->{tax_id};#-1#ERROR: [doc=12] unknown field \'tax_id\'		
 		
-		# Get feature info####
+		# Get feature info#These data fields exist in the current genomes Solr schema, 
+		# but not available from this workspace's objects, not even in the 'features' array
 		my $ws_features = $ws_genome->{features};
-		print "$ws_features:\n".Dumper($ws_features->[0])."\n";
+		#print "$ws_features:\n".Dumper($ws_features->[0])."\n";
 		#$record->{feature_source_id} = $ws_features->{feature_source_id}; #fig|83333.1.peg.3182
 		#$record->{feature_id} = $ws_features->{id}; #kb|g.0.peg.3026
 		#$record->{feature_type} = $ws_features->{type};#CDS
@@ -1546,10 +1548,10 @@ sub index_genomes_in_solr
 		#$genome->{has_publications}=$ws_genome->{};
 
 		push (@{solr_records}, $record);
+		
+		# Test adding the docs in @{solr_records} to a given Solr core
 		my $solrCore = "QZtest";
 		$self -> _addXML2Solr($solrCore, @{solr_records});
-		
-		#print Dumper(\@{solr_records});
 
 		push (@{$output}, $kbase_genome_data);
     }
