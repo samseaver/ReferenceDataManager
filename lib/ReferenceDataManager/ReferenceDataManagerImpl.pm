@@ -281,6 +281,7 @@ sub _testActionsInSolr{
 	
 	#for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[0];
+		print "Error?: $genome->{source}\n".Dumper($genome);
 		my $wsname = $self->util_workspace_names($genome->{source});	
 		print "Now loading ".$genome->{source}.":".$genome->{id}." to $wsname.\n";
 		
