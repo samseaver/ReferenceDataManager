@@ -204,12 +204,7 @@ sub _testActionsInSolr
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
 	#$self -> _addXML2Solr($solrCore, $genome_docs);
-	
-	#5.2 confirm the contents in core "QZtest" after addition, without group option specified
-	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
-	#print "\nList of docs in QZtest after insertion 1: \n" . Dumper($solr_ret) . "\n";
-	
+		
 	#6.1 list all the refernece genomes from the Gene Bank
 	my $genebank_ret = $self->list_reference_genomes({
         refseq => 1,
@@ -223,33 +218,59 @@ sub _testActionsInSolr
 	});
 	print "\nKBase genome list: \n" . Dumper($KBgenomes_ret). "\n";	
 	
-	#6.3 Index all the refernece genomes already in KBase
+	#6.3.0 Index all the refernece genomes already in KBase
 	my $solrGenomes_ret = $self->index_genomes_in_solr({
 		genomes => $KBgenomes_ret
 	});
+	#6.3.1 Commit db changes
 	print "\nSolr genome list: \n" . Dumper($solrGenomes_ret). "\n";	
-
-	#6.4 load genomes from the Gene Bank to KBase	
-	my $genomesLoaded_ret = $self->load_genomes({
-            genomes => [$genebank_ret->[0]],
-            index_in_solr => 0
-	});
-	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
-	exit 0;	
-		
-	#6.5 list all the refernece genomes updated
-	my $ret = $self->update_loaded_genomes_v1({
- 	genomeData => [$genebank_ret->[0]],    
-        refseq => 1,
-		formats => "gbff"
-        });
-	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
-	exit 0;
-	
-	if (!$self->_commit("QZtest")) {
+		if (!$self->_commit("QZtest")) {
     	print "\n Error: " . $self->_error->{response};
     	exit 1;
 	}
+	# Confirm the contents in core "QZtest" after addition, without group option specified
+	$grpOption = "genome_id";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	print "\nList of docs in QZtest after insertion 1: \n" . Dumper($solr_ret) . "\n";	
+	exit 0;
+	
+	#6.4 load genomes from the Gene Bank to KBase	
+	my $genomesLoaded_ret = $self->load_genomes({
+		genomes => [$genebank_ret->[0]],
+		index_in_solr => 0
+	});
+	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
+			
+	#6.5 list all the refernece genomes updated
+	my $ret = $self->update_loaded_genomes_v1({
+ 		genomeData => [$genebank_ret->[0]],    
+        refseq => 1,
+		formats => "gbff"
+    });
+	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
+	exit 0;		
+}
+
+sub _testActionsInSolr_1{	
+	my ($self) = @_;
+	#6.4 load genomes from the Gene Bank to KBase	
+	my $genomesLoaded_ret = $self->load_genomes({
+		genomes => [{
+          'domain' => 'bacteria',
+          'ftp_dir' => 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/010/525/GCF_000010525.1_ASM1052v1',
+          'version' => '1',
+          'id' => 'GCF_000010525',
+          'accession' => 'GCF_000010525.1',
+          'status' => 'latest',
+          'source' => 'refseq',
+          'file' => 'GCF_000010525.1_ASM1052v1',
+          'name' => 'ASM1052v1'
+        }],
+		index_in_solr => 0,
+		'workspace_name' => 'kkeller:1454440703158'	
+	});
+	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
+	exit 0;	
 }
 
 #
