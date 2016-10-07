@@ -583,28 +583,27 @@ sub _rawDsToSolrDs
     		my $d = [];		
     		for my $field (keys %$doc) {
         		my $values = $doc->{$field};
-				#print "$field => " . Dumper($values);
         		if (ref($values) eq 'ARRAY' && scalar (@$values) ){
         			for my $val (@$values) {
             			push @$d, {name => $field, content => $val} unless $field eq '_version_';
         			}
-        		} else {
+        		} else {#only a single member in the list
         			push @$d, { name => $field, content => $values} unless $field eq '_version_'; 
         		}
     		}
     		push @$ds, {field => $d};
     	}
 	}
-	else {
+	else {#only a single member in the list
 		my $d = [];	
     	for my $field (keys %$docs) {
-        	my $values = $doc->{$field};
+        	my $values = $docs->{$field};
 			print "$field => " . Dumper($values);
         	if (ref($values) eq 'ARRAY' && scalar (@$values) ){
         		for my $val (@$values) {
             		push @$d, {name => $field, content => $val} unless $field eq '_version_';
         		}
-        	} else {
+        	} else {#only a single member in the list
         		push @$d, { name => $field, content => $values} unless $field eq '_version_'; 
         	}
     	}
@@ -1527,15 +1526,23 @@ sub index_genomes_in_solr
 		$record->{complete} = $ws_genome->{complete}; # int 
 		$record->{gc_content} = $ws_genome->{gc_content};
 		$record->{md5} = $ws_genome->{md5};
-		$record->{features} = $ws_genome->{features};
 
-		# Get taxon info
-		my $ws_taxon = $ws_genome_usr_metadata;#$json->decode(`ws-get $ws_genome->{taxon_ref}`);
+		# Get taxon info####
+		my $ws_taxon = $ws_genome->{taxon_ref};#$ws_genome_usr_metadata;#$json->decode(`ws-get $ws_genome->{taxon_ref}`);
 		$record->{scientific_name} = $ws_taxon->{Scientific_name};
 		$record->{taxonomy} = $ws_taxon->{Taxonomy};
 		$record->{taxonomy} =~s/ *; */;/g;
 		#$record->{tax_id} = $ws_taxon->{taxonomy_id};
 		$record->{domain} = $ws_taxon->{Domain};
+		
+		# Get feature info####
+		my $ws_features = $ws_genome->{features};
+		$record->{feature_source_id} = $ws_features->{feature_source_id}; #fig|83333.1.peg.3182
+		$record->{feature_id} = $ws_features->{feature_id}; #kb|g.0.peg.3026
+		$record->{feature_type} = $ws_features->{feature_type};#CDS
+		$record->{feature_publications} = $ws_features->{feature_publications};#8576051 Characterization of degQ and degS, Escherichia coli genes encoding homologs of the DegP protease. http://www.ncbi.nlm.nih.gov/pubmed/8576051 Waller,P R; Sauer,R T Journal of bacteriology
+
+		#$record->{features} = $ws_genome->{features};	
 		#$genome->{genome_publications}=$ws_genome->{};
 		#$genome->{has_publications}=$ws_genome->{};
 
