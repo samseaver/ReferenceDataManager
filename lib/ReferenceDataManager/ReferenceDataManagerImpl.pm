@@ -266,9 +266,7 @@ sub _testListGenomes{
 	
 	my $output = [];
 	my $sources = ["ensembl","phytozome","refseq"];
-    for (my $i=0; $i < @{$sources}; $i++) {
-    	if ($params->{$sources->[$i]} == 1) {
-    		my $wsname = $self->util_workspace_names($sources->[$i]);
+    		my $wsname = $self->util_workspace_names($sources->[0]);
     		my $wsoutput;
     		if(defined($self->util_ws_client())){
     			$wsoutput = $self->util_ws_client()->get_workspace_info({
@@ -308,8 +306,6 @@ sub _testListGenomes{
 	    			}
 	    		}
     		}
-    	}
-    }
 	exit 0;	
 }
 
