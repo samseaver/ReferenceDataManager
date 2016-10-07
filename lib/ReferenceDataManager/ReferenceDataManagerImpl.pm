@@ -256,7 +256,7 @@ sub _testLoadGenomes{
 	
 	my $token = $ENV{'KB_AUTH_TOKEN'};
 	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
-    my $cfg = Config::IniFiles->new(-file=>$config_file);
+	my $cfg = Config::IniFiles->new(-file=>$config_file);
 	$self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
 	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"};	
 	die "no workspace-url defined" unless $self->{workspace_url};
@@ -277,11 +277,11 @@ sub _testLoadGenomes{
           'file' => 'GCF_000010525.1_ASM1052v1',
           'name' => 'ASM1052v1'
 	}];
-	my $ws_name => 'kkeller:1454440703158';	
+	my $wsname => 'kkeller:1454440703158';	
 	
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
-		print "Now loading ".$genome->{source}.":".$genome->{id}." to $ws_name.\n";
+		print "Now loading ".$genome->{source}.":".$genome->{id}." for $wsname.\n";
 		
 		my $genutilout = $loader->genbank_to_genome({
 			file => {
