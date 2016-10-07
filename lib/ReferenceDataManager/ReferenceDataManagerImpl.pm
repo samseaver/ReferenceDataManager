@@ -37,14 +37,15 @@ sub util_initialize_call {
 	$self->{_token} = $ctx->token();
 	$self->{_username} = $ctx->user_id();
 	$self->{_method} = $ctx->method();
-	$self->{_provenance} = $ctx->provenance();
-	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
+	$self->{_provenance} = $ctx->provenance();	
+	
 	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
-    my $cfg = Config::IniFiles->new(-file=>$config_file);	    
-    $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
-	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');
+    my $cfg = Config::IniFiles->new(-file=>$config_file);
+	$self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
+	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"};	
 	die "no workspace-url defined" unless $self->{workspace_url};	$self->util_timestamp(DateTime->now()->datetime());
-
+	print "\nWorkspace service url: $self->{workspace_url}\n";
+	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	return $params;
 }
 
@@ -1309,7 +1310,7 @@ sub load_genomes
     	});
      }
 	 print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
-	 print "\nurl:$self->{workspace_url}\n";
+	 
 	 if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
 		my $genutilout = $loader->genbank_to_genome({
 			file => {
@@ -1331,6 +1332,7 @@ sub load_genomes
 				version => $genome->{version}
 			}
 		});
+		print "\nurl:$self->{workspace_url}\n";
 		my $genomeout = {
 			"ref" => $genutilout->{genome_ref},
 			id => $genome->{id},
