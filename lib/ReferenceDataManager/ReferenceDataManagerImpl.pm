@@ -222,7 +222,7 @@ sub _testActionsInSolr
 		genomes => $KBgenomes_ret
 	});
 	print "\nSolr genome list: \n" . Dumper($solrGenomes_ret). "\n";	
-	exit 0;
+	
 	
 	#6.4 load genomes from the Gene Bank to KBase	
 	my $genomesLoaded_ret = $self->load_genomes({
@@ -230,7 +230,7 @@ sub _testActionsInSolr
             index_in_solr => 0
 	});
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
-	
+	exit 0;	
 	
 	#6.5 list all the refernece genomes updated
 	my $ret = $self->update_loaded_genomes_v1({
@@ -1316,6 +1316,7 @@ sub load_genomes
     	});
      }
 	 print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
+	 print "\nurl:$self->{workspace_url}\n";
 	 if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
 		my $genutilout = $loader->genbank_to_genome({
 			file => {
