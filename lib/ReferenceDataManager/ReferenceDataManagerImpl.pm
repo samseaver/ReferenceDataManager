@@ -305,8 +305,8 @@ sub _testActionsInSolr{
 			source => $genome->{source},
 			domain => $genome->{domain}
 		};
-	}	
-	print "\nLoaded genome list--test: \n" . Dumper($genomeout). "\n";	
+		print "\nLoaded genome list--test: \n" . Dumper($genomeout). "\n";
+	}		
 	exit 0;	
 }
 
