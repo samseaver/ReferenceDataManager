@@ -209,13 +209,8 @@ sub _testActionsInSolr
         refseq => 1,
         update_only => 0
     });
-	print "\nGene bank genome list: \n" . Dumper($genebank_ret->[0]). "\n";
+	print "\nGene bank genome list, the first record: \n" . Dumper($genebank_ret->[0]). "\n";
 		
-	#$self -> _addXML2Solr($solrCore, $genebank_ret);#get missing mandatory uniqueKey field: object_id error
-	$grpOption = "genome_id";
-	#$solr_ret = $self -> _listGenomesInSolr( $solrCore, "*", $grpOption );
-	#print "\nList of docs in QZtest after insertion 2: \n" . Dumper($solr_ret) . "\n";
-	
 	#6.2 list all the refernece genomes already loaded into KBase	
 	my $KBgenomes_ret = $self->list_loaded_genomes({
             refseq => 1
@@ -227,7 +222,6 @@ sub _testActionsInSolr
 		genomes => $KBgenomes_ret
 	});
 	print "\nSolr genome list: \n" . Dumper($solrGenomes_ret). "\n";	
-	exit 0;
 	
 	#6.4 load genomes from the Gene Bank to KBase	
 	my $genomesLoaded_ret = $self->load_genomes({
@@ -235,6 +229,7 @@ sub _testActionsInSolr
             index_in_solr => 0
 	});
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";
+	exit 0;	
 	
 	#6.5 list all the refernece genomes updated
 	my $ret = $self->update_loaded_genomes_v1({
