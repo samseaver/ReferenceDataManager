@@ -1504,7 +1504,7 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
-			print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
+			#print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
 		}		
 
 		my $ws_obj_id = $ws_genome_obj_metadata->[11];
@@ -1518,34 +1518,35 @@ sub index_genomes_in_solr
 		my $ws_genome  = $ws_genome_obj_data;#$json->decode(`ws-get -w $ws_name $ws_genome_name`);
 		$record->{genome_id} = $ws_genome_name; #$ws_genome->{id}; # kb|g.3397
 		$record->{genome_source} = $ws_genome->{source};#$genome_source; $ws_genome->{external_source}; # KBase Central Store
-		$record->{genome_source_id} = $ws_genome->{source_id};#$ws_genome->{external_source_id}; # 83332.12
-		#$record->{num_cds} = $ws_genome->{counts_map}->{CDS};#ERROR: [doc=12] Error adding field \'num_cds\'=\'\'
+		$record->{genome_source_id} = $ws_genome->{source_id};#$ws_genome->{external_source_id}; # 'NODE_220_length_6412_cov_5.05805_ID_439'
+		#$record->{num_cds} = $ws_genome->{md5};#[doc=12] Error adding field \'num_cds\'=\'\'
 		
 		# Get assembly info
 		#my $ws_assembly = $ws_genome->{assembly_ref};#json->decode(`ws-get $ws_genome->{assembly_ref}`);
-		$record->{genome_dna_size} = $ws_genome->{dna_size};
-		$record->{num_contigs} = $ws_genome->{num_contigs};
-		$record->{complete} = $ws_genome->{complete}; # int 
+		$record->{genome_dna_size} = $ws_genome->{dna_size};#3867594
+		$record->{num_contigs} = $ws_genome->{num_contigs};#304
+		$record->{contigset_ref} = $ws_genome->{contigset_ref};#""6/11/1"
+		$record->{domain} = $ws_genome->{domain};
+		$record->{scientific_name} = $ws_genome->{scientific_name};		
+		$record->{genetic_code} = $ws_genome->{genetic_code};
 		$record->{gc_content} = $ws_genome->{gc_content};
-		#$record->{md5} = $ws_genome->{md5};#ERROR: [doc=12] unknown field \'md5\'
+		$record->{complete} = $ws_genome->{complete}; # 1		
+		#$record->{md5} = $ws_genome->{md5};#'9afd25f3e46a18b3b3d176a7e33a4c48': [doc=12] unknown field \'md5\'
 		
-		# Get taxon info####
+		# Get taxon info
 		my $ws_taxon = $ws_genome->{taxon_ref};#$ws_genome_usr_metadata;#$json->decode(`ws-get $ws_genome->{taxon_ref}`);
-		$record->{scientific_name} = $ws_taxon->{Scientific_name};
-		$record->{taxonomy} = $ws_taxon->{Taxonomy};
-		$record->{taxonomy} =~s/ *; */;/g;
-		#$record->{tax_id} = $ws_taxon->{taxonomy_id};
-		$record->{domain} = $ws_taxon->{Domain};
+		$record->{taxonomy} = $ws_genome->{taxonomy};#Bacteria; Rhodobacter CACIA 14H1'
+		$record->{tax_id} = $ws_genome->{tax_id};#-1
+		
 		
 		# Get feature info####
 		my $ws_features = $ws_genome->{features};
-		#print "$ws_features:\n".Dumper($ws_features->[0])."\n";
+		print "$ws_features:\n".Dumper($ws_features->[0])."\n";
 		#$record->{feature_source_id} = $ws_features->{feature_source_id}; #fig|83333.1.peg.3182
-		#$record->{feature_id} = $ws_features->{feature_id}; #kb|g.0.peg.3026
-		#$record->{feature_type} = $ws_features->{feature_type};#CDS
+		#$record->{feature_id} = $ws_features->{id}; #kb|g.0.peg.3026
+		#$record->{feature_type} = $ws_features->{type};#CDS
 		#$record->{feature_publications} = $ws_features->{feature_publications};#8576051 Characterization of degQ and degS, Escherichia coli genes encoding homologs of the DegP protease. http://www.ncbi.nlm.nih.gov/pubmed/8576051 Waller,P R; Sauer,R T Journal of bacteriology
 
-		#$record->{features} = $ws_genome->{features};	
 		#$genome->{genome_publications}=$ws_genome->{};
 		#$genome->{has_publications}=$ws_genome->{};
 
