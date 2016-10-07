@@ -262,7 +262,7 @@ sub _testActionsInSolr{
 	die "no workspace-url defined" unless $self->{workspace_url};
 	$self->util_timestamp(DateTime->now()->datetime());
 	print "\nWorkspace service url: $self->{workspace_url}\n";	
-	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
+	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $token);
 	
 	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });	
 	
