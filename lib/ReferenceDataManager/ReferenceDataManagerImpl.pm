@@ -42,8 +42,9 @@ sub util_initialize_call {
 	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
     my $cfg = Config::IniFiles->new(-file=>$config_file);	    
     $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
-    die "no workspace-url defined" unless $self->{workspace_url};	$self->util_timestamp(DateTime->now()->datetime());
 	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');
+	die "no workspace-url defined" unless $self->{workspace_url};	$self->util_timestamp(DateTime->now()->datetime());
+
 	return $params;
 }
 
