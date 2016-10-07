@@ -253,8 +253,7 @@ sub _testActionsInSolr_passed
 
 sub _testActionsInSolr{	
 	my ($self) = @_;
-	my $genomesLoaded_ret = $self->load_genomes({
-		genomes => [{
+	my $genomes => [{
           'domain' => 'bacteria',
           'ftp_dir' => 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/010/525/GCF_000010525.1_ASM1052v1',
           'version' => '1',
@@ -264,10 +263,49 @@ sub _testActionsInSolr{
           'source' => 'refseq',
           'file' => 'GCF_000010525.1_ASM1052v1',
           'name' => 'ASM1052v1'
-        }],
-		index_in_solr => 0,
-		'workspace_name' => 'kkeller:1454440703158'	
-	});
+      }];
+	my $ws_name => 'kkeller:1454440703158';	
+
+	for (my $i=0; $i < @{$genomes}; $i++) {
+		my $genome = $genomes->[$i];
+		my $wsname = $self->util_workspace_names($genome->{source});	
+		print "Now loading ".$genome->{source}.":".$genome->{id}." to $wsname.\n";
+		
+		my $genutilout = $loader->genbank_to_genome({
+			file => {
+				ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
+			},
+			genome_name => $genome->{id},
+			workspace_name => $wsname,
+			source => $genome->{source},
+			taxon_wsname => "ReferenceTaxons",
+			release => $genome->{version},
+			generate_ids_if_needed => 1,
+			genetic_code => 11,
+			type => "Reference",
+			metadata => {
+				refid => $genome->{id},
+				accession => $genome->{accession},
+				refname => $genome->{name},
+				url => $genome->{url},
+				version => $genome->{version}
+			}
+		});
+
+		my $genomeout = {
+			"ref" => $genutilout->{genome_ref},
+			id => $genome->{id},
+			workspace_name => $wsname,
+			source_id => $genome->{id},
+		    accession => $genome->{accession},
+			name => $genome->{name},
+    		ftp_dir => $genome->{ftp_dir},
+    		version => $genome->{version},
+			source => $genome->{source},
+			domain => $genome->{domain}
+		};
+		push(@{$output},$genomeout);
+	}	
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
 	exit 0;	
 }
@@ -1320,15 +1358,9 @@ sub load_genomes
 	$genomes = $params->{genomes};
    }
    for (my $i=0; $i < @{$genomes}; $i++) {
-	  my $genome = $genomes->[$i];
+	 my $genome = $genomes->[$i];
 
 	 my $wsname = $self->util_workspace_names($genome->{source});	
-	 #adding these lines to see if the workspace is set this way
-	 if(defined($self->util_ws_client())){
-    	my $wsoutput = $self->util_ws_client()->get_workspace_info({
-    		workspace => $wsname
-    	});
-     }
 	 print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
 	 if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
@@ -1352,7 +1384,7 @@ sub load_genomes
 				version => $genome->{version}
 			}
 		});
-		print "\nurl:$self->{workspace_url}\n";
+
 		my $genomeout = {
 			"ref" => $genutilout->{genome_ref},
 			id => $genome->{id},
