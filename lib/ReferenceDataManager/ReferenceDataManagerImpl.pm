@@ -1310,7 +1310,7 @@ sub load_genomes
 	 my $wsname = $self->util_workspace_names($genome->{source});	
 	 #adding these lines to see if the workspace is set this way
 	 if(defined($self->util_ws_client())){
-    	$wsoutput = $self->util_ws_client()->get_workspace_info({
+    	my $wsoutput = $self->util_ws_client()->get_workspace_info({
     		workspace => $wsname
     	});
      }
