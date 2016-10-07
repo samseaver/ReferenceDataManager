@@ -251,7 +251,7 @@ sub _testActionsInSolr_passed
 	exit 0;		
 }
 
-sub _testActionsInSolr{	
+sub _testLoadGenomes{	
 	my ($self) = @_;
 	
 	my $token = $ENV{'KB_AUTH_TOKEN'};
@@ -281,9 +281,7 @@ sub _testActionsInSolr{
 	
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
-		print "Error?: $genome->{source}\n".Dumper($genome);
-		my $wsname = $self->util_workspace_names($genome->{source});	
-		print "Now loading ".$genome->{source}.":".$genome->{id}." to $wsname.\n";
+		print "Now loading ".$genome->{source}.":".$genome->{id}." to $ws_name.\n";
 		
 		my $genutilout = $loader->genbank_to_genome({
 			file => {
@@ -305,20 +303,7 @@ sub _testActionsInSolr{
 				version => $genome->{version}
 			}
 		});
-
-		my $genomeout = {
-			"ref" => $genutilout->{genome_ref},
-			id => $genome->{id},
-			workspace_name => $wsname,
-			source_id => $genome->{id},
-		    accession => $genome->{accession},
-			name => $genome->{name},
-    		ftp_dir => $genome->{ftp_dir},
-    		version => $genome->{version},
-			source => $genome->{source},
-			domain => $genome->{domain}
-		};
-		print "\nLoaded genome list--test: \n" . Dumper($genomeout). "\n";
+		print "\nLoaded genome list--test: \n" . Dumper($genutilout). "\n";
 	}		
 	exit 0;	
 }
