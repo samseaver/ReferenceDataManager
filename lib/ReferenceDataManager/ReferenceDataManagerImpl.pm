@@ -164,7 +164,7 @@ sub util_create_report {
 #
 # method name: _testActionsInSolr
 #
-sub _testActionsInSolr
+sub _testActionsInSolr_passed
 {
 	my ($self) = @_;
 	$self -> _autocommit(0);
@@ -251,9 +251,8 @@ sub _testActionsInSolr
 	exit 0;		
 }
 
-sub _testActionsInSolr_1{	
+sub _testActionsInSolr{	
 	my ($self) = @_;
-	#6.4 load genomes from the Gene Bank to KBase	
 	my $genomesLoaded_ret = $self->load_genomes({
 		genomes => [{
           'domain' => 'bacteria',
