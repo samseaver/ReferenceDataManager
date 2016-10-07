@@ -251,6 +251,68 @@ sub _testActionsInSolr_passed
 	exit 0;		
 }
 
+sub _testListGenomes{	
+	my ($self) = @_;
+	
+	my $token = $ENV{'KB_AUTH_TOKEN'};
+	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
+	my $cfg = Config::IniFiles->new(-file=>$config_file);
+	$self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
+	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"};	
+	die "no workspace-url defined" unless $self->{workspace_url};
+	$self->util_timestamp(DateTime->now()->datetime());
+	print "\nWorkspace service url: $self->{workspace_url}\n";	
+	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $token);
+	
+	my $output = [];
+	my $sources = ["ensembl","phytozome","refseq"];
+    for (my $i=0; $i < @{$sources}; $i++) {
+    	if ($params->{$sources->[$i]} == 1) {
+    		my $wsname = $self->util_workspace_names($sources->[$i]);
+    		my $wsoutput;
+    		if(defined($self->util_ws_client())){
+    			$wsoutput = $self->util_ws_client()->get_workspace_info({
+    				workspace => $wsname
+    			});
+    		}
+			
+    		my $maxid = $wsoutput->[4];
+    		my $pages = ceil($maxid/10000);
+    		for (my $m=0; $m < $pages; $m++) {
+    			$wsoutput = $self->util_ws_client()->list_objects({
+	    			workspaces => [$wsname],
+	    			type => "KBaseGenomes.Genome-8.0",
+	    			minObjectID => 10000*$m,
+	    			maxObjectID => 10000*($m+1)
+	    		});
+	    		for (my $j=0; $j < @{$wsoutput}; $j++) {
+	    			push(@{$output},{
+	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
+				        id => $wsoutput->[$j]->[1],
+						workspace_name => $wsoutput->[$j]->[7],
+						source_id => $wsoutput->[$j]->[10]->{"Source ID"},
+						accession => $wsoutput->[$j]->[10]->{"Source ID"},
+						name => $wsoutput->[$j]->[10]->{Name},
+						version => $wsoutput->[$j]->[4],
+						source => $wsoutput->[$j]->[10]->{Source},
+						domain => $wsoutput->[$j]->[10]->{Domain},
+						save_date => $wsoutput->[$j]->[3],
+						contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
+						features => $wsoutput->[$j]->[10]->{"Number features"},
+						dna_size => $wsoutput->[$j]->[10]->{"Size"},
+						gc => $wsoutput->[$j]->[10]->{"GC content"},
+	    			});
+	    			if (@{$output} < 10) {
+	    				my $curr = @{$output}-1;
+	    				$msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+	    			}
+	    		}
+    		}
+    	}
+    }
+	exit 0;	
+}
+
 sub _testLoadGenomes{	
 	my ($self) = @_;
 	
