@@ -265,7 +265,8 @@ sub _testActionsInSolr{
           'name' => 'ASM1052v1'
       }];
 	my $ws_name => 'kkeller:1454440703158';	
-
+	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
+	
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
 		my $wsname = $self->util_workspace_names($genome->{source});	
@@ -304,9 +305,8 @@ sub _testActionsInSolr{
 			source => $genome->{source},
 			domain => $genome->{domain}
 		};
-		push(@{$output},$genomeout);
 	}	
-	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
+	print "\nLoaded genome list--test: \n" . Dumper($genomesout). "\n";	
 	exit 0;	
 }
 
