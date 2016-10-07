@@ -279,8 +279,8 @@ sub _testActionsInSolr{
 	}];
 	my $ws_name => 'kkeller:1454440703158';	
 	
-	#for (my $i=0; $i < @{$genomes}; $i++) {
-		my $genome = @genomes[0];
+	for (my $i=0; $i < @{$genomes}; $i++) {
+		my $genome = $genomes->[$i];
 		print "Error?: $genome->{source}\n".Dumper($genome);
 		my $wsname = $self->util_workspace_names($genome->{source});	
 		print "Now loading ".$genome->{source}.":".$genome->{id}." to $wsname.\n";
@@ -319,7 +319,7 @@ sub _testActionsInSolr{
 			domain => $genome->{domain}
 		};
 		print "\nLoaded genome list--test: \n" . Dumper($genomeout). "\n";
-	#}		
+	}		
 	exit 0;	
 }
 
