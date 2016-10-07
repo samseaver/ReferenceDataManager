@@ -39,6 +39,9 @@ sub util_initialize_call {
 	$self->{_method} = $ctx->method();
 	$self->{_provenance} = $ctx->provenance();
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
+	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
+    my $cfg = Config::IniFiles->new(-file=>$config_file);
+    $self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');	
 	$self->util_timestamp(DateTime->now()->datetime());
 	return $params;
 }
@@ -222,7 +225,6 @@ sub _testActionsInSolr
 		genomes => $KBgenomes_ret
 	});
 	print "\nSolr genome list: \n" . Dumper($solrGenomes_ret). "\n";	
-	exit 0;		
 
 	#6.4 load genomes from the Gene Bank to KBase	
 	my $genomesLoaded_ret = $self->load_genomes({
@@ -230,7 +232,8 @@ sub _testActionsInSolr
             index_in_solr => 0
 	});
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
-	
+	exit 0;	
+		
 	#6.5 list all the refernece genomes updated
 	my $ret = $self->update_loaded_genomes_v1({
  	genomeData => [$genebank_ret->[0]],    
@@ -804,17 +807,13 @@ sub new
     bless $self, $class;
     #BEGIN_CONSTRUCTOR
     
-    my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
-    my $cfg = Config::IniFiles->new(-file=>$config_file);
-    $self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');
     $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
     die "no workspace-url defined" unless $self->{workspace_url};
     $self->{_workspace_map} = {
     	ensembl => "Ensembl_Genomes",
     	phytozome => "Phytozome_Genomes",
     	refseq => "kkeller:1454440703158"#"ReferenceTaxons"#"KBaseExampleData"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
-    };
-    
+    };  
 		
 	#SOLR specific parameters
     if (! $self->{_SOLR_URL}) {
