@@ -266,7 +266,7 @@ sub _testActionsInSolr{
 	
 	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });	
 	
-	my @genomes = [{
+	my $genomes = [{
           'domain' => 'bacteria',
           'ftp_dir' => 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/010/525/GCF_000010525.1_ASM1052v1',
           'version' => '1',
