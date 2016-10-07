@@ -1308,6 +1308,7 @@ sub load_genomes
 	my $genome = $genomes->[$i];
 	print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	my $wsname = $self->util_workspace_names($genome->{source});
+	print "Loading...:$wsname\n";
 	if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
 		my $genutilout = $loader->genbank_to_genome({
 			file => {
