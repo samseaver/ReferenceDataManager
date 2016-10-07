@@ -302,7 +302,7 @@ sub _testListGenomes{
 	    			});
 	    			if (@{$output} < 10) {
 	    				my $curr = @{$output}-1;
-	    				$msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+	    				print "List of loaded genomes (<10):\n". Data::Dumper->Dump([$output->[$curr]])."\n";
 	    			}
 	    		}
     		}
