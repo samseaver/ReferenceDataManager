@@ -1504,8 +1504,10 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
+			print "$ws_genome_obj_data".Dumper($ws_genome_obj_data)."\n";
 		}		
-	  	my $ws_obj_id = $ws_genome_obj_metadata->[11];
+
+		my $ws_obj_id = $ws_genome_obj_metadata->[11];
 		
 		$record->{workspace_name} = $ws_name; 
 		$record->{object_id} = $ws_obj_id; #"kb|ws.".$ws_id.".obj."."$ws_genome_id"; # kb|ws.2869.obj.9837
@@ -1537,10 +1539,10 @@ sub index_genomes_in_solr
 		
 		# Get feature info####
 		my $ws_features = $ws_genome->{features};
-		$record->{feature_source_id} = $ws_features->{feature_source_id}; #fig|83333.1.peg.3182
-		$record->{feature_id} = $ws_features->{feature_id}; #kb|g.0.peg.3026
-		$record->{feature_type} = $ws_features->{feature_type};#CDS
-		$record->{feature_publications} = $ws_features->{feature_publications};#8576051 Characterization of degQ and degS, Escherichia coli genes encoding homologs of the DegP protease. http://www.ncbi.nlm.nih.gov/pubmed/8576051 Waller,P R; Sauer,R T Journal of bacteriology
+		#$record->{feature_source_id} = $ws_features->{feature_source_id}; #fig|83333.1.peg.3182
+		#$record->{feature_id} = $ws_features->{feature_id}; #kb|g.0.peg.3026
+		#$record->{feature_type} = $ws_features->{feature_type};#CDS
+		#$record->{feature_publications} = $ws_features->{feature_publications};#8576051 Characterization of degQ and degS, Escherichia coli genes encoding homologs of the DegP protease. http://www.ncbi.nlm.nih.gov/pubmed/8576051 Waller,P R; Sauer,R T Journal of bacteriology
 
 		#$record->{features} = $ws_genome->{features};	
 		#$genome->{genome_publications}=$ws_genome->{};
