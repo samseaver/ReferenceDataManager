@@ -253,6 +253,19 @@ sub _testActionsInSolr_passed
 
 sub _testActionsInSolr{	
 	my ($self) = @_;
+	
+	my $token = $ENV{'KB_AUTH_TOKEN'};
+	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
+    my $cfg = Config::IniFiles->new(-file=>$config_file);
+	$self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
+	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"};	
+	die "no workspace-url defined" unless $self->{workspace_url};
+	$self->util_timestamp(DateTime->now()->datetime());
+	print "\nWorkspace service url: $self->{workspace_url}\n";	
+	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
+	
+	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });	
+	
 	my $genomes => [{
           'domain' => 'bacteria',
           'ftp_dir' => 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/010/525/GCF_000010525.1_ASM1052v1',
@@ -263,9 +276,8 @@ sub _testActionsInSolr{
           'source' => 'refseq',
           'file' => 'GCF_000010525.1_ASM1052v1',
           'name' => 'ASM1052v1'
-      }];
+	}];
 	my $ws_name => 'kkeller:1454440703158';	
-	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
 	
 	#for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[0];
