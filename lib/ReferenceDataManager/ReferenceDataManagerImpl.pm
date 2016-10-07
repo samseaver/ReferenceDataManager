@@ -1504,7 +1504,7 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
-			#print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
+			print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data->{taxon_ref}."\n";
 		}		
 
 		my $ws_obj_id = $ws_genome_obj_metadata->[11];
@@ -1537,8 +1537,7 @@ sub index_genomes_in_solr
 		# Get taxon info
 		my $ws_taxon = $ws_genome->{taxon_ref};#$ws_genome_usr_metadata;#$json->decode(`ws-get $ws_genome->{taxon_ref}`);
 		$record->{taxonomy} = $ws_genome->{taxonomy};#Bacteria; Rhodobacter CACIA 14H1'
-		$record->{tax_id} = $ws_genome->{tax_id};#-1
-		
+		#$record->{tax_id} = $ws_genome->{tax_id};#-1#ERROR: [doc=12] unknown field \'tax_id\'		
 		
 		# Get feature info####
 		my $ws_features = $ws_genome->{features};
