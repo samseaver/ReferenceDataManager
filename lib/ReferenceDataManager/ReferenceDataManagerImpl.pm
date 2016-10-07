@@ -40,9 +40,10 @@ sub util_initialize_call {
 	$self->{_provenance} = $ctx->provenance();
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
-    my $cfg = Config::IniFiles->new(-file=>$config_file);
-    $self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');	
-	$self->util_timestamp(DateTime->now()->datetime());
+    my $cfg = Config::IniFiles->new(-file=>$config_file);	    
+    $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
+    die "no workspace-url defined" unless $self->{workspace_url};	$self->util_timestamp(DateTime->now()->datetime());
+	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');
 	return $params;
 }
 
@@ -806,9 +807,7 @@ sub new
     };
     bless $self, $class;
     #BEGIN_CONSTRUCTOR
-    
-    $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
-    die "no workspace-url defined" unless $self->{workspace_url};
+
     $self->{_workspace_map} = {
     	ensembl => "Ensembl_Genomes",
     	phytozome => "Phytozome_Genomes",
