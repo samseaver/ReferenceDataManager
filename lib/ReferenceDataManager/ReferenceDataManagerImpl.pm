@@ -266,7 +266,7 @@ sub _testActionsInSolr{
 	
 	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });	
 	
-	my $genome => {
+	my @genomes = [{
           'domain' => 'bacteria',
           'ftp_dir' => 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/010/525/GCF_000010525.1_ASM1052v1',
           'version' => '1',
@@ -276,11 +276,11 @@ sub _testActionsInSolr{
           'source' => 'refseq',
           'file' => 'GCF_000010525.1_ASM1052v1',
           'name' => 'ASM1052v1'
-	};
+	}];
 	my $ws_name => 'kkeller:1454440703158';	
 	
 	#for (my $i=0; $i < @{$genomes}; $i++) {
-		#my $genome = %$genomes;
+		my $genome = @genomes[0];
 		print "Error?: $genome->{source}\n".Dumper($genome);
 		my $wsname = $self->util_workspace_names($genome->{source});	
 		print "Now loading ".$genome->{source}.":".$genome->{id}." to $wsname.\n";
