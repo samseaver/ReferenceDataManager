@@ -266,7 +266,7 @@ sub _testListGenomes{
 	
 	my $output = [];
 	my $sources = ["ensembl","phytozome","refseq"];
-    		my $wsname = $self->util_workspace_names($sources->[0]);
+    		my $wsname = $self->util_workspace_names($sources->[2]);#only test refseq
     		my $wsoutput;
     		if(defined($self->util_ws_client())){
     			$wsoutput = $self->util_ws_client()->get_workspace_info({
