@@ -33,9 +33,9 @@ parameters :
     genomes :
         ui-name : |
             A list of KBase Reference Genome Data
-		short-hint : |
+        short-hint : |
             Genome data
-		long-hint  : |
+        long-hint : |
 	        Genome data
 
 
