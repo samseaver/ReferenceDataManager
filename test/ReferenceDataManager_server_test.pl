@@ -30,8 +30,8 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 eval {
     #$impl->_testActionsInSolr_passed();
 	#$impl->_testListGenomes();
-    $impl->_testLoadGenomes();
-    exit 0;#to not go further
+    #$impl->_testLoadGenomes();
+    #exit 0;#to not go further
 	
     #Altering workspace map
     #$impl->{_workspace_map}->{refseq} = "RefSeqTest";
@@ -84,7 +84,7 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"load_genomes command returned at least one genome");
-exit 0;
+
 	#Testing update_loaded_genomes
     eval {
         $ret = $impl->update_loaded_genomes({ 
