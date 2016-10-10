@@ -1788,7 +1788,7 @@ sub update_loaded_genomes
     $output = [];
 	print "\nTesting within update_loaded_genomes\n";
     my $count = 0;
-    my $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, $params->{update_only});
+    my $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only});
     my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq});
     my @genomes_in_solr = ($self->_listGenomesInSolr("QZtest", "*"))->{response}->{response}->{docs};    
 
@@ -1828,5 +1828,3 @@ sub update_loaded_genomes
     }
     return($output);
 }
-
-
