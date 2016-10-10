@@ -34,7 +34,7 @@ eval {
     #exit 0;#to not go further
 	
     #Altering workspace map
-    $impl->{_workspace_map}->{refseq} = "RefSeqTest";
+    #$impl->{_workspace_map}->{refseq} = "RefSeqTest";
     #Testing the list_reference_genomes function
     my $ret;
     eval {
