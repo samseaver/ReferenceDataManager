@@ -1415,9 +1415,9 @@ sub load_genomes
    }
    for (my $i=0; $i < @{$genomes}; $i++) {
 	 my $genome = $genomes->[$i];
-
+	 print "\nGenome info:\n" . Dumper($genome). ."\n";
 	 my $wsname = $self->util_workspace_names($genome->{source});	
-	 print "Now loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
+	 print "\nNow loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
 	 if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
 		my $genutilout = $loader->genbank_to_genome({
@@ -1777,13 +1777,19 @@ sub update_loaded_genomes
     my($output);
     #BEGIN update_loaded_genomes
     $params = $self->util_initialize_call($params,$ctx);
-    
-    my $msg = "";
+	$params = $self->util_args($params,[],{
+    	refseq => 1,
+		update_only => 0,
+        create_report => 0,
+    	workspace_name => undef
+    });
+	
+	my $msg = "";
     $output = [];
 	print "\nTesting within update_loaded_genomes\n";
     my $count = 0;
-    my $ref_genomes = $self->list_reference_genomes({refseq => 1, update_only => 0});
-    my $loaded_genomes = $self->list_loaded_genomes({refseq => 1});
+    my $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, $params->{update_only});
+    my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq});
     my @genomes_in_solr = ($self->_listGenomesInSolr("QZtest", "*"))->{response}->{response}->{docs};    
 
     for (my $i=0; $i <@{ $ref_genomes }; $i++) {
