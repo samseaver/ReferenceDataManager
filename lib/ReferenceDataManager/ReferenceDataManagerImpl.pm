@@ -881,8 +881,8 @@ sub _error
 sub _checkGenomeStatus {
 	my ($current_genome, $solr_genomes) = @_;
 	
-	print "\tChecking status for assembly $current_genome->{accession}: \n";
-	my $status;
+	print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
+	my $status = "";
 	if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
 	{
 		$status = "New genome";
@@ -893,19 +893,24 @@ sub _checkGenomeStatus {
 		    my $genome_id = $record->{genome_id};
 
 		    if ($genome_id eq $current_genome->{accession}){
-			$status = "Existing genome: current";
-			$current_genome->{genome_id} = $genome_id;
+				$status = "Existing genome: current";
+				$current_genome->{genome_id} = $genome_id;
+				break;
 		    }elsif ($genome_id =~/$current_genome->{id}/){
-			$status = "Existing genome: updated ";
-			$current_genome->{genome_id} = $genome_id;
+				$status = "Existing genome: updated ";
+				$current_genome->{genome_id} = $genome_id;
+				break;
 		    }else{
+		    }
+		}
+		if( $status = "" )
+		{
 			$status = "Existing genome: status unknown";
 			$current_genome->{genome_id} = $genome_id;
-		    }
 		}
 	}  
 
-	print "$status\n";
+	print "\n$status\n";
 	return $status;
 }
 
@@ -1710,7 +1715,7 @@ sub update_loaded_genomes
     my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
     my $genomes_in_solr = undef;#$self->_listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
 
-    for (my $i=0; $i <@{ $ref_genomes }; $i++) {
+    for (my $i=0; $i < @{ $ref_genomes } && $i < 10; $i++) {
 		my $genome = $ref_genomes->[$i];
 	
 		#check if the genome is already present in the database by querying SOLR
