@@ -195,9 +195,10 @@ Lists genomes present in selected reference databases (ensembl, phytozome, refse
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
-	method => "ReferenceDataManager.list_reference_genomes",
-	params => \@args,
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ReferenceDataManager.list_reference_genomes",
+	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
@@ -312,9 +313,10 @@ Lists genomes loaded into KBase from selected reference sources (ensembl, phytoz
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
-	method => "ReferenceDataManager.list_loaded_genomes",
-	params => \@args,
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ReferenceDataManager.list_loaded_genomes",
+	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
@@ -449,9 +451,10 @@ Loads specified genomes into KBase workspace and indexes in SOLR on demand
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
-	method => "ReferenceDataManager.load_genomes",
-	params => \@args,
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ReferenceDataManager.load_genomes",
+	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
@@ -562,9 +565,10 @@ Index specified genomes in SOLR from KBase workspace
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
-	method => "ReferenceDataManager.index_genomes_in_solr",
-	params => \@args,
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ReferenceDataManager.index_genomes_in_solr",
+	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
@@ -679,9 +683,10 @@ Updates the loaded genomes in KBase for the specified source databases
 	}
     }
 
-    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
-	method => "ReferenceDataManager.update_loaded_genomes",
-	params => \@args,
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ReferenceDataManager.update_loaded_genomes",
+	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
@@ -701,148 +706,37 @@ Updates the loaded genomes in KBase for the specified source databases
     }
 }
  
-
-
-=head2 update_loaded_genomes_v1
-
-  $output = $obj->update_loaded_genomes_v1($params)
-
-=over 4
-
-=item Parameter and return types
-
-=begin html
-
-<pre>
-$params is a ReferenceDataManager.UpdateLoadedGenomesParams_v1
-$output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-UpdateLoadedGenomesParams_v1 is a reference to a hash where the following keys are defined:
-	ensembl has a value which is a ReferenceDataManager.bool
-	refseq has a value which is a ReferenceDataManager.bool
-	phytozome has a value which is a ReferenceDataManager.bool
-	genomeData has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
-	workspace_name has a value which is a string
-	create_report has a value which is a ReferenceDataManager.bool
-	fileformats has a value which is a string
-bool is an int
-ReferenceGenomeData is a reference to a hash where the following keys are defined:
-	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
-	ftp_dir has a value which is a string
-	file has a value which is a string
-	id has a value which is a string
-	version has a value which is a string
-	source has a value which is a string
-	domain has a value which is a string
-KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
-	ref has a value which is a string
-	id has a value which is a string
-	workspace_name has a value which is a string
-	source_id has a value which is a string
-	accession has a value which is a string
-	name has a value which is a string
-	ftp_dir has a value which is a string
-	version has a value which is a string
-	source has a value which is a string
-	domain has a value which is a string
-
-</pre>
-
-=end html
-
-=begin text
-
-$params is a ReferenceDataManager.UpdateLoadedGenomesParams_v1
-$output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-UpdateLoadedGenomesParams_v1 is a reference to a hash where the following keys are defined:
-	ensembl has a value which is a ReferenceDataManager.bool
-	refseq has a value which is a ReferenceDataManager.bool
-	phytozome has a value which is a ReferenceDataManager.bool
-	genomeData has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
-	workspace_name has a value which is a string
-	create_report has a value which is a ReferenceDataManager.bool
-	fileformats has a value which is a string
-bool is an int
-ReferenceGenomeData is a reference to a hash where the following keys are defined:
-	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
-	ftp_dir has a value which is a string
-	file has a value which is a string
-	id has a value which is a string
-	version has a value which is a string
-	source has a value which is a string
-	domain has a value which is a string
-KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
-	ref has a value which is a string
-	id has a value which is a string
-	workspace_name has a value which is a string
-	source_id has a value which is a string
-	accession has a value which is a string
-	name has a value which is a string
-	ftp_dir has a value which is a string
-	version has a value which is a string
-	source has a value which is a string
-	domain has a value which is a string
-
-
-=end text
-
-=item Description
-
-Updates the loaded genomes in KBase for the specified source databases
-
-=back
-
-=cut
-
- sub update_loaded_genomes_v1
+  
+sub status
 {
     my($self, @args) = @_;
-
-# Authentication: required
-
-    if ((my $n = @args) != 1)
-    {
-	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function update_loaded_genomes_v1 (received $n, expecting 1)");
+    if ((my $n = @args) != 0) {
+        Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+                                   "Invalid argument count for function status (received $n, expecting 0)");
     }
-    {
-	my($params) = @args;
-
-	my @_bad_arguments;
-        (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
-        if (@_bad_arguments) {
-	    my $msg = "Invalid arguments passed to update_loaded_genomes_v1:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'update_loaded_genomes_v1');
-	}
-    }
-
-    my $result = $self->{client}->call($self->{url}, $self->{headers}, {
-	method => "ReferenceDataManager.update_loaded_genomes_v1",
-	params => \@args,
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+        method => "ReferenceDataManager.status",
+        params => \@args,
     });
     if ($result) {
-	if ($result->is_error) {
-	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
-					       code => $result->content->{error}->{code},
-					       method_name => 'update_loaded_genomes_v1',
-					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
-					      );
-	} else {
-	    return wantarray ? @{$result->result} : $result->result->[0];
-	}
+        if ($result->is_error) {
+            Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+                           code => $result->content->{error}->{code},
+                           method_name => 'status',
+                           data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+                          );
+        } else {
+            return wantarray ? @{$result->result} : $result->result->[0];
+        }
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method update_loaded_genomes_v1",
-					    status_line => $self->{client}->status_line,
-					    method_name => 'update_loaded_genomes_v1',
-				       );
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method status",
+                        status_line => $self->{client}->status_line,
+                        method_name => 'status',
+                       );
     }
 }
- 
-  
+   
 
 sub version {
     my ($self) = @_;
@@ -855,16 +749,16 @@ sub version {
             Bio::KBase::Exceptions::JSONRPC->throw(
                 error => $result->error_message,
                 code => $result->content->{code},
-                method_name => 'update_loaded_genomes_v1',
+                method_name => 'update_loaded_genomes',
             );
         } else {
             return wantarray ? @{$result->result} : $result->result->[0];
         }
     } else {
         Bio::KBase::Exceptions::HTTP->throw(
-            error => "Error invoking method update_loaded_genomes_v1",
+            error => "Error invoking method update_loaded_genomes",
             status_line => $self->{client}->status_line,
-            method_name => 'update_loaded_genomes_v1',
+            method_name => 'update_loaded_genomes',
         );
     }
 }
@@ -1241,53 +1135,6 @@ refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
-
-
-=end text
-
-=back
-
-
-
-=head2 UpdateLoadedGenomesParams_v1
-
-=over 4
-
-
-
-=item Description
-
-Arguments for the update_loaded_genomes_v1 function
-
-
-=item Definition
-
-=begin html
-
-<pre>
-a reference to a hash where the following keys are defined:
-ensembl has a value which is a ReferenceDataManager.bool
-refseq has a value which is a ReferenceDataManager.bool
-phytozome has a value which is a ReferenceDataManager.bool
-genomeData has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
-workspace_name has a value which is a string
-create_report has a value which is a ReferenceDataManager.bool
-fileformats has a value which is a string
-
-</pre>
-
-=end html
-
-=begin text
-
-a reference to a hash where the following keys are defined:
-ensembl has a value which is a ReferenceDataManager.bool
-refseq has a value which is a ReferenceDataManager.bool
-phytozome has a value which is a ReferenceDataManager.bool
-genomeData has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
-workspace_name has a value which is a string
-create_report has a value which is a ReferenceDataManager.bool
-fileformats has a value which is a string
 
 
 =end text
