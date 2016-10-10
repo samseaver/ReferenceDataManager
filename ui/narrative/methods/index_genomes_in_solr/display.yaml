@@ -34,9 +34,9 @@ parameters :
         ui-name : |
             A list of KBase Reference Genome Data
 	short-hint : |
-            Index specified genomes in SOLR
+            Genome data
 	long-hint  : |
-	    Index specified genomes in SOLR
+	        Genome data
 
 
 description : |
