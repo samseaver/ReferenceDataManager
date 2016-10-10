@@ -68,7 +68,7 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
-
+exit 0;
 	#Testing update_loaded_genomes
     eval {
         $ret = $impl->update_loaded_genomes({ 
