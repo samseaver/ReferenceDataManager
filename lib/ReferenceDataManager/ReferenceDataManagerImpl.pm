@@ -1782,7 +1782,7 @@ sub update_loaded_genomes
     $output = [];
 
     my $count = 0;
-    my $ref_genomes = $self->list_reference_genomes(refseq => 1, update_only => 0);
+    my $ref_genomes = $self->list_reference_genomes({refseq => 1, update_only => 0});
     my $loaded_genomes = $self->list_loaded_genomes(refseq => 1);
     my @genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
 
