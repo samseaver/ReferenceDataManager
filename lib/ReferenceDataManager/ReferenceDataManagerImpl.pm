@@ -1713,7 +1713,7 @@ sub update_loaded_genomes
 		my $genome = $ref_genomes->[$i];
 	
 		#check if the genome is already present in the database by querying SOLR
-    	my $gnstatus = $self->checkGenomeStatus( $genome, \@genomes_in_solr);
+    	my $gnstatus = $self->_checkGenomeStatus( $genome, \@genomes_in_solr);
 
 		if ($gnstatus=~/(new|updated)/i){
 	   		$count ++;
