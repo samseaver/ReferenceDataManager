@@ -1357,20 +1357,19 @@ sub load_genomes
    }
    for (my $i=0; $i < @{$genomes}; $i++) {
 	 my $genome = $genomes->[$i];
-	 print "\nGenome info:\n" . Dumper($genome). "\n";
 	 
 	 my $wsname = "";
 	 if(defined( $genome->{workspace_name}))
 	 {
 	 	$wsname = $genome->{workspace_name};
 	 }
-	 else {#if(defined($genome->{source}))
+	 elsif(defined($genome->{source})){
 	 	$wsname = $self->util_workspace_names($genome->{source});	
 	 }
 		
-	 print "\nNow loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
+	 print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
-	 if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
+	 if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
 		my $genutilout = $loader->genbank_to_genome({
 			file => {
 				ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
@@ -1407,7 +1406,7 @@ sub load_genomes
 		push(@{$output},$genomeout);
 			
 		if ($params->{index_in_solr} == 1) {
-			$self->func_index_in_solr({
+			$self->index_genomes_in_solr({
 				genomes => [$genomeout]
 			});
 		}
@@ -1436,6 +1435,7 @@ sub load_genomes
       });
       $output = [$params->{workspace}."/load_genomes"];
    }
+   print "\nAfter loading genomes:\n". Dumper($output) . "\n";
     #END load_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
