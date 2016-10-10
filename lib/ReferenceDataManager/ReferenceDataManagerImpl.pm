@@ -1343,22 +1343,27 @@ sub load_genomes
 	my $array = [split(/;/,$params->{data})];
 	$genomes = [{
 		accession => $array->[0],
-	        status => $array->[1],
-	        name => $array->[2],
-	        ftp_dir => $array->[3],
-	        file => $array->[4],
-	        id => $array->[5],
-	        version => $array->[6],
-	        source => $array->[7],
-	        domain => $array->[8]
-		}];
+		status => $array->[1],
+		name => $array->[2],
+		ftp_dir => $array->[3],
+		file => $array->[4],
+		id => $array->[5],
+		version => $array->[6],
+		source => $array->[7],
+		domain => $array->[8]
+	}];
    } else {
 	$genomes = $params->{genomes};
    }
    for (my $i=0; $i < @{$genomes}; $i++) {
 	 my $genome = $genomes->[$i];
 	 print "\nGenome info:\n" . Dumper($genome). "\n";
-	 my $wsname = $self->util_workspace_names($genome->{source});	
+	 my $wsname = "";
+	 if(defined( $genome->{workspace_name}))
+	 	$wsname = $genome->{workspace_name};
+	 else if(defined($genome->{source}))
+	 	$wsname = $self->util_workspace_names($genome->{source});	
+		
 	 print "\nNow loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
 	 if ($genome->{source} eq "refseq" || $genome->{source} eq "ensembl") {
