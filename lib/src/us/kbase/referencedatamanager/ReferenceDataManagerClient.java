@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import us.kbase.auth.AuthToken;
 import us.kbase.common.service.JsonClientCaller;
 import us.kbase.common.service.JsonClientException;
@@ -21,6 +22,7 @@ import us.kbase.common.service.UnauthorizedException;
  */
 public class ReferenceDataManagerClient {
     private JsonClientCaller caller;
+    private String serviceVersion = null;
 
 
     /** Constructs a client with a custom URL and no user credentials.
@@ -50,6 +52,20 @@ public class ReferenceDataManagerClient {
      */
     public ReferenceDataManagerClient(URL url, String user, String password) throws UnauthorizedException, IOException {
         caller = new JsonClientCaller(url, user, password);
+    }
+
+    /** Constructs a client with a custom URL
+     * and a custom authorization service URL.
+     * @param url the URL of the service.
+     * @param user the user name.
+     * @param password the password for the user name.
+     * @param auth the URL of the authorization server.
+     * @throws UnauthorizedException if the credentials are not valid.
+     * @throws IOException if an IOException occurs when checking the user's
+     * credentials.
+     */
+    public ReferenceDataManagerClient(URL url, String user, String password, URL auth) throws UnauthorizedException, IOException {
+        caller = new JsonClientCaller(url, user, password, auth);
     }
 
     /** Get the token this client uses to communicate with the server.
@@ -139,6 +155,14 @@ public class ReferenceDataManagerClient {
         caller.setFileForNextRpcResponse(f);
     }
 
+    public String getServiceVersion() {
+        return this.serviceVersion;
+    }
+
+    public void setServiceVersion(String newValue) {
+        this.serviceVersion = newValue;
+    }
+
     /**
      * <p>Original spec-file function name: list_reference_genomes</p>
      * <pre>
@@ -153,7 +177,7 @@ public class ReferenceDataManagerClient {
         List<Object> args = new ArrayList<Object>();
         args.add(params);
         TypeReference<List<List<ReferenceGenomeData>>> retType = new TypeReference<List<List<ReferenceGenomeData>>>() {};
-        List<List<ReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.list_reference_genomes", args, retType, true, false, jsonRpcContext);
+        List<List<ReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.list_reference_genomes", args, retType, true, false, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 
@@ -171,7 +195,7 @@ public class ReferenceDataManagerClient {
         List<Object> args = new ArrayList<Object>();
         args.add(params);
         TypeReference<List<List<KBaseReferenceGenomeData>>> retType = new TypeReference<List<List<KBaseReferenceGenomeData>>>() {};
-        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.list_loaded_genomes", args, retType, true, false, jsonRpcContext);
+        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.list_loaded_genomes", args, retType, true, false, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 
@@ -189,7 +213,7 @@ public class ReferenceDataManagerClient {
         List<Object> args = new ArrayList<Object>();
         args.add(params);
         TypeReference<List<List<KBaseReferenceGenomeData>>> retType = new TypeReference<List<List<KBaseReferenceGenomeData>>>() {};
-        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.load_genomes", args, retType, true, true, jsonRpcContext);
+        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.load_genomes", args, retType, true, true, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 
@@ -207,7 +231,7 @@ public class ReferenceDataManagerClient {
         List<Object> args = new ArrayList<Object>();
         args.add(params);
         TypeReference<List<List<KBaseReferenceGenomeData>>> retType = new TypeReference<List<List<KBaseReferenceGenomeData>>>() {};
-        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.index_genomes_in_solr", args, retType, true, true, jsonRpcContext);
+        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.index_genomes_in_solr", args, retType, true, true, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 
@@ -225,25 +249,14 @@ public class ReferenceDataManagerClient {
         List<Object> args = new ArrayList<Object>();
         args.add(params);
         TypeReference<List<List<KBaseReferenceGenomeData>>> retType = new TypeReference<List<List<KBaseReferenceGenomeData>>>() {};
-        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.update_loaded_genomes", args, retType, true, true, jsonRpcContext);
+        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.update_loaded_genomes", args, retType, true, true, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 
-    /**
-     * <p>Original spec-file function name: update_loaded_genomes_v1</p>
-     * <pre>
-     * Updates the loaded genomes in KBase for the specified source databases
-     * </pre>
-     * @param   params   instance of type {@link us.kbase.referencedatamanager.UpdateLoadedGenomesParamsV1 UpdateLoadedGenomesParamsV1} (original type "UpdateLoadedGenomesParams_v1")
-     * @return   parameter "output" of list of type {@link us.kbase.referencedatamanager.KBaseReferenceGenomeData KBaseReferenceGenomeData}
-     * @throws IOException if an IO exception occurs
-     * @throws JsonClientException if a JSON RPC exception occurs
-     */
-    public List<KBaseReferenceGenomeData> updateLoadedGenomesV1(UpdateLoadedGenomesParamsV1 params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
+    public Map<String, Object> status(RpcContext... jsonRpcContext) throws IOException, JsonClientException {
         List<Object> args = new ArrayList<Object>();
-        args.add(params);
-        TypeReference<List<List<KBaseReferenceGenomeData>>> retType = new TypeReference<List<List<KBaseReferenceGenomeData>>>() {};
-        List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.update_loaded_genomes_v1", args, retType, true, true, jsonRpcContext);
+        TypeReference<List<Map<String, Object>>> retType = new TypeReference<List<Map<String, Object>>>() {};
+        List<Map<String, Object>> res = caller.jsonrpcCall("ReferenceDataManager.status", args, retType, true, false, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 }
