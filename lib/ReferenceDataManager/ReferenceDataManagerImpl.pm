@@ -1707,7 +1707,7 @@ sub update_loaded_genomes
     my $count = 0;
     my $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
     my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
-    my @genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
+    my @genomes_in_solr = [];#$self->_listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
 
     for (my $i=0; $i <@{ $ref_genomes }; $i++) {
 		my $genome = $ref_genomes->[$i];
@@ -1717,7 +1717,7 @@ sub update_loaded_genomes
 
 		if ($gnstatus=~/(new|updated)/i){
 	   		$count ++;
-	   		#$self->load_genomes( genomes => $genome, index_in_solr => 1 );
+	   		$self->load_genomes( genomes => $genome, index_in_solr => 0 );
 	   		push(@{$output},$genome);
 			
 	   		if ($count < 10) {
@@ -1727,7 +1727,8 @@ sub update_loaded_genomes
 		# Current version already in KBase, check for annotation updates
 		}
     }
-    
+    print "\nAfter update_loaded_genomes:\n". Dumper($output) ."\n";
+	
     if ($params->{create_report}) {
     	$self->util_create_report({
     		message => "Updated ".@{$output}." genomes!",
