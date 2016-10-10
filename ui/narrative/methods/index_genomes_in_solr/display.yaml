@@ -1,0 +1,43 @@
+#
+# Define basic display information
+#
+name	 : Index genome in Solr
+
+tooltip  : |
+    Add genome docs to Solr database core to be indexed
+screenshots :
+    []
+
+icon: icon.png
+
+#
+# Define the set of other narrative methods that should be suggested to the user.
+#
+suggestions :
+    apps:
+        related :
+            []
+        next :
+            []
+    methods:
+        related :
+            []
+        next :
+            []
+
+
+#
+# Configure the display and description of the parameters
+#
+parameters :
+    genomes :
+        ui-name : |
+            A list of KBase Reference Genome Data
+	short-hint : |
+            Index specified genomes in SOLR
+	long-hint  : |
+	    Index specified genomes in SOLR
+
+
+description : |
+    <p>Index specified genomes in SOLR from KBase workspace</p>
