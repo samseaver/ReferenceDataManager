@@ -23,7 +23,7 @@ suggestions :
         related :
             []
         next :
-            []
+            [index_genomes]
 
 
 #
@@ -32,11 +32,11 @@ suggestions :
 parameters :
     genomes :
         ui-name : |
-            A list of KBase Reference Genome Data
+            Genome data
         short-hint : |
             Genome data
         long-hint  : |
             Genome data
 
 description : |
-    <p>Index specified genomes in SOLR from KBase workspace</p>
+    <p>Lists genomes for index in Solr</p>
