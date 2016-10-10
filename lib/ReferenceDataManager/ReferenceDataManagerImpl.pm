@@ -1780,23 +1780,23 @@ sub update_loaded_genomes
     
     my $msg = "";
     $output = [];
-    my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
 
     my $count = 0;
-    my $ref_genomes = list_reference_genomes(refseq => 1, update_only => 0);
-    my $loaded_genomes = list_loaded_genomes(refseq => 1);
-    my @genomes_in_solr = _listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
+    my $ref_genomes = $self->list_reference_genomes(refseq => 1, update_only => 0);
+    my $loaded_genomes = $self->list_loaded_genomes(refseq => 1);
+    my @genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
 
     for (my $i=0; $i <@{ $ref_genomes }; $i++) {
 		my $genome = $ref_genomes->[$i];
 	
 		#check if the genome is already present in the database by querying SOLR
-    	my $gnstatus = checkGenomeStatus( $genome, \@genomes_in_solr);
+    	my $gnstatus = $self->checkGenomeStatus( $genome, \@genomes_in_solr);
 
 		if ($gnstatus=~/(new|updated)/i){
 	   		$count ++;
-	   		load_genomes( genomes => $genome, index_in_solr => 1 );
+	   		$self->load_genomes( genomes => $genome, index_in_solr => 1 );
 	   		push(@{$output},$genome);
+			
 	   		if ($count < 10) {
 		   		$msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
 			}
@@ -1810,7 +1810,7 @@ sub update_loaded_genomes
     		message => "Updated ".@{$output}." genomes!",
     		workspace => $params->{workspace}
     	});
-    	$output = [$params->{workspace}."/list_reference_genomes"];
+    	$output = [$params->{workspace}."/update_loaded_genomes"];
     }
     #END update_loaded_genomes
     my @_bad_returns;
