@@ -1415,7 +1415,7 @@ sub load_genomes
    }
    for (my $i=0; $i < @{$genomes}; $i++) {
 	 my $genome = $genomes->[$i];
-	 print "\nGenome info:\n" . Dumper($genome). ."\n";
+	 print "\nGenome info:\n" . Dumper($genome). "\n";
 	 my $wsname = $self->util_workspace_names($genome->{source});	
 	 print "\nNow loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
