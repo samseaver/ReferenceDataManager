@@ -895,18 +895,16 @@ sub _checkGenomeStatus {
 		    if ($genome_id eq $current_genome->{accession}){
 				$status = "Existing genome: current";
 				$current_genome->{genome_id} = $genome_id;
-				break;
+				last;
 		    }elsif ($genome_id =~/$current_genome->{id}/){
 				$status = "Existing genome: updated ";
 				$current_genome->{genome_id} = $genome_id;
-				break;
-		    }else{
+				last;
 		    }
 		}
 		if( $status = "" )
 		{
 			$status = "Existing genome: status unknown";
-			$current_genome->{genome_id} = $genome_id;
 		}
 	}  
 
