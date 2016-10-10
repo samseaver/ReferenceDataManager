@@ -1358,11 +1358,15 @@ sub load_genomes
    for (my $i=0; $i < @{$genomes}; $i++) {
 	 my $genome = $genomes->[$i];
 	 print "\nGenome info:\n" . Dumper($genome). "\n";
+	 
 	 my $wsname = "";
 	 if(defined( $genome->{workspace_name}))
+	 {
 	 	$wsname = $genome->{workspace_name};
-	 else if(defined($genome->{source}))
+	 }
+	 else {#if(defined($genome->{source}))
 	 	$wsname = $self->util_workspace_names($genome->{source});	
+	 }
 		
 	 print "\nNow loading ".$genome->{source}.":".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
@@ -1414,10 +1418,10 @@ sub load_genomes
 			id => $genome->{id},
 			workspace_name => $wsname,
 			source_id => $genome->{id},
-		        accession => $genome->{accession},
+			accession => $genome->{accession},
 			name => $genome->{name},
-    			ftp_dir => $genome->{ftp_dir},
-    			version => $genome->{version},
+			ftp_dir => $genome->{ftp_dir},
+			version => $genome->{version},
 			source => $genome->{source},
 			domain => $genome->{domain}
 		};
