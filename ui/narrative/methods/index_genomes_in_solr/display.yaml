@@ -35,9 +35,8 @@ parameters :
             A list of KBase Reference Genome Data
         short-hint : |
             Genome data
-        long-hint : |
-	        Genome data
-
+        long-hint  : |
+            Genome data
 
 description : |
     <p>Index specified genomes in SOLR from KBase workspace</p>
