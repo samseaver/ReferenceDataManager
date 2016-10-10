@@ -28,10 +28,10 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
-    #$impl->_testActionsInSolr();
+    $impl->_testActionsInSolr_passed();
 	#$impl->_testListGenomes();
     #$impl->_testLoadGenomes();
-    #exit 0;#to not go further
+    exit 0;#to not go further
 	
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
@@ -71,10 +71,8 @@ eval {
 
 	#Testing update_loaded_genomes
     eval {
-        $ret = $impl->update_loaded_genomes_v1({
- 		genomeData => [$ret->[0]],    
-        refseq => 1,
-		formats => "gbff"
+        $ret = $impl->update_loaded_genomes({ 
+        refseq => 1
         });
     };
     ok(!$@,"update_loaded_genomes command successful");
