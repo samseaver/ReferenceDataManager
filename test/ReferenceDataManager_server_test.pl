@@ -29,9 +29,9 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     #$impl->_testActionsInSolr();
-	$impl->_testListGenomes();
+	#$impl->_testListGenomes();
     #$impl->_testLoadGenomes();
-    exit 0;#to not go further
+    #exit 0;#to not go further
 	
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeqTest";
@@ -52,12 +52,29 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"list_reference_Genomes command returned at least one genome");
-    #Testing update_loaded_genomes
+
+	#Testing list_loaded_genomes function
+    eval {
+        $ret = $impl->list_loaded_genomes({
+            refseq => 1
+        });
+    };
+    ok(!$@,"list_loaded_genomes command successful");
+    if ($@) {
+        print "ERROR:".$@;
+    } else {
+        print "Number of records:".@{$ret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$ret->[0]])."\n";
+    }
+    ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
+
+	#Testing update_loaded_genomes
     eval {
         $ret = $impl->update_loaded_genomes_v1({
- 	genomeData => [$ret->[0]],    
+ 		genomeData => [$ret->[0]],    
         refseq => 1,
-	formats => "gbff"
+		formats => "gbff"
         });
     };
     ok(!$@,"update_loaded_genomes command successful");
@@ -69,7 +86,8 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"update_loaded_genomes command returned at least one genome");
-    #Testing load_genomes function
+
+	#Testing load_genomes function
     eval {
         $ret = $impl->load_genomes({
             genomes => [$ret->[0]],
@@ -84,7 +102,8 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"load_genomes command returned at least one genome");
-    #Testing list_loaded_genomes function
+
+	#Testing list_loaded_genomes function again
     eval {
         $ret = $impl->list_loaded_genomes({
             refseq => 1
