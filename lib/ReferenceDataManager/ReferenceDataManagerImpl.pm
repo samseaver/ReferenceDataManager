@@ -883,7 +883,7 @@ sub _checkGenomeStatus {
 	
 	print "\tChecking status for assembly $current_genome->{accession}: \n";
 	my $status;
-	if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || (!defined($solr_genomes) )
+	if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
 	{
 		$status = "New genome";
 	}elsif ( ref($solr_genomes) eq 'ARRAY' )
