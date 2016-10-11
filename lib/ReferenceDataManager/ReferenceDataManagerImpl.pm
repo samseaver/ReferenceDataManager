@@ -883,12 +883,13 @@ sub _error
 #
 sub _checkGenomeStatus {
 	my ($self, $current_genome, $solr_genomes) = @_;
-	#print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
+	print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
 	my $status = "";
 	if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
 	{
 		$status = "New genome";
-	}elsif ( ref($solr_genomes) eq 'ARRAY' )
+	}
+	elsif ( ref($solr_genomes) eq 'ARRAY' )
 	{
 		for (my $i = 0; $i < @{ $solr_genomes }; $i++ ) {
  		    my $record = $solr_genomes->[$i];
