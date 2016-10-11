@@ -882,7 +882,7 @@ sub _error
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
 #
 sub _checkGenomeStatus {
-	my ($self,current_genome, $solr_genomes) = @_;
+	my ($self, $current_genome, $solr_genomes) = @_;
 	print "\nChecking status against genomes in solr:\n " . Dumper($solr_genomes) . "\n";	
 	#print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
 	my $status = "";
