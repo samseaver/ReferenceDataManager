@@ -383,7 +383,7 @@ sub _listGenomesInSolr {
 	my $query = { q => "*" };
 	
 	my $ret = $self->_searchSolr($solrCore, $params, $query, "json", $grp);	
-	print "\nSolr search results: \n" . Dumper($ret->{response}->{response}->{docs}) . "\n\n";
+	#print "\nSolr search results: \n" . Dumper($ret->{response}->{response}->{docs}) . "\n\n";
 	return $ret;
 }
 #
@@ -882,7 +882,7 @@ sub _error
 # Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
 #
 sub _checkGenomeStatus {
-	my ($current_genome, $solr_genomes) = @_;
+	my ($self,current_genome, $solr_genomes) = @_;
 	print "\nChecking status against genomes in solr:\n " . Dumper($solr_genomes) . "\n";	
 	#print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
 	my $status = "";
@@ -1717,7 +1717,6 @@ sub update_loaded_genomes
     my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
     my $genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*");
 	$genomes_in_solr = $genomes_in_solr->{response}->{response}->{docs};  
-	print "\nSolr list in update: \n". Dumper($genomes_in_solr). "\n";
 	
     for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
 		my $genome = $ref_genomes->[$i];
