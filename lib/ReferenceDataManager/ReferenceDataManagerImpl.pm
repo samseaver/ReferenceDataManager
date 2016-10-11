@@ -905,6 +905,10 @@ sub _checkGenomeStatus {
 				last;
 		    }
 		}
+		if( $status eq "" )
+		{
+			$status = "New genome";#"Existing genome: status unknown";
+		}
 	}
 
 	if( $status eq "" )
