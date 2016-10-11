@@ -457,7 +457,7 @@ sub _searchSolr {
 		print "\n\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
 		#print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	}
-	
+	print "\nSolr search results: \n" . Dumper($solr_response->{response}->{response}->{docs}) . "\n\n";
 	return $solr_response;
 }
 
