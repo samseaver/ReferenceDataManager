@@ -902,12 +902,11 @@ sub _checkGenomeStatus {
 				last;
 		    }
 		}
-		if( $status = "" )
-		{
-			$status = "Existing genome: status unknown";
-		}
 	}  
-
+	if( $status = "" )
+	{
+		$status = "Existing genome: status unknown";
+	}
 	print "\n$status\n";
 	return $status;
 }
@@ -1711,9 +1710,9 @@ sub update_loaded_genomes
     my $count = 0;
     my $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
     my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
-    my $genomes_in_solr = undef;#$self->_listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
+    my $genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
 
-    for (my $i=0; $i < @{ $ref_genomes } && $i < 10; $i++) {
+    for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
 		my $genome = $ref_genomes->[$i];
 	
 		#check if the genome is already present in the database by querying SOLR
@@ -1721,7 +1720,7 @@ sub update_loaded_genomes
 
 		if ($gnstatus=~/(new|updated)/i){
 	   		$count ++;
-	   		$self->load_genomes( genomes => $genome, index_in_solr => 0 );
+	   		$self->load_genomes( genomes => $genome, index_in_solr => 1 );
 	   		push(@{$output},$genome);
 			
 	   		if ($count < 10) {
