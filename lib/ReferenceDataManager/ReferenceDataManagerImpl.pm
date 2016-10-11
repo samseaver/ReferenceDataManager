@@ -883,7 +883,7 @@ sub _error
 #
 sub _checkGenomeStatus {
 	my ($self, $current_genome, $solr_genomes) = @_;
-	print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
+	#print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
 	my $status = "";
 	if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
 	{
@@ -915,7 +915,7 @@ sub _checkGenomeStatus {
 	{
 		$status = "Existing genome: status unknown";
 	}
-	print "\nStatus:$status\n";
+	#print "\nStatus:$status\n";
 	return $status;
 }
 
