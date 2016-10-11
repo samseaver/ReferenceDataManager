@@ -919,6 +919,24 @@ sub _checkGenomeStatus {
 	return $status;
 }
 
+#
+# Internal Method: to create a test Workspace and add an object, returns the workspace_info of what was just created.
+#
+sub _initWorkspace {
+	my ($self, $wsname, $gread, $desc, $md, $objs) = @_;
+	my $wsinfo;
+	if(defined($self->util_ws_client())){
+	$wsinfo = $self->util_ws_client()->create_workspace({
+    				workspace => $wsname,
+					globalread => $gread,
+					description => $desc,
+					meta => $md #{'contents': 'other things','project_id': '42'}
+				});
+	}
+	
+	
+	return $wsinfo;
+}
 #################### End methods for accessing SOLR #######################
 
 #END_HEADER
