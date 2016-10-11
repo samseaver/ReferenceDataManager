@@ -907,7 +907,7 @@ sub _checkGenomeStatus {
 	{
 		$status = "Existing genome: status unknown";
 	}
-	print "\n$status\n";
+	print "\nStatus:$status\n";
 	return $status;
 }
 
