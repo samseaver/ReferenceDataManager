@@ -369,7 +369,7 @@ sub _listGenomesInSolr {
 	my ($self, $solrCore, $fields, $grp) = @_;
 	my $count = 100;#2,147,483,647 is integer's maximum value
 	my $start = 0;
-	my $rows = "&rows=100";
+	my $rows = "&rows=5";#change to 100 later
   	my $sort = "&sort=genome_id asc";
 	
 	my $params = {
