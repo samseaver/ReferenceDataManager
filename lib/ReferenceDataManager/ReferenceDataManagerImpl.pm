@@ -1351,100 +1351,102 @@ sub load_genomes
     my $genomes;
     $output = [];
     if (defined($params->{data})) {
-	my $array = [split(/;/,$params->{data})];
-	$genomes = [{
-		accession => $array->[0],
-		status => $array->[1],
-		name => $array->[2],
-		ftp_dir => $array->[3],
-		file => $array->[4],
-		id => $array->[5],
-		version => $array->[6],
-		source => $array->[7],
-		domain => $array->[8]
-	}];
-   } else {
-	$genomes = $params->{genomes};
-   }
-   for (my $i=0; $i < @{$genomes}; $i++) {
-	 my $genome = $genomes->[$i];
+		my $array = [split(/;/,$params->{data})];
+		$genomes = [{
+			accession => $array->[0],
+			status => $array->[1],
+			name => $array->[2],
+			ftp_dir => $array->[3],
+			file => $array->[4],
+			id => $array->[5],
+			version => $array->[6],
+			source => $array->[7],
+			domain => $array->[8]
+		}];
+   	} else {
+		$genomes = $params->{genomes};
+   	}
+	
+	for (my $i=0; $i < @{$genomes}; $i++) {
+		my $genome = $genomes->[$i];
 	 
-	 my $wsname = "";
-	 if(defined( $genome->{workspace_name}))
-	 {
-	 	$wsname = $genome->{workspace_name};
-	 }
-	 elsif(defined($genome->{source})){
-	 	$wsname = $self->util_workspace_names($genome->{source});	
-	 }
+		my $wsname = "";
+		if(defined( $genome->{workspace_name}))
+	 	{
+	 		$wsname = $genome->{workspace_name};
+	 	}
+	 	elsif(defined($genome->{source}))
+		{
+	 		$wsname = $self->util_workspace_names($genome->{source});	
+	 	}
 		
-	 print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
+	 	print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
-	 if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
-		my $genutilout = $loader->genbank_to_genome({
-			file => {
-				ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
-			},
-			genome_name => $genome->{id},
-			workspace_name => $wsname,
-			source => $genome->{source},
-			taxon_wsname => "ReferenceTaxons",
-			release => $genome->{version},
-			generate_ids_if_needed => 1,
-			genetic_code => 11,
-			type => "Reference",
-			metadata => {
-				refid => $genome->{id},
-				accession => $genome->{accession},
-				refname => $genome->{name},
-				url => $genome->{url},
-				version => $genome->{version}
-			}
-		});
-
-		my $genomeout = {
-			"ref" => $genutilout->{genome_ref},
-			id => $genome->{id},
-			workspace_name => $wsname,
-			source_id => $genome->{id},
-		    accession => $genome->{accession},
-			name => $genome->{name},
-    		ftp_dir => $genome->{ftp_dir},
-    		version => $genome->{version},
-			source => $genome->{source},
-			domain => $genome->{domain}
-		};
-		push(@{$output},$genomeout);
-			
-		if ($params->{index_in_solr} == 1) {
-			$self->index_genomes_in_solr({
-				genomes => [$genomeout]
+	 	if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
+			my $genutilout = $loader->genbank_to_genome({
+				file => {
+					ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
+				},
+				genome_name => $genome->{id},
+				workspace_name => $wsname,
+				source => $genome->{source},
+				taxon_wsname => "ReferenceTaxons",
+				release => $genome->{version},
+				generate_ids_if_needed => 1,
+				genetic_code => 11,
+				type => "Reference",
+				metadata => {
+					refid => $genome->{id},
+					accession => $genome->{accession},
+					refname => $genome->{name},
+					url => $genome->{url},
+					version => $genome->{version}
+				}
 			});
+
+			my $genomeout = {
+				"ref" => $genutilout->{genome_ref},
+				id => $genome->{id},
+				workspace_name => $wsname,
+				source_id => $genome->{id},
+		    	accession => $genome->{accession},
+				name => $genome->{name},
+    			ftp_dir => $genome->{ftp_dir},
+    			version => $genome->{version},
+				source => $genome->{source},
+				domain => $genome->{domain}
+			};
+			push(@{$output},$genomeout);
+			
+			if ($params->{index_in_solr} == 1) {
+				$self->index_genomes_in_solr({
+					genomes => [$genomeout]
+				});
+			}
+		} elsif ($genome->{source} eq "phytozome") {
+			#NEED SAM TO PUT CODE FOR HIS LOADER HERE
+			my $genomeout = {
+				"ref" => $wsname."/".$genome->{id},
+				id => $genome->{id},
+				workspace_name => $wsname,
+				source_id => $genome->{id},
+				accession => $genome->{accession},
+				name => $genome->{name},
+				ftp_dir => $genome->{ftp_dir},
+				version => $genome->{version},
+				source => $genome->{source},
+				domain => $genome->{domain}
+			};
+			push(@{$output},$genomeout);
 		}
-	} elsif ($genome->{source} eq "phytozome") {
-		#NEED SAM TO PUT CODE FOR HIS LOADER HERE
-		my $genomeout = {
-			"ref" => $wsname."/".$genome->{id},
-			id => $genome->{id},
-			workspace_name => $wsname,
-			source_id => $genome->{id},
-			accession => $genome->{accession},
-			name => $genome->{name},
-			ftp_dir => $genome->{ftp_dir},
-			version => $genome->{version},
-			source => $genome->{source},
-			domain => $genome->{domain}
-		};
-		push(@{$output},$genomeout);
 	}
-   }
-   if ($params->{create_report}) {
-      print "Loaded ".@{$output}." genomes!"."\n";
-      $self->util_create_report({
-    	message => "Loaded ".@{$output}." genomes!",
-    	workspace => $params->{workspace}
-      });
-      $output = [$params->{workspace}."/load_genomes"];
+	if ($params->{create_report}) {
+		print "Loaded ".@{$output}." genomes!"."\n";
+		$self->util_create_report({
+			message => "Loaded ".@{$output}." genomes!",
+			workspace => $params->{workspace}
+		});
+		$output = [$params->{workspace}."/load_genomes"];
    }
    print "\nAfter loading genomes:\n". Dumper($output) . "\n";
     #END load_genomes
