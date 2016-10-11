@@ -1731,7 +1731,7 @@ sub update_loaded_genomes
 
 		if ($gnstatus=~/(new|updated)/i){
 	   		$count ++;
-	   		$self->load_genomes( {genomes => [$genome], index_in_solr => 1} );
+	   		#$self->load_genomes( {genomes => [$genome], index_in_solr => 1} );
 	   		push(@{$output},$genome);
 			
 	   		if ($count < 10) {
@@ -1741,9 +1741,10 @@ sub update_loaded_genomes
 		# Current version already in KBase, check for annotation updates
 		}
     }
-    print "\nAfter update_loaded_genomes:\n". Dumper($output) ."\n";
+    print "\nupdate_loaded_genomes is adding these genomes to Solr:\n". Dumper($output) ."...\n";
+	$self->load_genomes( {genomes => @{$output}, index_in_solr => 1} );
 	
-    if ($params->{create_report}) {
+	if ($params->{create_report}) {
     	$self->util_create_report({
     		message => "Updated ".@{$output}." genomes!",
     		workspace => $params->{workspace}
