@@ -443,7 +443,7 @@ sub _searchSolr {
 	print "Query string:\n$solrQuery\n";
 	
 	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
-	print "\nRaw response: \n" . $solr_response->{response} . "\n";
+	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	
 	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
     	if ($responseCode) {
@@ -881,7 +881,7 @@ sub _error
 #
 sub _checkGenomeStatus {
 	my ($current_genome, $solr_genomes) = @_;
-	print "\nChecking status for genome:\n " . Dumper($solr_genomes) . "\n";	
+	print "\nChecking status against genomes in solr:\n " . Dumper($solr_genomes) . "\n";	
 	#print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
 	my $status = "";
 	if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
@@ -1713,8 +1713,9 @@ sub update_loaded_genomes
     my $count = 0;
     my $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
     my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
-    my $genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*")->{response}->{response}->{docs};    
-
+    my $genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*");
+	$genomes_in_solr = $genomes_in_solr->{response}->{response}->{docs};    
+	
     for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
 		my $genome = $ref_genomes->[$i];
 	
