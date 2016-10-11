@@ -383,8 +383,7 @@ sub _listGenomesInSolr {
 	my $query = { q => "*" };
 	
 	my $ret = $self->_searchSolr($solrCore, $params, $query, "json", $grp);	
-	$ret = $ret->{response}->{response}->{docs};
-	print "\nSolr search results: \n" . Dumper($ret) . "\n\n";
+	print "\nSolr search results: \n" . Dumper($ret->{response}->{response}->{docs} . "\n\n";
 	return $ret;
 }
 #
