@@ -1741,8 +1741,8 @@ sub update_loaded_genomes
 		# Current version already in KBase, check for annotation updates
 		}
     }
-    print "\nupdate_loaded_genomes is adding these genomes to Solr:\n". Dumper($output) ."...\n";
-	$self->load_genomes( {genomes => @{$output}, index_in_solr => 1} );
+    print "\nupdate_loaded_genomes is adding these genomes to Solr......\n". Dumper($output) ."\n";
+	$self->load_genomes( {genomes => $output, index_in_solr => 1} );
 	
 	if ($params->{create_report}) {
     	$self->util_create_report({
