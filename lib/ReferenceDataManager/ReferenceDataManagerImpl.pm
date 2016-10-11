@@ -367,7 +367,7 @@ sub _testLoadGenomes{
 #
 sub _listGenomesInSolr {
 	my ($self, $solrCore, $fields, $grp) = @_;
-	my $count = 2;#2,147,483,647 is integer's maximum value
+	my $count = 101;#2,147,483,647 is integer's maximum value
 	my $start = 0;
 	my $rows = "&rows=100";
   	my $sort = "&sort=genome_id asc";
@@ -883,15 +883,14 @@ sub _error
 #
 sub _checkGenomeStatus {
 	my ($self, $current_genome, $solr_genomes) = @_;
-	print "\nChecking status against genomes in solr:\n " . Dumper($solr_genomes) . "\n";	
 	#print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
 	my $status = "";
 	if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
-	{print "\narray size= 0\n";
+	{
 		$status = "New genome";
 	}elsif ( ref($solr_genomes) eq 'ARRAY' )
-	{print "\narray size > 0\n";
-	for (my $i = 0; $i < @{ $solr_genomes }; $i++ ) {
+	{
+		for (my $i = 0; $i < @{ $solr_genomes }; $i++ ) {
  		    my $record = $solr_genomes->[$i];
 		    my $genome_id = $record->{genome_id};
 
@@ -906,8 +905,7 @@ sub _checkGenomeStatus {
 		    }
 		}
 	}
-	else
-	{print "\nNot an array.\n";}
+
 	if( $status eq "" )
 	{
 		$status = "Existing genome: status unknown";
