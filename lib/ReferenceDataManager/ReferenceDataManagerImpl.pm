@@ -903,7 +903,7 @@ sub _checkGenomeStatus {
 		    }
 		}
 	}  
-	if( $status = "" )
+	if( $status eq "" )
 	{
 		$status = "Existing genome: status unknown";
 	}
