@@ -880,15 +880,15 @@ sub _error
 #
 sub _checkGenomeStatus {
 	my ($current_genome, $solr_genomes) = @_;
-	
-	print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
+	print "\nChecking status for genome:\n " . Dumper($solr_genomes) . "\n";	
+	#print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
 	my $status = "";
 	if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
-	{
+	{print "\narray size= 0\n";
 		$status = "New genome";
 	}elsif ( ref($solr_genomes) eq 'ARRAY' )
-	{
-		for (my $i = 0; $i < @{ $solr_genomes }; $i++ ) {
+	{print "\narray size > 0\n";
+	for (my $i = 0; $i < @{ $solr_genomes }; $i++ ) {
  		    my $record = $solr_genomes->[$i];
 		    my $genome_id = $record->{genome_id};
 
@@ -902,7 +902,9 @@ sub _checkGenomeStatus {
 				last;
 		    }
 		}
-	}  
+	}
+	else
+	{print "\narray size > 0\n";}
 	if( $status eq "" )
 	{
 		$status = "Existing genome: status unknown";
