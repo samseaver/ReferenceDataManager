@@ -1731,7 +1731,7 @@ sub update_loaded_genomes
 
 		if ($gnstatus=~/(new|updated)/i){
 	   		$count ++;
-	   		$self->load_genomes( genomes => [$genome], index_in_solr => 1 );
+	   		$self->load_genomes( {genomes => [$genome], index_in_solr => 1} );
 	   		push(@{$output},$genome);
 			
 	   		if ($count < 10) {
