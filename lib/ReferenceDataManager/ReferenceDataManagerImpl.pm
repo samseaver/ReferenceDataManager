@@ -382,7 +382,10 @@ sub _listGenomesInSolr {
 	};
 	my $query = { q => "*" };
 	
-	return $self->_searchSolr($solrCore, $params, $query, "json", $grp);
+	my $ret = $self->_searchSolr($solrCore, $params, $query, "json", $grp);	
+	$ret = $ret->{response}->{response}->{docs};
+	print "\nSolr search results: \n" . Dumper($ret) . "\n\n";
+	return $ret;
 }
 #
 # method name: _searchSolr
@@ -457,7 +460,7 @@ sub _searchSolr {
 		print "\n\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
 		#print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	}
-	print "\nSolr search results: \n" . Dumper($solr_response->{response}->{response}->{docs}) . "\n\n";
+	
 	return $solr_response;
 }
 
@@ -1714,7 +1717,8 @@ sub update_loaded_genomes
     my $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
     my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
     my $genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*");
-	$genomes_in_solr = $genomes_in_solr->{response}->{response}->{docs};    
+	$genomes_in_solr = $genomes_in_solr->{response}->{response}->{docs};  
+	print "\nSolr list in update: \n". Dumper($genomes_in_solr). "\n";
 	
     for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
 		my $genome = $ref_genomes->[$i];
