@@ -373,7 +373,7 @@ sub _listGenomesInSolr {
   	my $sort = "&sort=genome_id asc";
 	
 	my $params = {
-		fl => $fields, #"genome_id",
+		fl => $fields,
 		wt => "json",
 		rows => $count,
 		sort => "genome_id asc",
@@ -443,7 +443,7 @@ sub _searchSolr {
 	print "Query string:\n$solrQuery\n";
 	
 	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
-	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
+	print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	
 	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
     	if ($responseCode) {
@@ -457,6 +457,7 @@ sub _searchSolr {
 		print "\n\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
 		#print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
 	}
+	
 	return $solr_response;
 }
 
@@ -904,7 +905,7 @@ sub _checkGenomeStatus {
 		}
 	}
 	else
-	{print "\narray size > 0\n";}
+	{print "\nNot an array.\n";}
 	if( $status eq "" )
 	{
 		$status = "Existing genome: status unknown";
