@@ -262,51 +262,49 @@ sub _testListGenomes{
 
 	my $output = [];
 	my $sources = ["ensembl","phytozome","refseq"];
-    		my $wsname = $self->util_workspace_names($sources->[2]);#only test refseq
-    		my $wsoutput;
-    		if(!defined($self->util_ws_client())){
-				print "\nWS client defined:\n";
-    			$wsoutput = $self->util_ws_client()->get_workspace_info({
-    				workspace => $wsname
-    			});
-				print "\nWS info:\n" . Dumper($wsoutput) . "\n";
-			}
+	my $wsname = $self->util_workspace_names($sources->[2]);#only test refseq
+	my $wsoutput;
+	if(defined($self->util_ws_client())){
+			print "\nWS client defined:\n";
+			$wsoutput = $self->util_ws_client()->get_workspace_info({
+			workspace => $wsname
+		});	
+		print "\nWS info:\n" . Dumper($wsoutput) . "\n";
 			
-    		my $maxid = $wsoutput->[4];
-    		my $pages = ceil($maxid/10000);
-    		for (my $m=0; $m < $pages; $m++) {
-    			$wsoutput = $self->util_ws_client()->list_objects({
-	    			workspaces => [$wsname],
-	    			type => "KBaseGenomes.Genome-8.0",
-	    			minObjectID => 10000*$m,
-	    			maxObjectID => 10000*($m+1)
-	    		});
-	    		for (my $j=0; $j < @{$wsoutput}; $j++) {
-	    			push(@{$output},{
-	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-				        id => $wsoutput->[$j]->[1],
-						workspace_name => $wsoutput->[$j]->[7],
-						source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-						accession => $wsoutput->[$j]->[10]->{"Source ID"},
-						name => $wsoutput->[$j]->[10]->{Name},
-						version => $wsoutput->[$j]->[4],
-						source => $wsoutput->[$j]->[10]->{Source},
-						domain => $wsoutput->[$j]->[10]->{Domain},
-						save_date => $wsoutput->[$j]->[3],
-						contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
-						features => $wsoutput->[$j]->[10]->{"Number features"},
-						dna_size => $wsoutput->[$j]->[10]->{"Size"},
-						gc => $wsoutput->[$j]->[10]->{"GC content"},
-	    			});
-	    			if (@{$output} < 10) {
-	    				my $curr = @{$output}-1;
-	    				print "List of loaded genomes (<10) in $wsname\n". Data::Dumper->Dump([$output->[$curr]])."\n";
-	    			}elsif (@{$output} < 1) {
-	    				my $curr = @{$output}-1;
-	    				print "No genomes in $wsname\n";
-	    			}
-				}
-    		}
+		my $maxid = $wsoutput->[4];
+		my $pages = ceil($maxid/10000);
+		for (my $m=0; $m < $pages; $m++) {
+		$wsoutput = $self->util_ws_client()->list_objects({
+			workspaces => [$wsname],
+			type => "KBaseGenomes.Genome-8.0",
+			minObjectID => 10000*$m,
+			maxObjectID => 10000*($m+1)
+		});
+		for (my $j=0; $j < @{$wsoutput}; $j++) {
+			push(@{$output},{
+				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
+				id => $wsoutput->[$j]->[1],
+				workspace_name => $wsoutput->[$j]->[7],
+				source_id => $wsoutput->[$j]->[10]->{"Source ID"},
+				accession => $wsoutput->[$j]->[10]->{"Source ID"},
+				name => $wsoutput->[$j]->[10]->{Name},
+				version => $wsoutput->[$j]->[4],
+				source => $wsoutput->[$j]->[10]->{Source},
+				domain => $wsoutput->[$j]->[10]->{Domain},
+				save_date => $wsoutput->[$j]->[3],
+				contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
+				features => $wsoutput->[$j]->[10]->{"Number features"},
+				dna_size => $wsoutput->[$j]->[10]->{"Size"},
+				gc => $wsoutput->[$j]->[10]->{"GC content"},
+	    	});
+	    	if (@{$output} < 10) {
+	    		my $curr = @{$output}-1;
+	    		print "List of loaded genomes (<10) in $wsname\n". Data::Dumper->Dump([$output->[$curr]])."\n";
+	    	}
+		}
+	}else {
+		print "\nWorkspace not found.\n";
+    }
 	exit 0;	
 }
 
