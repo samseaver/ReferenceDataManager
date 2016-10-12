@@ -331,7 +331,7 @@ sub _testLoadGenomes{
           'file' => 'GCF_000010525.1_ASM1052v1',
           'name' => 'ASM1052v1'
 	}];
-	my $wsname = 'qzhang:1472759935273';	
+	my $wsname = 'ReferenceDataManagerWS';	
 	
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
@@ -934,7 +934,7 @@ sub new
     $self->{_workspace_map} = {
     	ensembl => "Ensembl_Genomes",
     	phytozome => "Phytozome_Genomes",
-    	refseq => "qzhang:1472759935273"#"ReferenceTaxons"#"KBaseExampleData"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
+    	refseq => "ReferenceDataManagerWS"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
     };  
 		
 	#SOLR specific parameters
