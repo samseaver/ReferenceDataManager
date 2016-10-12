@@ -28,8 +28,8 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
-	#$impl->_testActionsInSolr_passed();
-	$impl->_testListGenomes();
+	$impl->_testActionsInSolr_passed();
+	#$impl->_testListGenomes();
     #$impl->_testLoadGenomes();
     exit 0;#to not go further
 	
