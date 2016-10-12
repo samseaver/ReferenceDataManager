@@ -259,16 +259,19 @@ sub _testListGenomes{
 	$self->util_timestamp(DateTime->now()->datetime());
 	print "\nWorkspace service url: $self->{workspace_url}\n";	
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $token);
-	
+	print "\nHere\n";
 	my $output = [];
 	my $sources = ["ensembl","phytozome","refseq"];
     		my $wsname = $self->util_workspace_names($sources->[2]);#only test refseq
+			print "\nws=$wsname\n";
     		my $wsoutput;
-    		if(defined($self->util_ws_client())){
+    		if(!defined($self->util_ws_client())){
+				print "\nWS client defined:\n";
     			$wsoutput = $self->util_ws_client()->get_workspace_info({
     				workspace => $wsname
     			});
-    		}
+				print "\nWS info:\n" . Dumper($wsoutput) . "\n";
+			}
 			
     		my $maxid = $wsoutput->[4];
     		my $pages = ceil($maxid/10000);
