@@ -259,11 +259,10 @@ sub _testListGenomes{
 	$self->util_timestamp(DateTime->now()->datetime());
 	print "\nWorkspace service url: $self->{workspace_url}\n";	
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $token);
-	print "\nHere\n";
+
 	my $output = [];
 	my $sources = ["ensembl","phytozome","refseq"];
     		my $wsname = $self->util_workspace_names($sources->[2]);#only test refseq
-			print "\nws=$wsname\n";
     		my $wsoutput;
     		if(!defined($self->util_ws_client())){
 				print "\nWS client defined:\n";
@@ -302,8 +301,11 @@ sub _testListGenomes{
 	    			if (@{$output} < 10) {
 	    				my $curr = @{$output}-1;
 	    				print "List of loaded genomes (<10) in $wsname\n". Data::Dumper->Dump([$output->[$curr]])."\n";
+	    			}elsif (@{$output} < 1) {
+	    				my $curr = @{$output}-1;
+	    				print "No genomes in $wsname\n";
 	    			}
-	    		}
+				}
     		}
 	exit 0;	
 }
