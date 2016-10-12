@@ -282,25 +282,25 @@ sub _testListGenomes{
 			});
 			for (my $j=0; $j < @{$wsoutput}; $j++) {
 				push(@{$output},{
-				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-				id => $wsoutput->[$j]->[1],
-				workspace_name => $wsoutput->[$j]->[7],
-				source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-				accession => $wsoutput->[$j]->[10]->{"Source ID"},
-				name => $wsoutput->[$j]->[10]->{Name},
-				version => $wsoutput->[$j]->[4],
-				source => $wsoutput->[$j]->[10]->{Source},
-				domain => $wsoutput->[$j]->[10]->{Domain},
-				save_date => $wsoutput->[$j]->[3],
-				contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
-				features => $wsoutput->[$j]->[10]->{"Number features"},
-				dna_size => $wsoutput->[$j]->[10]->{"Size"},
-				gc => $wsoutput->[$j]->[10]->{"GC content"},
-	    	});
-	    	if (@{$output} < 10) {
-	    		my $curr = @{$output}-1;
-	    		print "List of loaded genomes (<10) in $wsname\n". Data::Dumper->Dump([$output->[$curr]])."\n";
-	    	}
+					"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
+					id => $wsoutput->[$j]->[1],
+					workspace_name => $wsoutput->[$j]->[7],
+					source_id => $wsoutput->[$j]->[10]->{"Source ID"},
+					accession => $wsoutput->[$j]->[10]->{"Source ID"},
+					name => $wsoutput->[$j]->[10]->{Name},
+					version => $wsoutput->[$j]->[4],
+					source => $wsoutput->[$j]->[10]->{Source},
+					domain => $wsoutput->[$j]->[10]->{Domain},
+					save_date => $wsoutput->[$j]->[3],
+					contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
+					features => $wsoutput->[$j]->[10]->{"Number features"},
+					dna_size => $wsoutput->[$j]->[10]->{"Size"},
+					gc => $wsoutput->[$j]->[10]->{"GC content"},
+	    		});
+	    		if (@{$output} < 10) {
+	    			my $curr = @{$output}-1;
+	    			print "List of loaded genomes (<10) in $wsname\n". Data::Dumper->Dump([$output->[$curr]])."\n";
+	    		}
 			}
 		}
 	}else {
