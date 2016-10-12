@@ -263,15 +263,15 @@ sub _testListGenomes{
 	my $output = [];
 	my $sources = ["ensembl","phytozome","refseq"];
 	my $wsname = $self->util_workspace_names($sources->[2]);#only test refseq
+	my $wsinfo;
 	my $wsoutput;
 	if(defined($self->util_ws_client())){
-			print "\nWS client defined:\n";
-			$wsoutput = $self->util_ws_client()->get_workspace_info({
+			$wsinfo = $self->util_ws_client()->get_workspace_info({
 			workspace => $wsname
 		});	
-		print "\nWS info:\n" . Dumper($wsoutput) . "\n";
+		print "\nWS info:\n" . Dumper($wsinfo) . "\n";
 			
-		my $maxid = $wsoutput->[4];
+		my $maxid = $wsinfo->[4];
 		my $pages = ceil($maxid/10000);
 		for (my $m=0; $m < $pages; $m++) {
 		$wsoutput = $self->util_ws_client()->list_objects({
