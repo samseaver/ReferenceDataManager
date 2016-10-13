@@ -1203,7 +1203,7 @@ sub list_loaded_genomes
     		for (my $m=0; $m < $pages; $m++) {
     			$wsoutput = $self->util_ws_client()->list_objects({
 	    			workspaces => [$wsname],
-	    			type => "KBaseGenomes.Genome-8.0",
+	    			#type => "KBaseGenomes.Genome-8.0",
 	    			minObjectID => 10000*$m,
 	    			maxObjectID => 10000*($m+1)
 	    		});
