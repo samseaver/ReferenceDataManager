@@ -56,8 +56,9 @@ eval {
 	#Testing list_loaded_genomes function
     eval {
         $ret = $impl->list_loaded_genomes({
-            refseq => 0,
-			phytozome => 1
+            refseq => 1,
+			phytozome => 0,
+			ensembl => 0	
 		});
     };
     ok(!$@,"list_loaded_genomes command successful");
@@ -69,7 +70,7 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
-exit 0;
+
 	#Testing load_genomes function
     eval {
         $ret = $impl->load_genomes({
