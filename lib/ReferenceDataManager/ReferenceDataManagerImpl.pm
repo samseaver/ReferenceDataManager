@@ -1196,7 +1196,7 @@ sub list_loaded_genomes
     				workspace => $wsname
     			});
     		}
-			#print "\nWorkspace info:\n" . Dumper($wsinfo). "\n";
+			print "\nWorkspace info:\n" . Dumper($wsinfo). "\n";
     		my $maxid = $wsinfo->[4];
     		my $pages = ceil($maxid/10000);
 
@@ -1449,7 +1449,7 @@ sub load_genomes
 		}
 	}
 	if ($params->{create_report}) {
-		print "Loaded ".@{$output}." genomes!"."\n";
+		print "Loaded ". scalar @{$output}. " genomes!\n";
 		$self->util_create_report({
 			message => "Loaded ".@{$output}." genomes!",
 			workspace => $params->{workspace}
