@@ -1199,15 +1199,15 @@ sub list_loaded_genomes
 			#print "\nWorkspace info:\n" . Dumper($wsinfo). "\n";
     		my $maxid = $wsinfo->[4];
     		my $pages = ceil($maxid/10000);
-			print "\nnumber of pages=$pages\n";
+
     		for (my $m=0; $m < $pages; $m++) {
     			$wsoutput = $self->util_ws_client()->list_objects({
 	    			workspaces => [$wsname],
-	    			#type => "KBaseGenomes.Genome-8.0",
-	    			minObjectID => 10000*$m,
+	    			#type => "KBaseGenomes.Genome-8.0",#Phytozome has types of KBaseGenomes.Genome-8.2, KBaseGenomeAnnotations.Assembly-2.0					
+					minObjectID => 10000*$m,
 	    			maxObjectID => 10000*($m+1)
 	    		});
-				print "\nnumber of objects=" . scalar @{$wsoutput} . "\n";
+
 				for (my $j=0; $j < @{$wsoutput}; $j++) {
 	    			push(@{$output},{
 	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
