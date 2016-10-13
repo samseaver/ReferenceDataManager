@@ -1196,9 +1196,10 @@ sub list_loaded_genomes
     				workspace => $wsname
     			});
     		}
-			print "\nWorkspace info:\n" . Dumper($wsinfo). "\n";
+			#print "\nWorkspace info:\n" . Dumper($wsinfo). "\n";
     		my $maxid = $wsinfo->[4];
     		my $pages = ceil($maxid/10000);
+			print "\nnumber of pages=$pages\n";
     		for (my $m=0; $m < $pages; $m++) {
     			$wsoutput = $self->util_ws_client()->list_objects({
 	    			workspaces => [$wsname],
@@ -1206,7 +1207,8 @@ sub list_loaded_genomes
 	    			minObjectID => 10000*$m,
 	    			maxObjectID => 10000*($m+1)
 	    		});
-	    		for (my $j=0; $j < @{$wsoutput}; $j++) {
+				print "\nnumber of objects=@{$wsoutput}\n";
+				for (my $j=0; $j < @{$wsoutput}; $j++) {
 	    			push(@{$output},{
 	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
 				        id => $wsoutput->[$j]->[1],
