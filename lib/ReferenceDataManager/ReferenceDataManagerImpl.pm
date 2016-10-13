@@ -335,7 +335,7 @@ sub _testLoadGenomes{
           'name' => 'ASM1052v1'
 	}];
 
-	my $wsname = 'qzTestWS';	
+	my $wsname = 'RefseqGenomesWS';	
 	
 	for (my $i=0; $i < @{$genomes}; $i++) {
 		my $genome = $genomes->[$i];
@@ -938,7 +938,7 @@ sub new
     $self->{_workspace_map} = {
     	ensembl => "Ensembl_Genomes",
     	phytozome => "Phytozome_Genomes",
-    	refseq => "qzTestWS"# "ReferenceDataManagerWS"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
+    	refseq => "RefseqGenomesWS"# "ReferenceDataManagerWS"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
     };  
 		
 	#SOLR specific parameters
@@ -1203,11 +1203,12 @@ sub list_loaded_genomes
     		for (my $m=0; $m < $pages; $m++) {
     			$wsoutput = $self->util_ws_client()->list_objects({
 	    			workspaces => [$wsname],
-	    			#type => "KBaseGenomes.Genome-8.0",#Phytozome has types of KBaseGenomes.Genome-8.2, KBaseGenomeAnnotations.Assembly-2.0					
+					#Phytozome has types of KBaseGenomes.Genome-8.2, KBaseGenomeAnnotations.Assembly-2.0, and KBaseGenomes.Genome-12.2					
+					#Ensembl_Genomes has types of KBaseGenomeAnnotations.Assembly-4.1, KBaseGenomeAnnotations.GenomeAnnotation-3.1, and KBaseGenomes.ContigSet-3.0  					
+					#type => "KBaseGenomes.Genome-8.0",				
 					minObjectID => 10000*$m,
 	    			maxObjectID => 10000*($m+1)
 	    		});
-
 				for (my $j=0; $j < @{$wsoutput}; $j++) {
 	    			push(@{$output},{
 	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
