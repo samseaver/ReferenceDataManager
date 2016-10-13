@@ -34,7 +34,7 @@ eval {
     #exit 0;#to not go further
 	
     #Altering workspace map
-    $impl->{_workspace_map}->{refseq} = "qzTestWS";
+    #$impl->{_workspace_map}->{refseq} = "qzTestWS";
     #Testing the list_reference_genomes function
     my $ret;
     eval {
@@ -70,7 +70,6 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
-exit 0;
 
 	#Testing load_genomes function
     eval {
