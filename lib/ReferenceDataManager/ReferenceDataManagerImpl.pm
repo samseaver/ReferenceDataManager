@@ -1207,7 +1207,7 @@ sub list_loaded_genomes
 	    			minObjectID => 10000*$m,
 	    			maxObjectID => 10000*($m+1)
 	    		});
-				print "\nnumber of objects=@{$wsoutput}\n";
+				print "\nnumber of objects=" . scalar @{$wsoutput} . "\n";
 				for (my $j=0; $j < @{$wsoutput}; $j++) {
 	    			push(@{$output},{
 	    				"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
