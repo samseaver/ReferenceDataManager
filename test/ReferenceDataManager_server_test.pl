@@ -29,12 +29,12 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
 	#$impl->_testActionsInSolr_passed();
-	$impl->_testListGenomes();
-    $impl->_testLoadGenomes();
-    exit 0;#to not go further
+	#$impl->_testListGenomes();
+    #$impl->_testLoadGenomes();
+    #exit 0;#to not go further
 	
     #Altering workspace map
-    #$impl->{_workspace_map}->{refseq} = "RefSeqTest";
+    $impl->{_workspace_map}->{refseq} = "qzTestWS";
     #Testing the list_reference_genomes function
     my $ret;
     eval {
@@ -56,8 +56,9 @@ eval {
 	#Testing list_loaded_genomes function
     eval {
         $ret = $impl->list_loaded_genomes({
-            refseq => 1
-        });
+            refseq => 0,
+			phytozome => 1
+		});
     };
     ok(!$@,"list_loaded_genomes command successful");
     if ($@) {
@@ -68,7 +69,7 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
-
+exit 0;
 	#Testing load_genomes function
     eval {
         $ret = $impl->load_genomes({
