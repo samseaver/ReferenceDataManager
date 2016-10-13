@@ -3,6 +3,8 @@ use Data::Dumper;
 use Config::IniFiles;
 use GenomeFileUtil::GenomeFileUtilClient;
 
+$|=1; # autoflush
+
 _testLoadGenomes();
 
 sub _testLoadGenomes{	
@@ -14,45 +16,39 @@ sub _testLoadGenomes{
 
 	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });	
 	
-	#data, should be an array although here I only put one item for test
-	my $genomes = [{
-          'domain' => 'bacteria',
-          'ftp_dir' => 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/010/525/GCF_000010525.1_ASM1052v1',
-          'version' => '1',
-          'id' => 'GCF_000010525',
-          'accession' => 'GCF_000010525.1',
-          'status' => 'latest',
-          'source' => 'refseq',
-          'file' => 'GCF_000010525.1_ASM1052v1',
-          'name' => 'ASM1052v1'
-	}];
-
-	my $wsname = 'qzTestWS';	
+	my $wsname = 'qzTestWS';
 	
-	for (my $i=0; $i < @{$genomes}; $i++) {
-		my $genome = $genomes->[$i];
-		print "Now loading ".$genome->{source}.":".$genome->{id}." for $wsname.\n";
+	eval {
+		print "Now loading genome into $wsname.\n";
 		
 		my $genutilout = $loader->genbank_to_genome({
 			file => {
-				ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
+				ftp_url => "ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/010/525/GCF_000010525.1_ASM1052v1/GCF_000010525.1_ASM1052v1_genomic.gbff.gz"
 			},
-			genome_name => $genome->{id},
+			genome_name => 'GCF_000010525',
 			workspace_name => $wsname,
-			source => $genome->{source},
+			source => 'refseq',
 			taxon_wsname => "ReferenceTaxons",
-			release => $genome->{version},
+			release => '1',
 			generate_ids_if_needed => 1,
 			genetic_code => 11,
 			type => "Reference",
 			metadata => {
-				refid => $genome->{id},
-				accession => $genome->{accession},
-				refname => $genome->{name},
-				url => $genome->{url},
-				version => $genome->{version}
+				refid => 'GCF_000010525',
+				accession => 'GCF_000010525.1',
+				refname => 'ASM1052v1',
+				url => undef,
+				version => '1'
 			}
 		});
 		print "\nLoaded genome list--test: \n" . Dumper($genutilout). "\n";
-	}		
+	};
+	
+	if ($@) {
+		my $err = $@;
+		print "Error type: " . ref($err) . "\n";
+		print "Error message: " . $err->{message} . "\n";
+		print "Error error: " . $err->{error} . "\n";
+		print "Error data: " .$err->{data} . "\n";
+	}
 }
