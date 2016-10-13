@@ -31,7 +31,7 @@ eval {
 	#$impl->_testActionsInSolr_passed();
 	#$impl->_testListGenomes();
     #$impl->_testLoadGenomes();
-    exit 0;#to not go further
+    #exit 0;#to not go further
 	
     #Altering workspace map
     #$impl->{_workspace_map}->{refseq} = "qzTestWS";
