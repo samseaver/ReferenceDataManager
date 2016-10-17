@@ -36,7 +36,7 @@ eval {
     #Altering workspace map
     #$impl->{_workspace_map}->{refseq} = "qzTestWS";
     #Testing the list_reference_genomes function
-    my $ret;
+    my $ref_ret, $ret;
     eval {
         $ref_ret = $impl->list_reference_genomes({
             refseq => 1,
