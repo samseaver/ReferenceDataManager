@@ -1411,7 +1411,7 @@ sub load_genomes
 					version => $genome->{version}
 				}
 			});
-
+print "\nAfter genebank_to_genome call.\n";
 			my $genomeout = {
 				"ref" => $genutilout->{genome_ref},
 				id => $genome->{id},
