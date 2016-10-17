@@ -38,7 +38,7 @@ eval {
     #Testing the list_reference_genomes function
     my $ret;
     eval {
-        $ret = $impl->list_reference_genomes({
+        $ref_ret = $impl->list_reference_genomes({
             refseq => 1,
             update_only => 0
         });
@@ -47,11 +47,11 @@ eval {
     if ($@) {
         print "ERROR:".$@;
     } else {
-        print "Number of records:".@{$ret}."\n";
+        print "Number of records:".@{$ref_ret}."\n";
         print "First record:\n";
-        print Data::Dumper->Dump([$ret->[0]])."\n";
+        print Data::Dumper->Dump([$ref_ret->[0]])."\n";
     }
-    ok(defined($ret->[0]),"list_reference_Genomes command returned at least one genome");
+    ok(defined($ref_ret->[0]),"list_reference_Genomes command returned at least one genome");
 
 	#Testing list_loaded_genomes function
     eval {
@@ -74,7 +74,7 @@ eval {
 	#Testing load_genomes function
     eval {
         $ret = $impl->load_genomes({
-            genomes => [$ret->[0]],
+            genomes => [$ref_ret->[0]],
             index_in_solr => 0
         });
     };
