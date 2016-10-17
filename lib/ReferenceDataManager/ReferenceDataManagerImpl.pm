@@ -1391,6 +1391,8 @@ sub load_genomes
 	 	print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
 	 	if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
+			my $ftpurl = $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz";
+			print "\nFTP: $ftpurl\n";
 			my $genutilout = $loader->genbank_to_genome({
 				file => {
 					ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
