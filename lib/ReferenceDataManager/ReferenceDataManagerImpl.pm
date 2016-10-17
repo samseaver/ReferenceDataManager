@@ -1392,6 +1392,7 @@ sub load_genomes
 	 
 	 	if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
 			my $ftpurl = $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz";
+			print "\nThe genome:\n". Dumper($genome) . "\n";
 			print "\nFTP: $ftpurl\n";
 			my $genutilout = $loader->genbank_to_genome({
 				file => {
@@ -1413,7 +1414,7 @@ sub load_genomes
 					version => $genome->{version}
 				}
 			});
-print "\nAfter genebank_to_genome call.\n";
+
 			my $genomeout = {
 				"ref" => $genutilout->{genome_ref},
 				id => $genome->{id},
