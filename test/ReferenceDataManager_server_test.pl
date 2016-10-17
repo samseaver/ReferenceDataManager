@@ -85,7 +85,6 @@ eval {
 		print "Error message: " . $err->{message} . "\n";
 		print "Error error: " . $err->{error} . "\n";
 		print "Error data: " .$err->{data} . "\n";
-        print "ERROR:".$@;
     } else {
         print "Loaded genome data:\n";
         print Data::Dumper->Dump([$ret->[0]])."\n";
