@@ -51,7 +51,7 @@ eval {
         print "First record:\n";
         print Data::Dumper->Dump([$refret->[0]])."\n";
     }
-    ok(defined($ret->[0]),"list_reference_Genomes command returned at least one genome");
+    ok(defined($refret->[0]),"list_reference_Genomes command returned at least one genome");
 
 	#Testing list_loaded_genomes function
 	my $wsret;
