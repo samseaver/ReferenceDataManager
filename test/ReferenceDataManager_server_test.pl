@@ -34,11 +34,11 @@ eval {
     #exit 0;#to not go further
 	
     #Altering workspace map
-    #$impl->{_workspace_map}->{refseq} = "qzTestWS";
+    $impl->{_workspace_map}->{refseq} = "qzTestWS";
     #Testing the list_reference_genomes function
-    my $ref_ret, $ret;
+	my $refret;
     eval {
-        $ref_ret = $impl->list_reference_genomes({
+        $refret = $impl->list_reference_genomes({
             refseq => 1,
             update_only => 0
         });
@@ -47,15 +47,16 @@ eval {
     if ($@) {
         print "ERROR:".$@;
     } else {
-        print "Number of records:".@{$ref_ret}."\n";
+        print "Number of records:".@{$refret}."\n";
         print "First record:\n";
-        print Data::Dumper->Dump([$ref_ret->[0]])."\n";
+        print Data::Dumper->Dump([$refret->[0]])."\n";
     }
-    ok(defined($ref_ret->[0]),"list_reference_Genomes command returned at least one genome");
+    ok(defined($ret->[0]),"list_reference_Genomes command returned at least one genome");
 
 	#Testing list_loaded_genomes function
+	my $wsret;
     eval {
-        $ret = $impl->list_loaded_genomes({
+        $wsret = $impl->list_loaded_genomes({
             refseq => 1,
 			phytozome => 0,
 			ensembl => 0	
@@ -65,16 +66,17 @@ eval {
     if ($@) {
         print "ERROR:".$@;
     } else {
-        print "Number of records:".@{$ret}."\n";
+        print "Number of records:".@{$wsret}."\n";
         print "First record:\n";
-        print Data::Dumper->Dump([$ret->[0]])."\n";
+        print Data::Dumper->Dump([$wsret->[0]])."\n";
     }
-    ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
+    ok(defined($wsret->[0]),"list_loaded_genomes command returned at least one genome");
 
 	#Testing load_genomes function
+	my $ret;
     eval {
         $ret = $impl->load_genomes({
-            genomes => [$ref_ret->[0]],
+            genomes => [$refret->[0]],
             index_in_solr => 0
         });
     };
@@ -86,7 +88,7 @@ eval {
 		print "Error error: " . $err->{error} . "\n";
 		print "Error data: " .$err->{data} . "\n";
     } else {
-        print "Loaded genome data:\n";
+        print "Loaded @{$ret} genomes:\n";
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"load_genomes command returned at least one genome");
@@ -99,7 +101,11 @@ eval {
     };
     ok(!$@,"update_loaded_genomes command successful");
     if ($@) {
-        print "ERROR:".$@;
+		my $err = $@;
+		print "Error type: " . ref($err) . "\n";
+		print "Error message: " . $err->{message} . "\n";
+		print "Error error: " . $err->{error} . "\n";
+		print "Error data: " .$err->{data} . "\n";
     } else {
         print "Number of records:".@{$ret}."\n";
         print "First record:\n";
@@ -124,6 +130,7 @@ eval {
     ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
     done_testing(2);
 };
+
 my $err = undef;
 if ($@) {
     $err = $@;
