@@ -1460,7 +1460,7 @@ sub load_genomes
 			workspace => $params->{workspace}
 		});
 		$output = [$params->{workspace}."/load_genomes"];
-   }
+	}
    print "\nAfter loading genomes:\n". Dumper($output) . "\n";
     #END load_genomes
     my @_bad_returns;
