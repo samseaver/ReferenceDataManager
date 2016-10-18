@@ -1,4 +1,4 @@
-package ReferenceDataManager::ReferenceDataManagerServer;
+package ReferenceDataManagerServer;
 
 
 use Data::Dumper;
@@ -31,6 +31,7 @@ our %return_counts = (
         'list_reference_genomes' => 1,
         'list_loaded_genomes' => 1,
         'load_genomes' => 1,
+        'load_taxons' => 1,
         'index_genomes_in_solr' => 1,
         'update_loaded_genomes' => 1,
         'status' => 1,
@@ -40,6 +41,7 @@ our %method_authentication = (
         'list_reference_genomes' => 'none',
         'list_loaded_genomes' => 'none',
         'load_genomes' => 'required',
+        'load_taxons' => 'required',
         'index_genomes_in_solr' => 'required',
         'update_loaded_genomes' => 'required',
 );
@@ -51,6 +53,7 @@ sub _build_valid_methods
         'list_reference_genomes' => 1,
         'list_loaded_genomes' => 1,
         'load_genomes' => 1,
+        'load_taxons' => 1,
         'index_genomes_in_solr' => 1,
         'update_loaded_genomes' => 1,
         'status' => 1,
@@ -218,7 +221,7 @@ sub call_method {
 
     my ($module, $method, $modname) = @$method_info{qw(module method modname)};
     
-    my $ctx = ReferenceDataManager::ReferenceDataManagerServerContext->new($self->{loggers}->{userlog},
+    my $ctx = ReferenceDataManagerServerContext->new($self->{loggers}->{userlog},
                            client_ip => $self->getIPAddress());
     $ctx->module($modname);
     $ctx->method($method);
@@ -281,7 +284,7 @@ sub call_method {
         local $ENV{KBRPC_METADATA} = $kb_metadata if $kb_metadata;
         local $ENV{KBRPC_ERROR_DEST} = $kb_errordest if $kb_errordest;
 
-        my $stderr = ReferenceDataManager::ReferenceDataManagerServerStderrWrapper->new($ctx, $get_time);
+        my $stderr = ReferenceDataManagerServerStderrWrapper->new($ctx, $get_time);
         $ctx->stderr($stderr);
 
         my $xFF = $self->_plack_req_header("X-Forwarded-For");
@@ -458,13 +461,13 @@ sub handle_error_cli {
         . " this error: $@\n";
 }
 
-package ReferenceDataManager::ReferenceDataManagerServerContext;
+package ReferenceDataManagerServerContext;
 
 use strict;
 
 =head1 NAME
 
-ReferenceDataManager::ReferenceDataManagerServerContext
+ReferenceDataManagerServerContext
 
 head1 DESCRIPTION
 
@@ -556,7 +559,7 @@ sub clear_log_level
     $self->{_logger}->clear_user_log_level();
 }
 
-package ReferenceDataManager::ReferenceDataManagerServerStderrWrapper;
+package ReferenceDataManagerServerStderrWrapper;
 
 use strict;
 use POSIX;
@@ -723,15 +726,15 @@ unless (caller) {
     my($input_file,$output_file,$token) = @ARGV;
     my @dispatch;
     {
-        use ReferenceDataManager::ReferenceDataManagerImpl;
-        my $obj = ReferenceDataManager::ReferenceDataManagerImpl->new;
+        use ReferenceDataManagerImpl;
+        my $obj = ReferenceDataManagerImpl->new;
         push(@dispatch, 'ReferenceDataManager' => $obj);
     }
     my %headers = (
         "Authorization" => $token,
         "CLI" => "1"
     );
-    my $server = ReferenceDataManager::ReferenceDataManagerServer->new(
+    my $server = ReferenceDataManagerServer->new(
         instance_dispatch => { @dispatch },
         allow_get => 0, 
         local_headers => \%headers);

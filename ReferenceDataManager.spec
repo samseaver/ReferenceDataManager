@@ -93,6 +93,39 @@ module ReferenceDataManager {
         Loads specified genomes into KBase workspace and indexes in SOLR on demand
     */
     funcdef load_genomes(LoadGenomesParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
+
+
+    /*
+        Struct containing data for a single taxon output by the list_loaded_taxons function
+    */
+    typedef structure {
+        string ref;
+        string id;
+        string workspace_name;
+        string source_id;
+        string accession;
+        string name;
+        string ftp_dir;
+        string version;
+        string source;
+        string domain;
+    } ReferenceTaxonData;
+
+    /*
+        Arguments for the load_taxons function
+    */
+    typedef structure {
+        string data;
+	list<ReferenceTaxonData> taxons;
+        bool index_in_solr;
+	string workspace_name;
+	bool create_report;
+    } LoadTaxonsParams;
+
+    /*
+        Loads specified genomes into KBase workspace and indexes in SOLR on demand
+    */
+    funcdef load_taxons(LoadTaxonsParams params) returns (list<ReferenceTaxonData> output) authentication required;
     
     /*
         Arguments for the index_genomes_in_solr function
