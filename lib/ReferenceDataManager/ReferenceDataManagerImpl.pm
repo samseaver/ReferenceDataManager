@@ -24,6 +24,7 @@ use JSON;
 use Data::Dumper qw(Dumper);
 use LWP::UserAgent;
 use XML::Simple;
+use Try::Tiny;
 
 
 #The first thing every function should do is call this function
@@ -1391,9 +1392,7 @@ sub load_genomes
 	 	print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
 	 	if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
-			my $ftpurl = $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz";
-			print "\nThe genome:\n". Dumper($genome) . "\n";
-			print "\nFTP: $ftpurl\n";
+			try {
 			my $genutilout = $loader->genbank_to_genome({
 				file => {
 					ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
@@ -1428,7 +1427,10 @@ sub load_genomes
 				domain => $genome->{domain}
 			};
 			push(@{$output},$genomeout);
-			
+			}
+			catch {
+				warn "\nCaught error: $_ \nwhile loading genome.\n";
+			}
 			if ($params->{index_in_solr} == 1) {
 				$self->index_genomes_in_solr({
 					genomes => [$genomeout]
