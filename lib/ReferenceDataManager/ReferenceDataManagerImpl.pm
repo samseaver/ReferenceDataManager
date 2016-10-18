@@ -1391,10 +1391,10 @@ sub load_genomes
 		
 	 	print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
 	 
-	 	if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
+		if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
 			my $genutilout;
             try {
-			$genutilout = $loader->genbank_to_genome({
+				$genutilout = $loader->genbank_to_genome({
 				file => {
 					ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
 				},
@@ -1413,11 +1413,8 @@ sub load_genomes
 					url => $genome->{url},
 					version => $genome->{version}
 				}
-			});
-            }
-           catch { warn "Got a die: $_" }
-           finally {
-			my $genomeout = {
+				});
+				my $genomeout = {
 				"ref" => $genutilout->{genome_ref},
 				id => $genome->{id},
 				workspace_name => $wsname,
@@ -1428,15 +1425,17 @@ sub load_genomes
     			version => $genome->{version},
 				source => $genome->{source},
 				domain => $genome->{domain}
-			};
-			push(@{$output},$genomeout);
+				};
+				push(@{$output},$genomeout);
 			
-			if ($params->{index_in_solr} == 1) {
-				$self->index_genomes_in_solr({
-					genomes => [$genomeout]
-				});
+				if ($params->{index_in_solr} == 1) {
+					$self->index_genomes_in_solr({
+						genomes => [$genomeout]
+					});
+				}
 			}
-            };
+			catch { warn "Got a die exception from calling genebank_to_genome:\n $_" }
+			finally {};
 		} elsif ($genome->{source} eq "phytozome") {
 			#NEED SAM TO PUT CODE FOR HIS LOADER HERE
 			my $genomeout = {
