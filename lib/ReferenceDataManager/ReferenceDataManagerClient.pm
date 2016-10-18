@@ -1,4 +1,4 @@
-package ReferenceDataManagerClient;
+package ReferenceDataManager::ReferenceDataManagerClient;
 
 use JSON::RPC::Client;
 use POSIX;
@@ -21,7 +21,7 @@ our $VERSION = "0.1.0";
 
 =head1 NAME
 
-ReferenceDataManagerClient
+ReferenceDataManager::ReferenceDataManagerClient
 
 =head1 DESCRIPTION
 
@@ -38,7 +38,7 @@ sub new
     
 
     my $self = {
-	client => ReferenceDataManagerClient::RpcClient->new,
+	client => ReferenceDataManager::ReferenceDataManagerClient::RpcClient->new,
 	url => $url,
 	headers => [],
     };
@@ -902,10 +902,10 @@ sub _validate_version {
         );
     }
     if ($sMinor > $cMinor) {
-        warn "New client version available for ReferenceDataManagerClient\n";
+        warn "New client version available for ReferenceDataManager::ReferenceDataManagerClient\n";
     }
     if ($sMajor == 0) {
-        warn "ReferenceDataManagerClient version is $svr_version. API subject to change.\n";
+        warn "ReferenceDataManager::ReferenceDataManagerClient version is $svr_version. API subject to change.\n";
     }
 }
 
@@ -1359,7 +1359,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 =cut
 
-package ReferenceDataManagerClient::RpcClient;
+package ReferenceDataManager::ReferenceDataManagerClient::RpcClient;
 use base 'JSON::RPC::Client';
 use POSIX;
 use strict;

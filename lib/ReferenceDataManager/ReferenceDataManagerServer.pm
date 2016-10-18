@@ -1,4 +1,4 @@
-package ReferenceDataManagerServer;
+package ReferenceDataManager::ReferenceDataManagerServer;
 
 
 use Data::Dumper;
@@ -221,7 +221,7 @@ sub call_method {
 
     my ($module, $method, $modname) = @$method_info{qw(module method modname)};
     
-    my $ctx = ReferenceDataManagerServerContext->new($self->{loggers}->{userlog},
+    my $ctx = ReferenceDataManager::ReferenceDataManagerServerContext->new($self->{loggers}->{userlog},
                            client_ip => $self->getIPAddress());
     $ctx->module($modname);
     $ctx->method($method);
@@ -284,7 +284,7 @@ sub call_method {
         local $ENV{KBRPC_METADATA} = $kb_metadata if $kb_metadata;
         local $ENV{KBRPC_ERROR_DEST} = $kb_errordest if $kb_errordest;
 
-        my $stderr = ReferenceDataManagerServerStderrWrapper->new($ctx, $get_time);
+        my $stderr = ReferenceDataManager::ReferenceDataManagerServerStderrWrapper->new($ctx, $get_time);
         $ctx->stderr($stderr);
 
         my $xFF = $self->_plack_req_header("X-Forwarded-For");
@@ -461,13 +461,13 @@ sub handle_error_cli {
         . " this error: $@\n";
 }
 
-package ReferenceDataManagerServerContext;
+package ReferenceDataManager::ReferenceDataManagerServerContext;
 
 use strict;
 
 =head1 NAME
 
-ReferenceDataManagerServerContext
+ReferenceDataManager::ReferenceDataManagerServerContext
 
 head1 DESCRIPTION
 
@@ -559,7 +559,7 @@ sub clear_log_level
     $self->{_logger}->clear_user_log_level();
 }
 
-package ReferenceDataManagerServerStderrWrapper;
+package ReferenceDataManager::ReferenceDataManagerServerStderrWrapper;
 
 use strict;
 use POSIX;
@@ -726,15 +726,15 @@ unless (caller) {
     my($input_file,$output_file,$token) = @ARGV;
     my @dispatch;
     {
-        use ReferenceDataManagerImpl;
-        my $obj = ReferenceDataManagerImpl->new;
+        use ReferenceDataManager::ReferenceDataManagerImpl;
+        my $obj = ReferenceDataManager::ReferenceDataManagerImpl->new;
         push(@dispatch, 'ReferenceDataManager' => $obj);
     }
     my %headers = (
         "Authorization" => $token,
         "CLI" => "1"
     );
-    my $server = ReferenceDataManagerServer->new(
+    my $server = ReferenceDataManager::ReferenceDataManagerServer->new(
         instance_dispatch => { @dispatch },
         allow_get => 0, 
         local_headers => \%headers);

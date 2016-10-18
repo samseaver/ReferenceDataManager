@@ -218,6 +218,24 @@ public class ReferenceDataManagerClient {
     }
 
     /**
+     * <p>Original spec-file function name: load_taxons</p>
+     * <pre>
+     * Loads specified genomes into KBase workspace and indexes in SOLR on demand
+     * </pre>
+     * @param   params   instance of type {@link us.kbase.referencedatamanager.LoadTaxonsParams LoadTaxonsParams}
+     * @return   parameter "output" of list of type {@link us.kbase.referencedatamanager.ReferenceTaxonData ReferenceTaxonData}
+     * @throws IOException if an IO exception occurs
+     * @throws JsonClientException if a JSON RPC exception occurs
+     */
+    public List<ReferenceTaxonData> loadTaxons(LoadTaxonsParams params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
+        List<Object> args = new ArrayList<Object>();
+        args.add(params);
+        TypeReference<List<List<ReferenceTaxonData>>> retType = new TypeReference<List<List<ReferenceTaxonData>>>() {};
+        List<List<ReferenceTaxonData>> res = caller.jsonrpcCall("ReferenceDataManager.load_taxons", args, retType, true, true, jsonRpcContext, this.serviceVersion);
+        return res.get(0);
+    }
+
+    /**
      * <p>Original spec-file function name: index_genomes_in_solr</p>
      * <pre>
      * Index specified genomes in SOLR from KBase workspace

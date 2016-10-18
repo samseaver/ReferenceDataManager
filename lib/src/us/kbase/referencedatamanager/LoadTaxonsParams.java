@@ -13,41 +13,77 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 
 /**
- * <p>Original spec-file type: IndexGenomesInSolrParams</p>
+ * <p>Original spec-file type: LoadTaxonsParams</p>
  * <pre>
- * Arguments for the index_genomes_in_solr function
+ * Arguments for the load_taxons function
  * </pre>
  * 
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("com.googlecode.jsonschema2pojo")
 @JsonPropertyOrder({
-    "genomes",
+    "data",
+    "taxons",
+    "index_in_solr",
     "workspace_name",
     "create_report"
 })
-public class IndexGenomesInSolrParams {
+public class LoadTaxonsParams {
 
-    @JsonProperty("genomes")
-    private List<KBaseReferenceGenomeData> genomes;
+    @JsonProperty("data")
+    private String data;
+    @JsonProperty("taxons")
+    private List<ReferenceTaxonData> taxons;
+    @JsonProperty("index_in_solr")
+    private Long indexInSolr;
     @JsonProperty("workspace_name")
     private String workspaceName;
     @JsonProperty("create_report")
     private Long createReport;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    @JsonProperty("genomes")
-    public List<KBaseReferenceGenomeData> getGenomes() {
-        return genomes;
+    @JsonProperty("data")
+    public String getData() {
+        return data;
     }
 
-    @JsonProperty("genomes")
-    public void setGenomes(List<KBaseReferenceGenomeData> genomes) {
-        this.genomes = genomes;
+    @JsonProperty("data")
+    public void setData(String data) {
+        this.data = data;
     }
 
-    public IndexGenomesInSolrParams withGenomes(List<KBaseReferenceGenomeData> genomes) {
-        this.genomes = genomes;
+    public LoadTaxonsParams withData(String data) {
+        this.data = data;
+        return this;
+    }
+
+    @JsonProperty("taxons")
+    public List<ReferenceTaxonData> getTaxons() {
+        return taxons;
+    }
+
+    @JsonProperty("taxons")
+    public void setTaxons(List<ReferenceTaxonData> taxons) {
+        this.taxons = taxons;
+    }
+
+    public LoadTaxonsParams withTaxons(List<ReferenceTaxonData> taxons) {
+        this.taxons = taxons;
+        return this;
+    }
+
+    @JsonProperty("index_in_solr")
+    public Long getIndexInSolr() {
+        return indexInSolr;
+    }
+
+    @JsonProperty("index_in_solr")
+    public void setIndexInSolr(Long indexInSolr) {
+        this.indexInSolr = indexInSolr;
+    }
+
+    public LoadTaxonsParams withIndexInSolr(Long indexInSolr) {
+        this.indexInSolr = indexInSolr;
         return this;
     }
 
@@ -61,7 +97,7 @@ public class IndexGenomesInSolrParams {
         this.workspaceName = workspaceName;
     }
 
-    public IndexGenomesInSolrParams withWorkspaceName(String workspaceName) {
+    public LoadTaxonsParams withWorkspaceName(String workspaceName) {
         this.workspaceName = workspaceName;
         return this;
     }
@@ -76,7 +112,7 @@ public class IndexGenomesInSolrParams {
         this.createReport = createReport;
     }
 
-    public IndexGenomesInSolrParams withCreateReport(Long createReport) {
+    public LoadTaxonsParams withCreateReport(Long createReport) {
         this.createReport = createReport;
         return this;
     }
@@ -93,7 +129,7 @@ public class IndexGenomesInSolrParams {
 
     @Override
     public String toString() {
-        return ((((((((("IndexGenomesInSolrParams"+" [genomes=")+ genomes)+", workspaceName=")+ workspaceName)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
+        return ((((((((((((("LoadTaxonsParams"+" [data=")+ data)+", taxons=")+ taxons)+", indexInSolr=")+ indexInSolr)+", workspaceName=")+ workspaceName)+", createReport=")+ createReport)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

@@ -1,6 +1,6 @@
-use ReferenceDataManagerImpl;
+use ReferenceDataManager::ReferenceDataManagerImpl;
 
-use ReferenceDataManagerServer;
+use ReferenceDataManager::ReferenceDataManagerServer;
 use Plack::Middleware::CrossOrigin;
 
 
@@ -8,12 +8,12 @@ use Plack::Middleware::CrossOrigin;
 my @dispatch;
 
 {
-    my $obj = ReferenceDataManagerImpl->new;
+    my $obj = ReferenceDataManager::ReferenceDataManagerImpl->new;
     push(@dispatch, 'ReferenceDataManager' => $obj);
 }
 
 
-my $server = ReferenceDataManagerServer->new(instance_dispatch => { @dispatch },
+my $server = ReferenceDataManager::ReferenceDataManagerServer->new(instance_dispatch => { @dispatch },
 				allow_get => 0,
 			       );
 

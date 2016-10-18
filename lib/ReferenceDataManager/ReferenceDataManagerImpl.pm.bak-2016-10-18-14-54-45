@@ -1,11 +1,11 @@
-package ReferenceDataManager::ReferenceDataManagerImpl;
+package ReferenceDataManagerImpl;
 use strict;
 use Bio::KBase::Exceptions;
 # Use Semantic Versioning (2.0.0-rc.1)
 # http://semver.org 
 our $VERSION = "0.0.1";
 our $GIT_URL = "https://github.com/samseaver/ReferenceDataManager";
-our $GIT_COMMIT_HASH = "3590d7fdcee561c1ae2ebfcb3d693ed01dc5aed8";
+our $GIT_COMMIT_HASH = "ae71e0a259fa5cdd264caed4f590a07b9e5312ed";
 
 =head1 NAME
 
@@ -1056,7 +1056,7 @@ sub list_reference_genomes
 							       method_name => 'list_reference_genomes');
     }
 
-    my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
+    my $ctx = $ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_reference_genomes
     $params = $self->util_initialize_call($params,$ctx);
@@ -1216,7 +1216,7 @@ sub list_loaded_genomes
 							       method_name => 'list_loaded_genomes');
     }
 
-    my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
+    my $ctx = $ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_loaded_genomes
     $params = $self->util_initialize_call($params,$ctx);	
@@ -1405,7 +1405,7 @@ sub load_genomes
 							       method_name => 'load_genomes');
     }
 
-    my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
+    my $ctx = $ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN load_genomes
     $params = $self->util_initialize_call($params,$ctx);
@@ -1621,7 +1621,7 @@ sub load_taxons
 							       method_name => 'load_taxons');
     }
 
-    my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
+    my $ctx = $ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN load_taxons
     #END load_taxons
@@ -1719,7 +1719,7 @@ sub index_genomes_in_solr
 							       method_name => 'index_genomes_in_solr');
     }
 
-    my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
+    my $ctx = $ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN index_genomes_in_solr
     $params = $self->util_initialize_call($params,$ctx);
@@ -1912,7 +1912,7 @@ sub update_loaded_genomes
 							       method_name => 'update_loaded_genomes');
     }
 
-    my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
+    my $ctx = $ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN update_loaded_genomes
     $params = $self->util_initialize_call($params,$ctx);
