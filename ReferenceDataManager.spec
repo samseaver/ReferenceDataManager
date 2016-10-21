@@ -92,7 +92,7 @@ module ReferenceDataManager {
         string domain;
         list<string> aliases;
         int genetic_code;
-        taxon_ref parent_taxon_ref;
+        string parent_taxon_ref;
         string embl_code;
         int inherited_div_flag;
         int inherited_GC_flag;
