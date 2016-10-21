@@ -205,7 +205,7 @@ sub _testActionsInSolr
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
     my $startRow = 0;
-    my $topRows = 20;                                                                                                                                                                $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $startRow, $topRows, $grpOption );
+    my $topRows = 20;                                                                                                                    my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $startRow, $topRows, $grpOption );
 	my $genome_docs = $solr_ret->{response}->{response}->{docs};
 	print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
@@ -1343,6 +1343,68 @@ sub list_loaded_taxons
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_loaded_taxons
+    $params = $self->util_initialize_call($params,$ctx);	
+    $params = $self->util_args($params,[],{
+    	create_report => 0,
+    	workspace_name => undef
+    });
+    my $msg = "";
+    my $output = [];
+
+    my $wsname = $self->util_workspace_names($sources->[$i]);
+	my $wsinfo;
+    my $wsoutput;
+    my $taxonout;
+    if(defined($self->util_ws_client())){
+    $wsinfo = $self->util_ws_client()->get_workspace_info({
+    		workspace => $wsname
+        });
+    }
+    my $maxid = $wsinfo->[4];
+    my $pages = ceil($maxid/10000);
+
+    for (my $m=0; $m < $pages; $m++) {
+    	$wsoutput = $self->util_ws_client()->list_objects({
+	        workspaces => [$wsname],
+			type => "KBaseGenomeAnnotations.Taxon-1.0",
+			minObjectID => 10000*$m,
+	    	maxObjectID => 10000*($m+1)
+	    });
+		for (my $j=0; $j < @{$wsoutput}; $j++) {
+            my $t_id = $wsoutput->[$j]->{id};
+            my $t_nm = $wsoutput->[$j]->{objName};
+            $taxonout = $self->util_ws_client()->get_object({
+                id=> $t_id,
+                workspace => $wsname
+            });
+
+	    	push(@{$output},{
+	            taxonomy_id => $taxonout -> {taxonomy_id},
+                scientific_name => $taxonout -> {scientific_name},
+                scientific_lineage => $taxonout -> {scientific_lineage},                
+	            rank => $taxonout -> {rank},
+                kingdom => $taxonout -> {kingdom},
+                domain => $taxonout -> {domain},                
+	            alias => $taxonout -> {alias},
+                genetic_code => $taxonout -> {genetic_code},
+                parent_taxon_ref => $taxonout -> {parent_taxon_ref},                
+	            embl_code => $taxonout -> {embl_code},
+                inherited_div_flag => $taxonout -> {inherited_div_flag},
+                inherited_GC_flag => $taxonout -> {inherited_GC_flag},                
+                division_id => $taxonout -> {division_id},
+                mitochondrial_genetic_code => $taxonout -> {mitochondrial_genetic_code},
+                inherited_MGC_flag => $taxonout -> {inherited_MGC_flag},                
+                GenBank_hidden_flag => $taxonout -> {GenBank_hidden_flag},
+                hidden_subtree_flag => $taxonout -> {hidden_subtree_flag},
+                comments => $taxonout -> {comments}                
+            });
+	    
+            if (@{$output} < 10) {
+	    			my $curr = @{$output}-1;
+	    			$msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+	    		}
+	    }
+    }
     #END list_loaded_taxons
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -1685,6 +1747,102 @@ sub index_genomes_in_solr
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN index_genomes_in_solr
+    if (! $self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+    $params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_args($params,[],{
+        genomes => {},
+        create_report => 0,
+        workspace_name => undef
+    });
+    my $json = JSON->new->allow_nonref;
+    my @solr_records;
+    $output = [];
+    my $genomes = $params->{genomes};
+    for (my $i=0; $i < @{$genomes}; $i++) {
+        my $record;
+        my $kbase_genome_data = $genomes->[$i];
+        my $ws_name = $kbase_genome_data->{workspace_name};
+        my $ws_genome_name = $kbase_genome_data->{id}; 
+        my $genome_source = $kbase_genome_data->{source};
+        
+        my $ws_genome_obj_metadata = {};
+        my $ws_genome_obj_data = {};
+        my $ws_genome_usr_metadata = {};
+        my $ws_genome_object_info = {};
+        if(defined($self->util_ws_client())){
+            $ws_genome_object_info = $self->util_ws_client()->get_object({
+                id => $ws_genome_name,
+                workspace => $ws_name});
+            $ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; 
+            $ws_genome_obj_data = $ws_genome_object_info->{data}; 
+            $ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
+            print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
+        }       
+
+        my $ws_obj_id = $ws_genome_obj_metadata->[11];
+        
+        $record->{workspace_name} = $ws_name; 
+        $record->{object_id} = $ws_obj_id; 
+        $record->{object_name} = $ws_genome_name; # kb|g.3397
+        $record->{object_type} = $ws_genome_obj_metadata->[1];#"KBaseGenomes.Genome-8.0"; 
+
+        # Get genome info
+        my $ws_genome  = $ws_genome_obj_data;
+        $record->{genome_id} = $ws_genome_name; #$ws_genome->{id}; # kb|g.3397
+        $record->{genome_source} = $ws_genome->{source};#$genome_source; $ws_genome->{external_source}; # KBase Central Store
+        $record->{genome_source_id} = $ws_genome->{source_id};#$ws_genome->{external_source_id}; # 'NODE_220_length_6412_cov_5.05805_ID_439'
+        #$record->{num_cds} = $ws_genome->{md5};#[doc=12] Error adding field \'num_cds\'=\'\'
+        
+        # Get assembly info
+        #my $ws_assembly = $ws_genome->{assembly_ref};
+        $record->{genome_dna_size} = $ws_genome->{dna_size};#3867594
+        $record->{num_contigs} = $ws_genome->{num_contigs};#304
+        $record->{scientific_name} = $ws_genome->{scientific_name};
+        $record->{domain} = $ws_genome->{domain};
+        $record->{gc_content} = $ws_genome->{gc_content};
+        $record->{complete} = $ws_genome->{complete}; # 1   
+        
+        #ERROR: [doc=12] unknown field--meaning the Solr schema does not include these fields, we could modify the schema if needed
+        #$record->{contigset_ref} = $ws_genome->{contigset_ref};#"6/11/1"#ERROR: [doc=12] unknown field \'contigset_ref\'                           
+        #$record->{genetic_code} = $ws_genome->{genetic_code};#ERROR: [doc=12] unknown field \'genetic_code\'       
+        #$record->{md5} = $ws_genome->{md5};#'9afd25f3e46a18b3b3d176a7e33a4c48':ERROR: [doc=12] unknown field \'md5\'
+        
+        # Get taxon info
+        my $ws_taxon = $ws_genome->{taxon_ref};
+        $record->{taxonomy} = $ws_genome->{taxonomy};#Bacteria; Rhodobacter CACIA 14H1'
+        #$record->{tax_id} = $ws_genome->{tax_id};#-1#ERROR: [doc=12] unknown field \'tax_id\'      
+        
+        # Get feature info#These data fields exist in the current genomes Solr schema, 
+        # but not available from this workspace's objects, not even in the 'features' array
+        my $ws_features = $ws_genome->{features};
+        #print "$ws_features:\n".Dumper($ws_features->[0])."\n";
+        #$record->{feature_source_id} = $ws_features->{feature_source_id}; #fig|83333.1.peg.3182
+        #$record->{feature_id} = $ws_features->{id}; #kb|g.0.peg.3026
+        #$record->{feature_type} = $ws_features->{type};#CDS
+        #$record->{feature_publications} = $ws_features->{feature_publications};#8576051 Characterization of degQ and degS, Escherichia coli genes encoding homologs of the DegP protease. http://www.ncbi.nlm.nih.gov/pubmed/8576051 Waller,P R; Sauer,R T Journal of bacteriology
+
+        #$genome->{genome_publications}=$ws_genome->{};
+        #$genome->{has_publications}=$ws_genome->{};
+
+        push (@{solr_records}, $record);
+        
+        # Test adding the docs in @{solr_records} to a given Solr core
+        my $solrCore = "QZtest";
+        #$self -> _addXML2Solr($solrCore, @{solr_records});
+
+        push (@{$output}, $kbase_genome_data);
+    }
+
+    if ($params->{create_report}) {
+        $self->util_create_report({
+            message => "Loaded and indexed to SOLR ".@{$output}." genomes!",
+            workspace => $params->{workspace}
+        });
+    }
+
+
     #END index_genomes_in_solr
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
