@@ -28,15 +28,25 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
-	#$impl->_testActionsInSolr_passed();
-	#$impl->_testListGenomes();
-    #$impl->_testLoadGenomes();
-    #exit 0;#to not go further
-	
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "qzTestWS";
     #Testing the list_reference_genomes function
-	my $refret;
+=begin passed tests
+    my $solrret;
+    eval {
+        $solrret = $impl->_listGenomesInSolr("QZtest", "*");
+    };
+    ok(!$@, "list genomes in Solr command successful");
+    if ($@) { 
+         print "ERROR:".$@;
+     } else {
+         print "Number of records:".@{$solrret}."\n";
+         print "First record:\n";
+         print Data::Dumper->Dump([$solrret->[0]])."\n";
+     }
+     ok(defined($solrret->[0]),"_listGenomesInSolr command returned at least one genome");
+    
+    my $refret;
     eval {
         $refret = $impl->list_reference_genomes({
             refseq => 1,
@@ -92,8 +102,39 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"load_genomes command returned at least one genome");
+=end passed tests
+=cut
 
-	#Testing update_loaded_genomes
+	my $ret;
+    my $gnms = [{
+            "object_id"=>"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060",
+            "workspace_name"=>"KBasePublicRichGenomesV5",
+            "object_type"=>"KBaseSearch.Feature",
+            "object_name"=>"kb|g.239991.featureset/features/kb|g.239991.CDS.5060",
+            "genome_id"=>"kb|g.239991",
+            "feature_id"=>"kb|g.239991.CDS.5060",
+            "genome_source"=>"KBase Central Store"
+        }];
+
+    eval {
+        $ret = $impl->index_genomes_in_solr({
+             genomes => $gnms
+        });
+    };
+    ok(!$@,"index_genomes_in_solr command successful");
+    if ($@) {
+		my $err = $@;
+		print "Error type: " . ref($err) . "\n";
+		print "Error message: " . $err->{message} . "\n";
+		print "Error error: " . $err->{error} . "\n";
+		print "Error data: " .$err->{data} . "\n";
+    } else {
+        print "Number of records:".@{$ret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$ret->[0]])."\n";
+    }
+    ok(defined($ret->[0]),"index_genomes_in_solr command returned at least one genome");
+    #Testing update_loaded_genomes
     eval {
         $ret = $impl->update_loaded_genomes({ 
         refseq => 1
@@ -113,21 +154,6 @@ eval {
     }
     ok(defined($ret->[0]),"update_loaded_genomes command returned at least one genome");
 
-	#Testing list_loaded_genomes function again
-    eval {
-        $ret = $impl->list_loaded_genomes({
-            refseq => 1
-        });
-    };
-    ok(!$@,"list_loaded_genomes command successful");
-    if ($@) {
-        print "ERROR:".$@;
-    } else {
-        print "Number of records:".@{$ret}."\n";
-        print "First record:\n";
-        print Data::Dumper->Dump([$ret->[0]])."\n";
-    }
-    ok(defined($ret->[0]),"list_loaded_genomes command returned at least one genome");
     done_testing(2);
 };
 

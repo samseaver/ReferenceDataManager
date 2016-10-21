@@ -36,7 +36,6 @@ use Try::Tiny;
 #The first thing every function should do is call this function
 sub util_initialize_call {
 	my ($self,$params,$ctx) = @_;
-	#print("Starting ".$ctx->method()." method.\n");
 	$self->{_token} = $ctx->token();
 	$self->{_username} = $ctx->user_id();
 	$self->{_method} = $ctx->method();
@@ -47,7 +46,6 @@ sub util_initialize_call {
 	$self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
 	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"};	
 	die "no workspace-url defined" unless $self->{workspace_url};	$self->util_timestamp(DateTime->now()->datetime());
-	print "\nWorkspace service url: $self->{workspace_url}\n";
 	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
 	return $params;
 }
@@ -167,46 +165,49 @@ sub util_create_report {
 #
 # method name: _testActionsInSolr
 #
-sub _testActionsInSolr_passed
+
+=begin test actions related to Solr access
+
+sub _testActionsInSolr
 {
 	my ($self) = @_;
 	$self -> _autocommit(0);
 	my $json = JSON->new->allow_nonref;
 	
 	#1. check if the server is reachable
-	if (! $self->_ping()) {
-		#print "\n Error: " . $self->_error->{response};
-		#exit 1;
-	}
-	print "\nThe server is alive!\n";
+    if (! $self->_ping()) {
+        print "\n Error: " . $self->_error->{response};
+        exit 1;
+    }
+    print "\nThe server is alive!\n";
 	
 	#2. list all the contents in core "QZtest", with group option specified
-	my $grpOption = "genome_id";
-	#my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	#print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
+    my $grpOption = "genome_id";
+    my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+    print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
 	
 	#3.1 wipe out the whole QZtest content!
 	my $ds = {
-    	#'workspace_name' => 'KBasePublicRichGenomesV5',
+        #'workspace_name' => 'qzTest',
 		#'genome_id' => 'kb|g.0'
 		'*' => '*' 
 	};
 	#$self->_deleteRecords("QZtest", $ds);
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
-	#$grpOption = "genome_id";
-	#$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
-	#print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
+	$grpOption = "genome_id";
+	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
 	my $solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
 	my $genome_docs = $solr_ret->{response}->{response}->{docs};
-	#print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
+	print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
 	#5.1 populate core QZtest with the list of document from "genomes", one by one
 	my $solrCore = "QZtest";
-	#$self -> _addXML2Solr($solrCore, $genome_docs);
+	$self -> _addXML2Solr($solrCore, $genome_docs);
 		
 	#6.1 list all the refernece genomes from the Gene Bank
 	my $genebank_ret = $self->list_reference_genomes({
@@ -245,14 +246,17 @@ sub _testActionsInSolr_passed
 	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
 			
 	#6.5 list all the refernece genomes updated
-	my $ret = $self->update_loaded_genomes_v1({
- 		genomeData => [$genebank_ret->[0]],    
-        refseq => 1,
-		formats => "gbff"
+	my $ret = $self->update_loaded_genomes({
+        refseq => 1
     });
 	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
 	exit 0;		
 }
+=end test actions related to Solr access
+
+=cut
+
+=begin test list loaded genomes
 
 sub _testListGenomes{	
 	my ($self) = @_;
@@ -314,6 +318,11 @@ sub _testListGenomes{
 		print "\nWorkspace not found.\n";
     }
 }
+=end test list loaded genomes
+
+=cut
+
+=begin test load_genomes
 
 sub _testLoadGenomes{	
 	my ($self) = @_;
@@ -373,16 +382,22 @@ sub _testLoadGenomes{
 	exit 0;	
 }
 
+=end test load_genomes
+
+=cut
+
 #
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
 sub _listGenomesInSolr {
 	my ($self, $solrCore, $fields, $grp) = @_;
 	my $count = 101;#2,147,483,647 is integer's maximum value
-	my $start = 0;
-	my $rows = "&rows=100";
-  	my $sort = "&sort=genome_id asc";
-	
+    my $start = 0;
+
+	if (!$self->_ping()) {
+		die "\nError--Solr server not responding:\n" . $self->_error->{response};
+	}
+
 	my $params = {
 		fl => $fields,
 		wt => "json",
@@ -393,9 +408,7 @@ sub _listGenomesInSolr {
 	};
 	my $query = { q => "*" };
 	
-	my $ret = $self->_searchSolr($solrCore, $params, $query, "json", $grp);	
-	#print "\nSolr search results: \n" . Dumper($ret->{response}->{response}->{docs}) . "\n\n";
-	return $ret;
+	return $self->_searchSolr($solrCore, $params, $query, "json", $grp);	
 }
 #
 # method name: _searchSolr
@@ -456,7 +469,7 @@ sub _searchSolr {
 	print "Query string:\n$solrQuery\n";
 	
 	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
-	#print "\nRaw response: \n" . $solr_response->{response} . "\n";
+	print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	
 	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
     	if ($responseCode) {
@@ -484,6 +497,7 @@ sub _searchSolr {
 #   'workspace_name' => 'KBasePublicRichGenomesV5'
 #}
 #
+
 sub _deleteRecords
 {
 	my ($self, $searchCore, $criteria) = @_;
@@ -1275,7 +1289,6 @@ sub list_loaded_genomes
     				workspace => $wsname
     			});
     		}
-			print "\nWorkspace info:\n" . Dumper($wsinfo). "\n";
     		my $maxid = $wsinfo->[4];
     		my $pages = ceil($maxid/10000);
 
@@ -1488,6 +1501,7 @@ sub load_genomes
 	 
 		if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
 			my $genutilout;
+            my $genomeout;
             try {
 				$genutilout = $loader->genbank_to_genome({
 				file => {
@@ -1509,7 +1523,7 @@ sub load_genomes
 					version => $genome->{version}
 				}
 				});
-				my $genomeout = {
+				$genomeout = {
 				"ref" => $genutilout->{genome_ref},
 				id => $genome->{id},
 				workspace_name => $wsname,
@@ -1529,9 +1543,16 @@ sub load_genomes
 					});
 				}
 			}
-			catch { warn "Got a die exception from calling genebank_to_genome:\n $_" }
-			finally {};
-		} elsif ($genome->{source} eq "phytozome") {
+			catch { 
+                warn "Got an exception from calling genbank_to_genome:\n $_";
+                $genomeout = {};
+            }
+			finally {
+                if (@_) {
+                    print "The trying to call genbank_to_genome died with: @_\n";
+                }
+            };
+        } elsif ($genome->{source} eq "phytozome") {
 			#NEED SAM TO PUT CODE FOR HIS LOADER HERE
 			my $genomeout = {
 				"ref" => $wsname."/".$genome->{id},
@@ -1556,7 +1577,7 @@ sub load_genomes
 		});
 		$output = [$params->{workspace}."/load_genomes"];
 	}
-   print "\nAfter loading genomes:\n". Dumper($output) . "\n";
+    
     #END load_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -1851,7 +1872,10 @@ sub index_genomes_in_solr
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
-    #BEGIN index_genomes_in_solr
+    #BEGIN index_genomes_in_solr 
+	if (! $self->_ping()) {
+		die "\nError--Solr server not responding:\n" . $self->_error->{response};
+	}
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
     	genomes => {},
@@ -1877,8 +1901,8 @@ sub index_genomes_in_solr
     		$ws_genome_object_info = $self->util_ws_client()->get_object({
 				id => $ws_genome_name,
 				workspace => $ws_name});
-			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; #`ws-get -w $ws_name $ws_genome_name -m`;	
-			$ws_genome_obj_data = $ws_genome_object_info->{data}; #`ws-get -w $ws_name $ws_genome_name`;	
+			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; 
+			$ws_genome_obj_data = $ws_genome_object_info->{data}; 
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
 			#print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
 		}		
@@ -1886,19 +1910,19 @@ sub index_genomes_in_solr
 		my $ws_obj_id = $ws_genome_obj_metadata->[11];
 		
 		$record->{workspace_name} = $ws_name; 
-		$record->{object_id} = $ws_obj_id; #"kb|ws.".$ws_id.".obj."."$ws_genome_id"; # kb|ws.2869.obj.9837
+		$record->{object_id} = $ws_obj_id; 
 		$record->{object_name} = $ws_genome_name; # kb|g.3397
 		$record->{object_type} = $ws_genome_obj_metadata->[1];#"KBaseGenomes.Genome-8.0"; 
 
 		# Get genome info
-		my $ws_genome  = $ws_genome_obj_data;#$json->decode(`ws-get -w $ws_name $ws_genome_name`);
+		my $ws_genome  = $ws_genome_obj_data;
 		$record->{genome_id} = $ws_genome_name; #$ws_genome->{id}; # kb|g.3397
 		$record->{genome_source} = $ws_genome->{source};#$genome_source; $ws_genome->{external_source}; # KBase Central Store
 		$record->{genome_source_id} = $ws_genome->{source_id};#$ws_genome->{external_source_id}; # 'NODE_220_length_6412_cov_5.05805_ID_439'
 		#$record->{num_cds} = $ws_genome->{md5};#[doc=12] Error adding field \'num_cds\'=\'\'
 		
 		# Get assembly info
-		#my $ws_assembly = $ws_genome->{assembly_ref};#json->decode(`ws-get $ws_genome->{assembly_ref}`);
+		#my $ws_assembly = $ws_genome->{assembly_ref};
 		$record->{genome_dna_size} = $ws_genome->{dna_size};#3867594
 		$record->{num_contigs} = $ws_genome->{num_contigs};#304
 		$record->{scientific_name} = $ws_genome->{scientific_name};
@@ -1912,7 +1936,7 @@ sub index_genomes_in_solr
  		#$record->{md5} = $ws_genome->{md5};#'9afd25f3e46a18b3b3d176a7e33a4c48':ERROR: [doc=12] unknown field \'md5\'
 		
 		# Get taxon info
-		my $ws_taxon = $ws_genome->{taxon_ref};#$ws_genome_usr_metadata;#$json->decode(`ws-get $ws_genome->{taxon_ref}`);
+		my $ws_taxon = $ws_genome->{taxon_ref};
 		$record->{taxonomy} = $ws_genome->{taxonomy};#Bacteria; Rhodobacter CACIA 14H1'
 		#$record->{tax_id} = $ws_genome->{tax_id};#-1#ERROR: [doc=12] unknown field \'tax_id\'		
 		
@@ -2044,7 +2068,10 @@ sub update_loaded_genomes
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
-    #BEGIN update_loaded_genomes
+    #BEGIN update_loaded_genomes  
+	if (! $self->_ping()) {
+		die "\nError--Solr server not responding:\n" . $self->_error->{response};
+	}
     $params = $self->util_initialize_call($params,$ctx);
 	$params = $self->util_args($params,[],{
     	refseq => 1,
@@ -2055,42 +2082,47 @@ sub update_loaded_genomes
 	
 	my $msg = "";
     $output = [];
-	print "\nTesting within update_loaded_genomes\n";
+    
     my $count = 0;
-    my $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
-    my $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
-    my $genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*");
-	$genomes_in_solr = $genomes_in_solr->{response}->{response}->{docs};  
+    my $genomes_in_solr;
+    my $ref_genomes;
+    my $loaded_genomes;
+    
+        $genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*");    
+        $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}}); 
+        $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});	
+   
+        $genomes_in_solr = $genomes_in_solr->{response}->{response}->{docs};  
 	
-    for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
-		my $genome = $ref_genomes->[$i];
+        for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
+		    my $genome = $ref_genomes->[$i];
 	
-		#check if the genome is already present in the database by querying SOLR
-    	my $gnstatus = $self->_checkGenomeStatus( $genome, $genomes_in_solr);
+		    #check if the genome is already present in the database by querying SOLR
+    	    my $gnstatus = $self->_checkGenomeStatus( $genome, $genomes_in_solr);
 
-		if ($gnstatus=~/(new|updated)/i){
-	   		$count ++;
-	   		#$self->load_genomes( {genomes => [$genome], index_in_solr => 1} );
-	   		push(@{$output},$genome);
+		    if ($gnstatus=~/(new|updated)/i){
+	   		    $count ++;
+                #$self->load_genomes( {genomes => [$genome], index_in_solr => 1} );
+	   		    push(@{$output},$genome);
 			
-	   		if ($count < 10) {
-		   		$msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
-			}
-		}else{
-		# Current version already in KBase, check for annotation updates
-		}
-    }
-    print "\nupdate_loaded_genomes is adding these genomes to Solr......\n". Dumper($output) ."\n";
-	$self->load_genomes( {genomes => $output, index_in_solr => 1} );
+	   		    if ($count < 10) {
+		   		    $msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
+			    }
+		    }else{
+		        # Current version already in KBase, check for annotation update
+            }
+        }
+	    $self->load_genomes( {genomes => $output, index_in_solr => 1} );
 	
-	if ($params->{create_report}) {
-    	$self->util_create_report({
-    		message => "Updated ".@{$output}." genomes!",
-    		workspace => $params->{workspace}
-    	});
-    	$output = [$params->{workspace}."/update_loaded_genomes"];
-    }
-    #END update_loaded_genomes
+	    if ($params->{create_report}) {
+    	    $self->util_create_report({
+    		    message => "Updated ".@{$output}." genomes!",
+    		    workspace => $params->{workspace}
+    	    });
+    	    $output = [$params->{workspace}."/update_loaded_genomes"];
+        }
+    
+    #END update_loaded_genome
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
