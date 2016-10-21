@@ -160,14 +160,14 @@ sub util_create_report {
 # method name: _testActionsInSolr
 #
 
-=begin test actions related to Solr access
+#=begin test actions related to Solr access
 
 sub _testActionsInSolr
 {
 	my ($self) = @_;
 	$self -> _autocommit(0);
 	my $json = JSON->new->allow_nonref;
-	
+=begin	
 	#1. check if the server is reachable
     if (! $self->_ping()) {
         print "\n Error: " . $self->_error->{response};
@@ -177,7 +177,9 @@ sub _testActionsInSolr
 	
 	#2. list all the contents in core "QZtest", with group option specified
     my $grpOption = "genome_id";
-    my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+    my $startRow = 0;
+    my $topRows = 20;                                                                                                                                                            
+    $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $startRow, $topRows, $grpOption );
     print "\nList of genomes in QZtest at start: \n" . Dumper($solr_ret) . "\n";
 	
 	#3.1 wipe out the whole QZtest content!
@@ -190,12 +192,15 @@ sub _testActionsInSolr
 	
 	#3.2 confirm the contents in core "QZtest" are gone, with group option specified
 	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $grpOption );
+	my $startRow = 0;
+    my $topRows = 20;
+    $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $startRow, $topRows, $grpOption );
 	print "\nList of genomes in QZtest after deletion: \n" . Dumper($solr_ret) . "\n";
 	
 	#4.1 list all the contents in core "genomes", without group option--get the first 100 rows
 	$grpOption = "";
-	my $solr_ret = $self -> _listGenomesInSolr( "genomes", "*", $grpOption );
+    my $startRow = 0;
+    my $topRows = 20;                                                                                                                                                                $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $startRow, $topRows, $grpOption );
 	my $genome_docs = $solr_ret->{response}->{response}->{docs};
 	print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
 	
@@ -209,8 +214,13 @@ sub _testActionsInSolr
         update_only => 0
     });
 	print "\nGene bank genome list, the first record: \n" . Dumper($genebank_ret->[0]). "\n";
-		
-	#6.2 list all the refernece genomes already loaded into KBase	
+
+	# Confirm the contents in core "QZtest" after addition, without group option specified
+	my $grpOption = "genome_id";
+	my $solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
+	print "\nList of docs in QZtest after insertion 1: \n" . Dumper($solr_ret) . "\n";	
+
+    #6.2 list all the refernece genomes already loaded into KBase	
 	my $KBgenomes_ret = $self->list_loaded_genomes({
             refseq => 1
 	});
@@ -226,167 +236,63 @@ sub _testActionsInSolr
     	print "\n Error: " . $self->_error->{response};
     	exit 1;
 	}
-	# Confirm the contents in core "QZtest" after addition, without group option specified
-	$grpOption = "genome_id";
-	$solr_ret = $self -> _listGenomesInSolr("QZtest", "*", $grpOption );
-	print "\nList of docs in QZtest after insertion 1: \n" . Dumper($solr_ret) . "\n";	
-	exit 0;
 	
-	#6.4 load genomes from the Gene Bank to KBase	
-	my $genomesLoaded_ret = $self->load_genomes({
-		genomes => [$genebank_ret->[0]],
-		index_in_solr => 0
-	});
-	print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
+    #6.4 load genomes from the Gene Bank to KBase	
+    #my $genomesLoaded_ret = $self->load_genomes({
+    #genomes => [$genebank_ret->[0]],
+    #index_in_solr => 0
+    #});
+    #print "\nLoaded genome list: \n" . Dumper($genomesLoaded_ret). "\n";	
 			
 	#6.5 list all the refernece genomes updated
 	my $ret = $self->update_loaded_genomes({
         refseq => 1
     });
 	print "\nUpdated loaded genome list: \n" . Dumper($ret). "\n";
-	exit 0;		
-}
-=end test actions related to Solr access
+	exit 0;
 
+    #7 add data to the taxonomy core
+    my $Taxons = [
+        {"division_id"=>8,"inherited_div_flag"=>0,"taxonomy_id"=>1,"scientific_name"=>"root","inherited_MGC_flag"=>0,"domain"=>"Unknown","scientific_lineage"=>"","GenBank_hidden_flag"=>0,"aliases"=>["all"],"mitochondrial_genetic_code"=>0,"genetic_code"=>1,"inherited_GC_flag"=>0,"rank"=>"no rank"},
+        {"division_id"=>8,"inherited_div_flag"=>1,"taxonomy_id"=>131567,"scientific_name"=>"cellular organisms","parent_taxon_ref"=>"1292/2/2","inherited_MGC_flag"=>1,"domain"=>"Unknown","scientific_lineage"=>"","GenBank_hidden_flag"=>1,"aliases"=>["biota"],"mitochondrial_genetic_code"=>0,"genetic_code"=>1,"inherited_GC_flag"=>1,"rank"=>"no rank"},
+        {"division_id"=>8,"inherited_div_flag"=>0,"taxonomy_id"=>28384,"scientific_name"=>"other sequences","parent_taxon_ref"=>"1292/2/2","inherited_MGC_flag"=>0,"domain"=>"Unknown","scientific_lineage"=>"","GenBank_hidden_flag"=>0,"aliases"=>["other sequences"],"mitochondrial_genetic_code"=>0,"genetic_code"=>11,"inherited_GC_flag"=>0,"rank"=>"no rank"},
+        {"division_id"=>9,"inherited_div_flag"=>0,"taxonomy_id"=>10239,"scientific_name"=>"Viruses","parent_taxon_ref"=>"1292/2/2","inherited_MGC_flag"=>0,"domain"=>"Unknown","scientific_lineage"=>"","GenBank_hidden_flag"=>0,"aliases"=>["Vira","Viridae","viruses"],"mitochondrial_genetic_code"=>0,"genetic_code"=>1,"inherited_GC_flag"=>0,"rank"=>"superkingdom"},
+        {"division_id"=>8,"inherited_div_flag"=>0,"taxonomy_id"=>12908,"scientific_name"=>"unclassified sequences","parent_taxon_ref"=>"1292/2/2","inherited_MGC_flag"=>0,"domain"=>"Unknown","scientific_lineage"=>"","GenBank_hidden_flag"=>0,"aliases"=>["unclassified","unclassified","unclassified."],"mitochondrial_genetic_code"=>2,"genetic_code"=>1,"inherited_GC_flag"=>0,"rank"=>"no rank"},
+        {"division_id"=>9,"inherited_div_flag"=>0,"taxonomy_id"=>12884,"scientific_name"=>"Viroids","parent_taxon_ref"=>"1292/2/2","inherited_MGC_flag"=>0,"domain"=>"Unknown","scientific_lineage"=>"","GenBank_hidden_flag"=>0,"aliases"=>["Viroid","viroids"],"mitochondrial_genetic_code"=>0,"genetic_code"=>1,"inherited_GC_flag"=>0,"rank"=>"superkingdom"},
+        {"division_id"=>8,"inherited_div_flag"=>1,"taxonomy_id"=>1274375,"scientific_name"=>"bogus duplicates","parent_taxon_ref"=>"1292/4/2","inherited_MGC_flag"=>1,"domain"=>"Unknown","scientific_lineage"=>"other sequences","GenBank_hidden_flag"=>0,"genetic_code"=>11,"inherited_GC_flag"=>1,"mitochondrial_genetic_code"=>0,"rank"=>"no rank"},
+    ];
+
+	my $solrCore = "taxonomy";
+	$self -> _addXML2Solr($solrCore, $Taxons);
+
+	# Confirm the contents in core "taxonomy" after addition, without group option specified
+	my $grpOption = "taxonomy_id";
+    my $startRow = 0;
+    my $topRows = 20;
+	my $solr_ret = $self -> _listTaxonsInSolr("taxonomy", "*", $startRow, $topRows, $grpOption );
+	print "\nList of docs in taxonomy after insertion: \n" . Dumper($solr_ret) . "\n";	
+
+    #6.2 list all the refernece genomes already loaded into KBase	
+	my $RefTaxons_ret = $self->list_loaded_taxons({
+            reftaxon => 1
+	});
+	print "\nReference taxon list: \n" . Dumper($RefTaxons_ret). "\n";	
+
+=end
 =cut
-
-=begin test list loaded genomes
-
-sub _testListGenomes{	
-	my ($self) = @_;
-	
-	my $token = $ENV{'KB_AUTH_TOKEN'};
-	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
-	my $cfg = Config::IniFiles->new(-file=>$config_file);
-	$self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
-	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"};	
-	die "no workspace-url defined" unless $self->{workspace_url};
-	$self->util_timestamp(DateTime->now()->datetime());
-	print "\nWorkspace service url: $self->{workspace_url}\n";	
-	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $token);
-
-	my $output = [];
-	my $sources = ["ensembl","phytozome","refseq"];
-	my $wsname = $self->util_workspace_names($sources->[2]);#only test refseq
-	my $wsinfo;
-	my $wsoutput;
-	if(defined($self->util_ws_client())){
-		$wsinfo = $self->util_ws_client()->get_workspace_info({
-			workspace => $wsname
-		});	
-		print "\nWS info:\n" . Dumper($wsinfo) . "\n";
-			
-		my $maxid = $wsinfo->[4];
-		my $pages = ceil($maxid/10000);
-		for (my $m=0; $m < $pages; $m++) {
-			$wsoutput = $self->util_ws_client()->list_objects({
-				workspaces => [$wsname],
-				type => "KBaseGenomes.Genome-8.0",
-				minObjectID => 10000*$m,
-				maxObjectID => 10000*($m+1)
-			});
-			for (my $j=0; $j < @{$wsoutput}; $j++) {
-				push(@{$output},{
-					"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-					id => $wsoutput->[$j]->[1],
-					workspace_name => $wsoutput->[$j]->[7],
-					source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-					accession => $wsoutput->[$j]->[10]->{"Source ID"},
-					name => $wsoutput->[$j]->[10]->{Name},
-					version => $wsoutput->[$j]->[4],
-					source => $wsoutput->[$j]->[10]->{Source},
-					domain => $wsoutput->[$j]->[10]->{Domain},
-					save_date => $wsoutput->[$j]->[3],
-					contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
-					features => $wsoutput->[$j]->[10]->{"Number features"},
-					dna_size => $wsoutput->[$j]->[10]->{"Size"},
-					gc => $wsoutput->[$j]->[10]->{"GC content"},
-	    		});
-	    		if (@{$output} < 10) {
-	    			my $curr = @{$output}-1;
-	    			print "List of loaded genomes (<10) in $wsname\n". Data::Dumper->Dump([$output->[$curr]])."\n";
-	    		}
-			}
-		}
-	}else {
-		print "\nWorkspace not found.\n";
-    }
 }
-=end test list loaded genomes
+#=end test actions related to Solr access
 
-=cut
-
-=begin test load_genomes
-
-sub _testLoadGenomes{	
-	my ($self) = @_;
-	
-	my $token = $ENV{'KB_AUTH_TOKEN'};
-	my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
-	my $cfg = Config::IniFiles->new(-file=>$config_file);
-	$self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
-	$self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"};	
-	die "no workspace-url defined" unless $self->{workspace_url};
-	$self->util_timestamp(DateTime->now()->datetime());
-	print "\nWorkspace service url: $self->{workspace_url}\n";	
-	$self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $token);
-	
-	my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });	
-	
-	my $genomes = [{
-          'domain' => 'bacteria',
-          'ftp_dir' => 'ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/010/525/GCF_000010525.1_ASM1052v1',
-          'version' => '1',
-          'id' => 'GCF_000010525',
-          'accession' => 'GCF_000010525.1',
-          'status' => 'latest',
-          'source' => 'refseq',
-          'file' => 'GCF_000010525.1_ASM1052v1',
-          'name' => 'ASM1052v1'
-	}];
-
-	my $wsname = 'RefseqGenomesWS';	
-	
-	for (my $i=0; $i < @{$genomes}; $i++) {
-		my $genome = $genomes->[$i];
-		print "Now loading ".$genome->{source}.":".$genome->{id}." for $wsname.\n";
-		
-		my $genutilout = $loader->genbank_to_genome({
-			file => {
-				ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
-			},
-			genome_name => $genome->{id},
-			workspace_name => $wsname,
-			source => $genome->{source},
-			taxon_wsname => "ReferenceTaxons",
-			release => $genome->{version},
-			generate_ids_if_needed => 1,
-			genetic_code => 11,
-			type => "Reference",
-			metadata => {
-				refid => $genome->{id},
-				accession => $genome->{accession},
-				refname => $genome->{name},
-				url => $genome->{url},
-				version => $genome->{version}
-			}
-		});
-		print "\nLoaded genome list--test: \n" . Dumper($genutilout). "\n";
-	}		
-	exit 0;	
-}
-
-=end test load_genomes
-
-=cut
+#=cut
 
 #
 #Internal Method: to list the genomes already in SOLR and return an array of those genomes
 #
 sub _listGenomesInSolr {
-	my ($self, $solrCore, $fields, $grp) = @_;
-	my $count = 101;#2,147,483,647 is integer's maximum value
-    my $start = 0;
+	my ($self, $solrCore, $fields, $rowStart, $rowCount, $grp) = @_;
+    my $start = ($rowStart) ? $rowStart : 0;
+    my $count = ($rowCount) ? $rowCount : 10;
+    $fields = ($fields) ? $fields : "*";
 
 	if (!$self->_ping()) {
 		die "\nError--Solr server not responding:\n" . $self->_error->{response};
@@ -404,6 +310,33 @@ sub _listGenomesInSolr {
 	
 	return $self->_searchSolr($solrCore, $params, $query, "json", $grp);	
 }
+
+#
+#Internal Method: to list the taxons already in SOLR and return an array of those taxons
+#
+sub _listTaxonsInSolr {
+	my ($self, $solrCore, $fields, $rowStart, $rowCount, $grp) = @_;
+    my $start = ($rowStart) ? $rowStart : 0;
+    my $count = ($rowCount) ? $rowCount : 10;
+    $fields = ($fields) ? $fields : "*";
+
+	if (!$self->_ping()) {
+		die "\nError--Solr server not responding:\n" . $self->_error->{response};
+	}
+
+	my $params = {
+		fl => $fields,
+		wt => "json",
+		rows => $count,
+		sort => "taxonomy_id asc",
+		hl => "false",
+		start => $start
+	};
+	my $query = { q => "*" };
+	
+	return $self->_searchSolr($solrCore, $params, $query, "json", $grp);	
+}
+#
 #
 # method name: _searchSolr
 # Internal Method: to execute a search in SOLR according to the passed parameters
@@ -463,7 +396,7 @@ sub _searchSolr {
 	print "Query string:\n$solrQuery\n";
 	
 	my $solr_response = $self->_sendRequest("$solrQuery", "GET");
-	print "\nRaw response: \n" . $solr_response->{response} . "\n";
+    #print "\nRaw response: \n" . $solr_response->{response} . "\n";
 	
 	my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
     	if ($responseCode) {
@@ -473,9 +406,9 @@ sub _searchSolr {
         	}
 	}
 	if($groupOption){
-		my @solr_genome_records = @{$solr_response->{response}->{grouped}->{genome_id}->{groups}};
-		print "\n\nFound unique genome_id groups of:" . scalar @solr_genome_records . "\n";
-		#print @solr_genome_records[0]->{doclist}->{numFound} ."\n";
+		my @solr_records = @{$solr_response->{response}->{grouped}->{$groupOption}->{groups}};
+		print "\n\nFound unique genome_id groups of:" . scalar @solr_records . "\n";
+		print @solr_records[0]->{doclist}->{numFound} ."\n";
 	}
 	
 	return $solr_response;
@@ -1595,7 +1528,7 @@ sub index_genomes_in_solr
 			$ws_genome_obj_metadata = $ws_genome_object_info->{metadata}; 
 			$ws_genome_obj_data = $ws_genome_object_info->{data}; 
 			$ws_genome_usr_metadata = $ws_genome_obj_metadata->[10];
-			#print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
+			print "$ws_genome_obj_data:\n".Dumper($ws_genome_obj_data)."\n";
 		}		
 
 		my $ws_obj_id = $ws_genome_obj_metadata->[11];
@@ -1647,7 +1580,7 @@ sub index_genomes_in_solr
 		
 		# Test adding the docs in @{solr_records} to a given Solr core
 		my $solrCore = "QZtest";
-		$self -> _addXML2Solr($solrCore, @{solr_records});
+        #$self -> _addXML2Solr($solrCore, @{solr_records});
 
 		push (@{$output}, $kbase_genome_data);
     }
