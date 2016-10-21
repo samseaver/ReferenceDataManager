@@ -30,6 +30,7 @@ our $CallContext;
 our %return_counts = (
         'list_reference_genomes' => 1,
         'list_loaded_genomes' => 1,
+        'list_loaded_taxons' => 1,
         'load_genomes' => 1,
         'index_genomes_in_solr' => 1,
         'update_loaded_genomes' => 1,
@@ -39,6 +40,7 @@ our %return_counts = (
 our %method_authentication = (
         'list_reference_genomes' => 'none',
         'list_loaded_genomes' => 'none',
+        'list_loaded_taxons' => 'none',
         'load_genomes' => 'required',
         'index_genomes_in_solr' => 'required',
         'update_loaded_genomes' => 'required',
@@ -50,6 +52,7 @@ sub _build_valid_methods
     my $methods = {
         'list_reference_genomes' => 1,
         'list_loaded_genomes' => 1,
+        'list_loaded_taxons' => 1,
         'load_genomes' => 1,
         'index_genomes_in_solr' => 1,
         'update_loaded_genomes' => 1,

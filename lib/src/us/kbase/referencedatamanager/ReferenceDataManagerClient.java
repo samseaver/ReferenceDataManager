@@ -17,7 +17,6 @@ import us.kbase.common.service.UnauthorizedException;
  * <p>Original spec-file module name: ReferenceDataManager</p>
  * <pre>
  * A KBase module: ReferenceDataManager
- * This sample module contains one small method - filter_contigs.
  * </pre>
  */
 public class ReferenceDataManagerClient {
@@ -196,6 +195,24 @@ public class ReferenceDataManagerClient {
         args.add(params);
         TypeReference<List<List<KBaseReferenceGenomeData>>> retType = new TypeReference<List<List<KBaseReferenceGenomeData>>>() {};
         List<List<KBaseReferenceGenomeData>> res = caller.jsonrpcCall("ReferenceDataManager.list_loaded_genomes", args, retType, true, false, jsonRpcContext, this.serviceVersion);
+        return res.get(0);
+    }
+
+    /**
+     * <p>Original spec-file function name: list_loaded_taxons</p>
+     * <pre>
+     * Lists taxons loaded into KBase for a given workspace
+     * </pre>
+     * @param   params   instance of type {@link us.kbase.referencedatamanager.ListLoadedTaxonsParams ListLoadedTaxonsParams}
+     * @return   parameter "output" of list of type {@link us.kbase.referencedatamanager.KBaseReferenceTaxonData KBaseReferenceTaxonData}
+     * @throws IOException if an IO exception occurs
+     * @throws JsonClientException if a JSON RPC exception occurs
+     */
+    public List<KBaseReferenceTaxonData> listLoadedTaxons(ListLoadedTaxonsParams params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
+        List<Object> args = new ArrayList<Object>();
+        args.add(params);
+        TypeReference<List<List<KBaseReferenceTaxonData>>> retType = new TypeReference<List<List<KBaseReferenceTaxonData>>>() {};
+        List<List<KBaseReferenceTaxonData>> res = caller.jsonrpcCall("ReferenceDataManager.list_loaded_taxons", args, retType, true, false, jsonRpcContext, this.serviceVersion);
         return res.get(0);
     }
 
