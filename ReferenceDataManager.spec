@@ -1,6 +1,5 @@
 /*
 A KBase module: ReferenceDataManager
-This sample module contains one small method - filter_contigs.
 */
 
 module ReferenceDataManager {
@@ -11,7 +10,6 @@ module ReferenceDataManager {
     
     /*
         Arguments for the list_reference_genomes function
-        
     */
     typedef structure {
         bool ensembl;
@@ -24,7 +22,6 @@ module ReferenceDataManager {
 
     /*
         Struct containing data for a single genome output by the list_reference_genomes function
-        
     */
     typedef structure {
         string accession;
@@ -45,7 +42,6 @@ module ReferenceDataManager {
     
     /*
         Arguments for the list_loaded_genomes function
-        
     */
     typedef structure {
         bool ensembl;
@@ -57,7 +53,6 @@ module ReferenceDataManager {
     
     /*
         Struct containing data for a single genome output by the list_loaded_genomes function
-        
     */
     typedef structure {
         string ref;
@@ -76,6 +71,43 @@ module ReferenceDataManager {
         Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
     */
     funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output);
+   
+    /*
+        Argument(s) for the the lists_loaded_taxons function 
+    */
+    typedef structure {
+	    string workspace_name;
+	    bool create_report;
+   } ListLoadedTaxonsParams;
+    
+    /*
+        Struct containing data for a single taxon output by the list_loaded_taxons function
+    */
+    typedef structure {
+        int taxonomy_id;
+        string scientific_name;
+        string scientific_lineage;
+        string rank;
+        string kingdom;
+        string domain;
+        list<string> aliases;
+        int genetic_code;
+        taxon_ref parent_taxon_ref;
+        string embl_code;
+        int inherited_div_flag;
+        int inherited_GC_flag;
+        int mitochondrial_genetic_code;
+        int inherited_MGC_flag;
+        int GenBank_hidden_flag;
+        int hidden_subtree_flag;
+        int division_id;
+        string comments;
+    } KBaseReferenceTaxonData;
+
+    /*
+        Lists taxons loaded into KBase for a given workspace 
+    */
+    funcdef list_loaded_taxons(ListLoadedTaxonsParams params) returns (list<KBaseReferenceTaxonData> output);
     
     /*
         Arguments for the load_genomes function
