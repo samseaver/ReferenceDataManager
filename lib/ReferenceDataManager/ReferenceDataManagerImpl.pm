@@ -932,6 +932,41 @@ sub _checkGenomeStatus {
 
 #################### End methods for accessing SOLR #######################
 
+sub _make_lineage {
+#    def make_lineage(taxon_id=None,taxon_dict=None):
+#    lineages = list()
+#    length = 1
+#    if taxon_id == "1":
+#        print "in lineage 1"
+#    if taxon_id == "1":
+#        if taxon_id == "1":
+#            print "in lineage 3"
+#        length = 0
+#        return [length,""]        
+#    elif "parent_tax_id" in taxon_dict[taxon_id] and taxon_dict[taxon_id]["parent_tax_id"] != 1 :
+#        parent_tax_id = taxon_dict[taxon_id]["parent_tax_id"]
+#        while parent_tax_id is not None:
+#        while parent_tax_id != "1":
+#            length = length + 1
+#            if "scientific_name" in taxon_dict[parent_tax_id]:
+#                lineages[:0]= [taxon_dict[parent_tax_id]["scientific_name"]]
+#	      else:
+#                lineages[:0]= [""]
+#            if "parent_tax_id" in taxon_dict[parent_tax_id]:
+#                parent_tax_id = taxon_dict[parent_tax_id]["parent_tax_id"]
+#	      else:
+#                parent_tax_id = None
+#                parent_tax_id = 1
+#        if taxon_id == "1":
+#            print "in lineage 2"
+#        return [length,"; ".join(lineages)]
+#      else:
+#        if taxon_id == "1":
+#            print "in lineage 4"
+#        #one removed from root
+#        return [length,""]        
+}
+
 #END_HEADER
 
 sub new
@@ -1624,6 +1659,101 @@ sub load_taxons
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN load_taxons
+    $params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_args($params,[],{
+    	data => undef,
+    	taxons => [],
+        index_in_solr => 0,
+        create_report => 0,
+    	workspace_name => undef
+    });
+
+    #headers = {'Authorization': 'OAuth '.token};
+    #uuid_string = str(uuid.uuid4());
+    my $taxon_file_path=$self->{'scratch'}."/taxon_dump/";
+    mkdir($taxon_file_path);
+    chdir($taxon_file_path);
+    system("curl -o taxdump.tar.gz ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz");
+    system("tar -zxf taxdump.tar.gz");
+
+    open(my $fh, "< ${taxon_file_path}nodes.dmp");
+    my $taxon_objects={};
+    my $Taxon_WS = "Taxon_Test"; #ReferenceTaxons
+    while(<$fh>){
+	chomp;
+	my @temp=split(/\s*\|\s*/,$_,-1);
+	my $object = {'taxonomy_id'=>$temp[0]+0,
+		      'parent_taxon_ref'=>$Taxon_WS."/".$temp[1]."_taxon",
+		      'rank'=>$temp[2],
+		      'embl_code'=>$temp[3],
+		      'division_id'=>$temp[4]+0,
+		      'inherited_div_flag'=>$temp[5]+0,
+		      'genetic_code'=>$temp[6]+0,
+		      'inherited_GC_flag'=>$temp[7]+0,
+		      'mitochondrial_genetic_code'=>$temp[8]+0,
+		      'inherited_MGC_flag'=>$temp[9]+0,
+		      'GenBank_hidden_flag'=>$temp[10]+0,
+		      'hidden_substree_root_flag'=>$temp[11],
+		      'comments'=>$temp[12],
+		      'domain'=>"Unknowmn",
+		      'scientific_name'=>"",
+		      'scientific_lineage'=>"",
+		      'aliases'=>[]};
+
+	#Determine Domain
+	#if "Eukaryota" in taxon_dict[taxon_id]["lineage"]:
+	#    taxon_object["domain"] = "Eukaryota"
+	#    elif "Bacteria" in taxon_dict[taxon_id]["lineage"]:
+	#    taxon_object["domain"] = "Bacteria"
+        #    elif "Viruses" in taxon_dict[taxon_id]["lineage"]:
+        #        taxon_object["domain"] = "Viruses"
+        #    elif "Archaea" in taxon_dict[taxon_id]["lineage"]:
+        #        taxon_object["domain"] = "Archaea"
+
+	#Determine Kingdom
+	#if "Fungi" in taxon_dict[taxon_id]["lineage"] and "Eukaryota" in taxon_dict[taxon_id]["lineage"]:
+	#    taxon_object["kingdom"] = "Fungi"
+        #    elif "Viridiplantae" in taxon_dict[taxon_id]["lineage"] and "Eukaryota" in taxon_dict[taxon_id]["lineage"]:
+	#    taxon_object["kingdom"] = "Viridiplantae"
+        #    elif "Metazoa" in taxon_dict[taxon_id]["lineage"] and "Eukaryota" in taxon_dict[taxon_id]["lineage"]:
+	#    taxon_object["kingdom"] = "Metazoa"
+
+	$taxon_objects->{$temp[0]}=$object;
+	last;
+    }
+    close($fh);
+
+    open(my $fh, "< ${taxon_file_path}names.dmp");
+    while(<$fh>){
+	chomp;
+	my @temp=split(/[\s\|]+/,$_,-1);
+	if(exists($taxon_objects->{$temp[0]})){
+	    if($temp[3] eq "scientific name"){
+		$taxon_objects->{$temp[0]}{"scientific_name"}=$temp[1];
+	    }else{
+		push(@{$taxon_objects->{$temp[0]}{"aliases"}},$temp[1]);
+	    }
+	    last;
+	}
+    }
+    close($fh);
+
+    my $taxon_provenance = [{"script"=>$0, "script_ver"=>"0.1", "description"=>"Taxon generated from NCBI taxonomy names and nodes files downloaded on 10/20/2016."}];
+    foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %$taxon_objects ){
+	my $taxon_name = $obj->{"taxonomy_id"}."_taxon";
+	$obj->{"taxonomy_id"}+=0;
+	delete $obj->{"parent_taxon_ref"} if $obj->{"taxonomy_id"} == 1;
+	$self->{_wsclient}->save_objects({"workspace"=>$Taxon_WS,"objects"=>[ {"type"=>"KBaseGenomeAnnotations.Taxon",
+									       "data"=>$obj, 
+									       "name"=>$taxon_name,
+									       "provenance"=>$taxon_provenance}] });
+    }
+    
+#    for taxon_id in taxon_dict:
+#        #Make lineages
+#        [length,taxon_dict[taxon_id]["lineage"]] = make_lineage(taxon_id, taxon_dict)
+
+    $output=[];
     #END load_taxons
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
