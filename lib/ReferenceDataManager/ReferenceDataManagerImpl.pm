@@ -201,7 +201,7 @@ sub _testActionsInSolr
     #4.1 list all the contents in core "genomes", without group option--get the first 100 rows
     $grpOption = "";
     my $startRow = 0;
-    my $topRows = 20;                                                                                                                    my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $startRow, $topRows, $grpOption );
+    my $topRows = 20;                                                                                         my $solr_ret = $self -> _listGenomesInSolr("QZtest", "genome_id", $startRow, $topRows, $grpOption );
     my $genome_docs = $solr_ret->{response}->{response}->{docs};
     print "\nList of genomes in core 'genomes': \n" . Dumper($genome_docs) . "\n";
     
@@ -259,21 +259,31 @@ sub _testActionsInSolr
         {"division_id"=>9,"inherited_div_flag"=>0,"taxonomy_id"=>12884,"scientific_name"=>"Viroids","parent_taxon_ref"=>"1292/2/2","inherited_MGC_flag"=>0,"domain"=>"Unknown","scientific_lineage"=>"","GenBank_hidden_flag"=>0,"aliases"=>["Viroid","viroids"],"mitochondrial_genetic_code"=>0,"genetic_code"=>1,"inherited_GC_flag"=>0,"rank"=>"superkingdom"},
         {"division_id"=>8,"inherited_div_flag"=>1,"taxonomy_id"=>1274375,"scientific_name"=>"bogus duplicates","parent_taxon_ref"=>"1292/4/2","inherited_MGC_flag"=>1,"domain"=>"Unknown","scientific_lineage"=>"other sequences","GenBank_hidden_flag"=>0,"genetic_code"=>11,"inherited_GC_flag"=>1,"mitochondrial_genetic_code"=>0,"rank"=>"no rank"},
     ];
+
     my $solrCore = "taxonomy";
     $self -> _addXML2Solr($solrCore, $Taxons);
-    # Confirm the contents in core "taxonomy" after addition, without group option specified
-    my $grpOption = "taxonomy_id";
-    my $startRow = 0;
-    my $topRows = 20;
-    my $solr_ret = $self -> _listTaxonsInSolr("taxonomy", "*", $startRow, $topRows, $grpOption );
-    print "\nList of docs in taxonomy after insertion: \n" . Dumper($solr_ret) . "\n";  
-    #6.2 list all the refernece genomes already loaded into KBase   
-    my $RefTaxons_ret = $self->list_loaded_taxons({
-            reftaxon => 1
-    });
-    print "\nReference taxon list: \n" . Dumper($RefTaxons_ret). "\n";  
+
 =end
 =cut
+
+    #6.2 list all the refernece taxons already loaded into KBase   
+    my $RefTaxons_ret = $self->list_loaded_taxons({
+            workspace_name => "ReferenceTaxons"
+    });
+    #print "\nReference taxon list: \n" . Dumper($RefTaxons_ret). "\n";  
+
+    #6.3 Index all the refernece taxons already loaded into KBase
+    my $solrCore = "taxonomy";
+    #$self -> _addXML2Solr($solrCore, $RefTaxons_ret);
+
+    #6.4 Confirm the contents in core "taxonomy" after addition, with/without group option specified
+    my $grpOption = "taxonomy_id";
+    my $lstFields = "taxonomy_id,scientific_name";
+    my $startRow = 0;
+    my $topRows = 100;
+    my $solr_ret = $self -> _listTaxonsInSolr($solrCore, $lstFields, $startRow, $topRows, $grpOption );
+    print "\nList of docs in taxonomy after insertion: \n" . Dumper($solr_ret) . "\n";  
+    
 }
 #=end test actions related to Solr access
 
@@ -310,6 +320,7 @@ sub _listGenomesInSolr {
 #
 sub _listTaxonsInSolr {
     my ($self, $solrCore, $fields, $rowStart, $rowCount, $grp) = @_;
+    $solrCore = ($solrCore) ? $solrCore : "taxonomy";
     my $start = ($rowStart) ? $rowStart : 0;
     my $count = ($rowCount) ? $rowCount : 10;
     $fields = ($fields) ? $fields : "*";
@@ -555,7 +566,7 @@ sub _addXML2Solr
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
-    print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
+    #print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
@@ -1286,7 +1297,7 @@ sub list_loaded_taxons
     my $msg = "";
     my $output = [];
 
-    my $wsname = $self->util_workspace_names($sources->[$i]);
+    my $wsname = $params ->{workspace_name}; #'ReferenceTaxons';
     my $wsinfo;
     my $wsoutput;
     my $taxonout;
@@ -1295,50 +1306,65 @@ sub list_loaded_taxons
             workspace => $wsname
         });
     }
-    my $maxid = $wsinfo->[4];
-    my $pages = ceil($maxid/10000);
 
+    my $batch_count = 100;
+    my $maxid = $wsinfo->[4];
+    my $pages = ceil($maxid/$batch_count);
+    print "\nFound $maxid taxon objects.\n";
+
+    my $solrTaxonBatch;
     for (my $m=0; $m < $pages; $m++) {
         $wsoutput = $self->util_ws_client()->list_objects({
             workspaces => [$wsname],
             type => "KBaseGenomeAnnotations.Taxon-1.0",
-            minObjectID => 10000*$m,
-            maxObjectID => 10000*($m+1)
+            minObjectID => $batch_count * $m,
+            maxObjectID => $batch_count * ( $m + 1)
         });
+
+        $solrTaxonBatch = [];
+
         for (my $j=0; $j < @{$wsoutput}; $j++) {
-            my $t_id = $wsoutput->[$j]->{id};
-            my $t_nm = $wsoutput->[$j]->{objName};
+            my $t_id = $wsoutput->[$j]->[0];
+            my $t_nm = $wsoutput->[$j]->[1];
             $taxonout = $self->util_ws_client()->get_object({
-                id=> $t_id,
+                id => $t_nm,
                 workspace => $wsname
             });
 
-            push(@{$output},{
-                taxonomy_id => $taxonout -> {taxonomy_id},
-                scientific_name => $taxonout -> {scientific_name},
-                scientific_lineage => $taxonout -> {scientific_lineage},                
-                rank => $taxonout -> {rank},
-                kingdom => $taxonout -> {kingdom},
-                domain => $taxonout -> {domain},                
-                alias => $taxonout -> {alias},
-                genetic_code => $taxonout -> {genetic_code},
-                parent_taxon_ref => $taxonout -> {parent_taxon_ref},                
-                embl_code => $taxonout -> {embl_code},
-                inherited_div_flag => $taxonout -> {inherited_div_flag},
-                inherited_GC_flag => $taxonout -> {inherited_GC_flag},                
-                division_id => $taxonout -> {division_id},
-                mitochondrial_genetic_code => $taxonout -> {mitochondrial_genetic_code},
-                inherited_MGC_flag => $taxonout -> {inherited_MGC_flag},                
-                GenBank_hidden_flag => $taxonout -> {GenBank_hidden_flag},
-                hidden_subtree_flag => $taxonout -> {hidden_subtree_flag},
-                comments => $taxonout -> {comments}                
-            });
-        
+            my $taxonData = $taxonout -> {data};
+            my $taxonMeta = $taxonout -> {metadata};
+
+            my $current_taxon = {
+                taxonomy_id => $taxonData -> {taxonomy_id},
+                scientific_name => $taxonData -> {scientific_name},
+                scientific_lineage => $taxonData -> {scientific_lineage},                
+                rank => $taxonData -> {rank},
+                kingdom => $taxonData -> {kingdom},
+                domain => $taxonData -> {domain},                
+                aliases => $taxonData -> {alias},
+                genetic_code => $taxonData -> {genetic_code},
+                parent_taxon_ref => $taxonData -> {parent_taxon_ref},                
+                embl_code => $taxonData -> {embl_code},
+                inherited_div_flag => $taxonData -> {inherited_div_flag},
+                inherited_GC_flag => $taxonData -> {inherited_GC_flag},                
+                division_id => $taxonData -> {division_id},
+                mitochondrial_genetic_code => $taxonData -> {mitochondrial_genetic_code},
+                inherited_MGC_flag => $taxonData -> {inherited_MGC_flag},                
+                GenBank_hidden_flag => $taxonData -> {GenBank_hidden_flag},
+                hidden_subtree_flag => $taxonData -> {hidden_subtree_flag},
+                comments => $taxonData -> {comments}                
+            };
+            push(@{$output}, $current_taxon);
+            # checking existance in solr   
+            push(@{$solrTaxonBatch}, $current_taxon);
+
             if (@{$output} < 10) {
                     my $curr = @{$output}-1;
                     $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
-                }
+            }
         }
+        $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
+        print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
     }
     #END list_loaded_taxons
     my @_bad_returns;
