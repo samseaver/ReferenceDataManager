@@ -298,10 +298,6 @@ sub _listGenomesInSolr {
     my $count = ($rowCount) ? $rowCount : 10;
     $fields = ($fields) ? $fields : "*";
 
-    if (!$self->_ping()) {
-        die "\nError--Solr server not responding:\n" . $self->_error->{response};
-    }
-
     my $params = {
         fl => $fields,
         wt => "json",
@@ -324,10 +320,6 @@ sub _listTaxonsInSolr {
     my $start = ($rowStart) ? $rowStart : 0;
     my $count = ($rowCount) ? $rowCount : 10;
     $fields = ($fields) ? $fields : "*";
-
-    if (!$self->_ping()) {
-        die "\nError--Solr server not responding:\n" . $self->_error->{response};
-    }
 
     my $params = {
         fl => $fields,
@@ -360,6 +352,10 @@ sub _listTaxonsInSolr {
 sub _searchSolr {
     my ($self, $searchCore, $searchParams, $searchQuery, $resultFormat, $groupOption, $skipEscape) = @_;
     $skipEscape = {} unless $skipEscape;
+
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
     
     # If output format is not passed set it to XML
     $resultFormat = "xml" unless $resultFormat;
@@ -435,6 +431,10 @@ sub _deleteRecords
     my ($self, $searchCore, $criteria) = @_;
     my $solrCore = "/$searchCore";
 
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+    
     # Build the <query/> string that concatenates all the criteria into query tags
     my $queryCriteria = "<delete>";
     if (! $criteria) {
@@ -561,6 +561,11 @@ sub _parseResponse
 sub _addXML2Solr
 {
     my ($self, $solrCore, $params) = @_;
+    
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+    
     my $ds = $self->_rawDsToSolrDs($params);
     my $doc = $self->_toXML($ds, 'add');
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
@@ -728,6 +733,11 @@ sub _autocommit
 sub _commit
 {
     my ($self, $solrCore) = @_;
+    
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+    
     my $url = $self->{_SOLR_POST_URL} . "/$solrCore/update";
     my $cmd = $self->_toXML('true', 'commit');
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
@@ -749,6 +759,11 @@ sub _commit
 sub _rollback
 {
     my ($self, $solrCore) = @_;
+    
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+    
     my $url = $self->{_SOLR_POST_URL} . "/$solrCore/update";
     my $cmd = $self->_toXML('', 'rollback');
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $cmd);
@@ -771,6 +786,11 @@ sub _rollback
 sub _exists
 {
     my ($self, $solrCore, $solrKey, $searchId) = @_;
+ 
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+    
     my $url = $self->{_SOLR_URL}."$solrCore/select?";
     $url = $url. "q=$solrKey:$searchId";
     
@@ -847,6 +867,7 @@ sub _error
 sub _checkGenomeStatus {
     my ($self, $current_genome, $solr_genomes) = @_;
     #print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
+
     my $status = "";
     if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
     {
