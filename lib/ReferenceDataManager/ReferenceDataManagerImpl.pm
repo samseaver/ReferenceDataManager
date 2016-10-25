@@ -1392,12 +1392,14 @@ sub list_loaded_taxons
             }
 
             if (@{$output} < 10) {
-                    my $curr = @{$output}-1;
-                    $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+                my $curr = @{$output}-1;
+                $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
             }
         }
-        #$self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
-        #print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
+        if( @{$solrTaxonBatch} > 0) {
+            $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
+            print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
+        }
     }
     #END list_loaded_taxons
     my @_bad_returns;
