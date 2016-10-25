@@ -268,7 +268,7 @@ sub _testActionsInSolr
 
     #6.2 list all the refernece taxons already loaded into KBase   
     my $RefTaxons_ret = $self->list_loaded_taxons({
-            workspace_name => "ReferenceTaxons"
+        workspace_name => "ReferenceTaxons"
     });
     #print "\nReference taxon list: \n" . Dumper($RefTaxons_ret). "\n";  
 
@@ -770,21 +770,27 @@ sub _rollback
 #
 sub _exists
 {
-    my ($self, $id) = @_;
-    my $url = "$self->{_SOLR_SEARCH_URL}?q=id:$id";
+    my ($self, $solrCore, $solrKey, $searchId) = @_;
+    my $url = $self->{_SOLR_URL}."$solrCore/select?";
+    $url = $url. "q=$solrKey:$searchId";
+    
     my $response = $self->_sendRequest($url, 'GET');
-    my $status = ($self->_parseResponse($response));
-    if ($status) {
-    my $xs = new XML::Simple();
-    my $xmlRef;
-    eval {
-        $xmlRef = $xs->XMLin($response->{response});
-    };
-    if ($xmlRef->{lst}->{'int'}->{status}->{content} eq 0){
-        if ($xmlRef->{result}->{numFound} gt 0) {
-        return 1;
+    
+    print "\n$searchId:\n" . Dumper($response). "\n";
+
+    my $status = $self->_parseResponse($response);
+    if ($status == 1) {
+        my $xs = new XML::Simple();
+        my $xmlRef;
+        eval {
+            $xmlRef = $xs->XMLin($response->{response});
+        };
+        print "\n$url result: $xmlRef->{result}\n";
+        if ($xmlRef->{lst}->{'int'}->{status}->{content} eq 0){
+            if ($xmlRef->{result}->{numFound} gt 0) {
+            return 1;
         }
-    }
+     }   
     }
     return 0;
 }
@@ -1356,15 +1362,21 @@ sub list_loaded_taxons
             };
             push(@{$output}, $current_taxon);
             # checking existance in solr   
-            push(@{$solrTaxonBatch}, $current_taxon);
+            if($self -> _exists("taxonomy", "taxonomy_id", $taxonData -> {taxonomy_id}) == 1) {
+                print "\nFound this one in Solr: ". $taxonData -> {taxonomy_id};
+            }
+            else {
+                print "\nThis one is not in Solr: ". $taxonData -> {taxonomy_id};
+                push(@{$solrTaxonBatch}, $current_taxon);
+            }
 
             if (@{$output} < 10) {
                     my $curr = @{$output}-1;
                     $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
             }
         }
-        $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
-        print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
+        #$self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
+        #print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
     }
     #END list_loaded_taxons
     my @_bad_returns;
