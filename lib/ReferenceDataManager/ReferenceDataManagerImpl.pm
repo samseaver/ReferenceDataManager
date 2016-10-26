@@ -1434,11 +1434,11 @@ sub list_loaded_taxons
      }
    }    
    catch { 
-        warn "Got an exception from calling get_objects2\n $_";
+        warn "Got an exception from calling get_objects2 or solr connection\n $_";
    }   
    finally {
        if (@_) {
-          print "The trying to call get_object died with:\n" . Dumper( @_) . "\n";
+          print "The trying to call get_objects2 or solr connection died with:\n" . Dumper( @_) . "\n";
        }
    };
   
