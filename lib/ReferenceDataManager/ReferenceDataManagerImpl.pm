@@ -4,8 +4,8 @@ use Bio::KBase::Exceptions;
 # Use Semantic Versioning (2.0.0-rc.1)
 # http://semver.org 
 our $VERSION = '0.0.1';
-our $GIT_URL = 'https://github.com/kbaseapps/ReferenceDataManager.git';
-our $GIT_COMMIT_HASH = '7f160f1014b78df327d48b1888f54827327c70c0';
+our $GIT_URL = 'https://github.com/samseaver/ReferenceDataManager';
+our $GIT_COMMIT_HASH = '30935a8cdccb4597f1b96c6589b2c520a74ca871';
 
 =head1 NAME
 
@@ -2711,6 +2711,102 @@ create_report has a value which is a ReferenceDataManager.bool
 a reference to a hash where the following keys are defined:
 data has a value which is a string
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+index_in_solr has a value which is a ReferenceDataManager.bool
+workspace_name has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
+
+
+=end text
+
+=back
+
+
+
+=head2 ReferenceTaxonData
+
+=over 4
+
+
+
+=item Description
+
+Struct containing data for a single taxon output by the list_loaded_taxons function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+ref has a value which is a string
+id has a value which is a string
+workspace_name has a value which is a string
+source_id has a value which is a string
+accession has a value which is a string
+name has a value which is a string
+ftp_dir has a value which is a string
+version has a value which is a string
+source has a value which is a string
+domain has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+ref has a value which is a string
+id has a value which is a string
+workspace_name has a value which is a string
+source_id has a value which is a string
+accession has a value which is a string
+name has a value which is a string
+ftp_dir has a value which is a string
+version has a value which is a string
+source has a value which is a string
+domain has a value which is a string
+
+
+=end text
+
+=back
+
+
+
+=head2 LoadTaxonsParams
+
+=over 4
+
+
+
+=item Description
+
+Arguments for the load_taxons function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+data has a value which is a string
+taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+index_in_solr has a value which is a ReferenceDataManager.bool
+workspace_name has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+data has a value which is a string
+taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
