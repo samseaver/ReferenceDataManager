@@ -137,6 +137,29 @@ eval {
     ok(defined($ret->[0]),"index_genomes_in_solr command returned at least one genome");
 =end testing index_genomes_in_solr
 =cut
+
+    #Testing list_loaded_taxons
+    my $ret;
+    eval {
+        $ret = $impl->list_loaded_taxons({ 
+            workspace_name => "ReferenceTaxons",
+            create_report => 0
+    });
+    };
+    ok(!$@,"list_loaded_taxons command successful");
+    if ($@) {
+		my $err = $@;
+		print "Error type: " . ref($err) . "\n";
+		print "Error message: " . $err->{message} . "\n";
+		print "Error error: " . $err->{error} . "\n";
+		print "Error data: " .$err->{data} . "\n";
+    } else {
+        print "Number of records:".@{$ret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$ret->[0]])."\n";
+    }
+    ok(defined($ret->[0]),"list_loaded_taxons command returned at least one taxon");
+
     #Testing update_loaded_genomes
     my $ret;
     eval {

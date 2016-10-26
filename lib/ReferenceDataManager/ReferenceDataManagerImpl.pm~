@@ -1345,6 +1345,7 @@ sub list_loaded_taxons
             } 
 
             my $current_taxon = $self -> getTaxon($taxonData, $wstaxonrefs -> [$i] -> {ref});
+            print Dumper($current_taxon); exit 0;
             push(@{$solrTaxonBatch}, $current_taxon); 
         }   
         if( @{$solrTaxonBatch} >= 1000) {
