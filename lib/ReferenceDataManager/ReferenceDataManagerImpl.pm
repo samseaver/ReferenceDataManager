@@ -15,7 +15,7 @@ A KBase module: ReferenceDataManager
 
 #BEGIN_HEADER
 use Bio::KBase::AuthToken;
-use Bio::KBase::workspace::Client;
+use Workspace::WorkspaceClient;
 use GenomeFileUtil::GenomeFileUtilClient;
 use Config::IniFiles;
 use Config::Simple;
@@ -41,7 +41,7 @@ sub util_initialize_call {
     $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
     $self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"}; 
     die "no workspace-url defined" unless $self->{workspace_url};   $self->util_timestamp(DateTime->now()->datetime());
-    $self->{_wsclient} = new Bio::KBase::workspace::Client($self->{workspace_url},token => $ctx->token());
+    $self->{_wsclient} = new Workspace::WorkspaceClient($self->{workspace_url},token => $ctx->token());
     return $params;
 }
 
@@ -275,7 +275,6 @@ sub _testActionsInSolr
     #6.3 Index all the refernece taxons already loaded into KBase
     my $solrCore = "taxonomy";
     #$self -> _addXML2Solr($solrCore, $RefTaxons_ret);
-
     #6.4 Confirm the contents in core "taxonomy" after addition, with/without group option specified
     my $grpOption = "taxonomy_id";
     my $lstFields = "taxonomy_id,scientific_name";
@@ -283,7 +282,6 @@ sub _testActionsInSolr
     my $topRows = 100;
     my $solr_ret = $self -> _listTaxonsInSolr($solrCore, $lstFields, $startRow, $topRows, $grpOption );
     print "\nList of docs in taxonomy after insertion: \n" . Dumper($solr_ret) . "\n";  
-    
 }
 #=end test actions related to Solr access
 
@@ -791,12 +789,12 @@ sub _exists
         die "\nError--Solr server not responding:\n" . $self->_error->{response};
     }
     
-    my $url = $self->{_SOLR_URL}."$solrCore/select?";
+    my $url = $self->{_SOLR_URL}."/$solrCore/select?";
     $url = $url. "q=$solrKey:$searchId";
     
     my $response = $self->_sendRequest($url, 'GET');
     
-    print "\n$searchId:\n" . Dumper($response). "\n";
+    #print "\n$searchId:\n" . Dumper($response). "\n";
 
     my $status = $self->_parseResponse($response);
     if ($status == 1) {
@@ -805,7 +803,7 @@ sub _exists
         eval {
             $xmlRef = $xs->XMLin($response->{response});
         };
-        print "\n$url result: $xmlRef->{result}\n";
+        #print "\n$url result:\n" . Dumper($xmlRef->{result}) . "\n";
         if ($xmlRef->{lst}->{'int'}->{status}->{content} eq 0){
             if ($xmlRef->{result}->{numFound} gt 0) {
             return 1;
@@ -826,7 +824,7 @@ sub _exists
 sub _ping
 {
     my ($self, $errors) = @_;
-    print "Pinging server: $self->{_SOLR_PING_URL}\n";
+    #print "Pinging server: $self->{_SOLR_PING_URL}\n";
     my $response = $self->_sendRequest($self->{_SOLR_PING_URL}, 'GET');
     #print "Ping's response:\n" . Dumper($response) . "\n";
     
@@ -903,6 +901,33 @@ sub _checkGenomeStatus {
     return $status;
 }
 
+#internal method, for possibly multiple trials due to network timeouts
+#
+sub getTaxon {
+    my ($self, $taxonData) = @_; 
+
+    my $current_taxon = {
+                taxonomy_id => $taxonData -> {taxonomy_id},
+                scientific_name => $taxonData -> {scientific_name},
+                scientific_lineage => $taxonData -> {scientific_lineage},                
+                rank => $taxonData -> {rank},
+                kingdom => $taxonData -> {kingdom},
+                domain => $taxonData -> {domain},                
+                aliases => $taxonData -> {alias},
+                genetic_code => $taxonData -> {genetic_code},
+                parent_taxon_ref => $taxonData -> {parent_taxon_ref},                
+                embl_code => $taxonData -> {embl_code},
+                inherited_div_flag => $taxonData -> {inherited_div_flag},
+                inherited_GC_flag => $taxonData -> {inherited_GC_flag},                
+                division_id => $taxonData -> {division_id},
+                mitochondrial_genetic_code => $taxonData -> {mitochondrial_genetic_code},
+                inherited_MGC_flag => $taxonData -> {inherited_MGC_flag},                
+                GenBank_hidden_flag => $taxonData -> {GenBank_hidden_flag},
+                hidden_subtree_flag => $taxonData -> {hidden_subtree_flag},
+                comments => $taxonData -> {comments}                
+            };
+   return $current_taxon;
+}
 #################### End methods for accessing SOLR #######################
 
 #END_HEADER
@@ -1312,7 +1337,6 @@ sub list_loaded_taxons
     Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
                                    method_name => 'list_loaded_taxons');
     }
-
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_loaded_taxons
@@ -1334,73 +1358,90 @@ sub list_loaded_taxons
         });
     }
 
-    my $batch_count = 100;
+    my $batch_count = 10000;
     my $maxid = $wsinfo->[4];
     my $pages = ceil($maxid/$batch_count);
     print "\nFound $maxid taxon objects.\n";
-
-    my $solrTaxonBatch;
+    my $pgNum = 0; 
+    my $t_id= 0;#the starting ws object_id
+    my $t_nm= 0;#the starting ws object_nm
+    my $solrTaxonBatch = [];
+    
+    try {
     for (my $m=0; $m < $pages; $m++) {
-        $wsoutput = $self->util_ws_client()->list_objects({
+        eval { 
+            $wsoutput = $self->util_ws_client()->list_objects({
             workspaces => [$wsname],
             type => "KBaseGenomeAnnotations.Taxon-1.0",
             minObjectID => $batch_count * $m,
             maxObjectID => $batch_count * ( $m + 1)
-        });
-
-        $solrTaxonBatch = [];
-
-        for (my $j=0; $j < @{$wsoutput}; $j++) {
-            my $t_id = $wsoutput->[$j]->[0];
-            my $t_nm = $wsoutput->[$j]->[1];
-            $taxonout = $self->util_ws_client()->get_object({
-                id => $t_nm,
-                workspace => $wsname
             });
+        };
+        if($@) {
+            print "Cannot list objects!\n";
+            print STDERR $@->{message}."\n";
+            if(defined($@->{status_line})) {
+                print STDERR $@->{status_line}."\n"; 
+            }
+            print STDERR "\n";
+            exit 1;
+        }
+        my $wstaxonrefs = [];
+        for (my $j=0; $j < @{$wsoutput}; $j++) {
+            push(@{$wstaxonrefs},{
+                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4]
+            });
+        }
+        eval {
+            $taxonout = $self->util_ws_client()->get_objects2({
+                objects => $wstaxonrefs
+            }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
+        };
+        if($@) {
+            print "Cannot get object information!\n$@";
+            print $@->{message}."\n";
+            if(defined($@->{status_line})) {
+                print $@->{status_line}."\n";
+            }
+            print "\n";
+            exit 1;
+        }
+        $taxonout = $taxonout -> {data};
+        for (my $i=0; $i < @{$taxonout}; $i++) {
+            my $taxonData = $taxonout ->[ $i] -> {data};#an UnspecifiedObject
+            my $curr_tid = $taxonData -> {taxonomy_id};   
+            my $current_taxon = $self -> getTaxon($taxonData);
 
-            my $taxonData = $taxonout -> {data};
-            my $taxonMeta = $taxonout -> {metadata};
-
-            my $current_taxon = {
-                taxonomy_id => $taxonData -> {taxonomy_id},
-                scientific_name => $taxonData -> {scientific_name},
-                scientific_lineage => $taxonData -> {scientific_lineage},                
-                rank => $taxonData -> {rank},
-                kingdom => $taxonData -> {kingdom},
-                domain => $taxonData -> {domain},                
-                aliases => $taxonData -> {alias},
-                genetic_code => $taxonData -> {genetic_code},
-                parent_taxon_ref => $taxonData -> {parent_taxon_ref},                
-                embl_code => $taxonData -> {embl_code},
-                inherited_div_flag => $taxonData -> {inherited_div_flag},
-                inherited_GC_flag => $taxonData -> {inherited_GC_flag},                
-                division_id => $taxonData -> {division_id},
-                mitochondrial_genetic_code => $taxonData -> {mitochondrial_genetic_code},
-                inherited_MGC_flag => $taxonData -> {inherited_MGC_flag},                
-                GenBank_hidden_flag => $taxonData -> {GenBank_hidden_flag},
-                hidden_subtree_flag => $taxonData -> {hidden_subtree_flag},
-                comments => $taxonData -> {comments}                
-            };
             push(@{$output}, $current_taxon);
-            # checking existance in solr   
-            if($self -> _exists("taxonomy", "taxonomy_id", $taxonData -> {taxonomy_id}) == 1) {
-                print "\nFound this one in Solr: ". $taxonData -> {taxonomy_id};
+            # checking existance in solr
+            if($self -> _exists("taxonomy", "taxonomy_id", $curr_tid)) {
+                print "\nFound this taxon in Solr: " . $curr_tid;
             }
             else {
-                print "\nThis one is not in Solr: ". $taxonData -> {taxonomy_id};
-                push(@{$solrTaxonBatch}, $current_taxon);
+                    print "\nThis one is not in Solr: " . $curr_tid;
+                    push(@{$solrTaxonBatch}, $current_taxon);
             }
-
             if (@{$output} < 10) {
-                my $curr = @{$output}-1;
-                $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+                    my $curr = @{$output}-1;
+                    $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
             }
-        }
-        if( @{$solrTaxonBatch} > 0) {
-            $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
-            print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
-        }
-    }
+            if( @{$solrTaxonBatch} >= 50) {
+                    $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
+                    print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
+                    $solrTaxonBatch = [];
+            }
+        }   
+     }
+   }    
+   catch { 
+        warn "Got an exception from calling get_objects2\n $_";
+   }   
+   finally {
+       if (@_) {
+          print "The trying to call get_object died with:\n" . Dumper( @_) . "\n";
+       }
+   };
+  
     #END list_loaded_taxons
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -1411,7 +1452,6 @@ sub list_loaded_taxons
     }
     return($output);
 }
-
 
 
 
