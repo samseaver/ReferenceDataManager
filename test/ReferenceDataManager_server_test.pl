@@ -30,8 +30,6 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 eval {
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "qzTestWS";
-    $impl->_testActionsInSolr();
-    exit 0;
     #Testing the list_reference_genomes function
 =begin passed tests
     my $solrret;
@@ -107,6 +105,7 @@ eval {
 =end passed tests
 =cut
 
+=begin testing index_genomes_in_solr--TODO
 	my $ret;
     my $gnms = [{
             "object_id"=>"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060",
@@ -136,11 +135,14 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"index_genomes_in_solr command returned at least one genome");
+=end testing index_genomes_in_solr
+=cut
     #Testing update_loaded_genomes
+    my $ret;
     eval {
         $ret = $impl->update_loaded_genomes({ 
         refseq => 1
-        });
+    });
     };
     ok(!$@,"update_loaded_genomes command successful");
     if ($@) {
