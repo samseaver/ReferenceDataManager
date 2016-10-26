@@ -30,6 +30,8 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 eval {
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "qzTestWS";
+    $impl->_testActionsInSolr();
+    exit 0;
     #Testing the list_reference_genomes function
 =begin passed tests
     my $solrret;

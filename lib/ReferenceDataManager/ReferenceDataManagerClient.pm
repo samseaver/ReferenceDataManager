@@ -27,7 +27,6 @@ ReferenceDataManager::ReferenceDataManagerClient
 
 
 A KBase module: ReferenceDataManager
-This sample module contains one small method - filter_contigs.
 
 
 =cut
@@ -332,6 +331,134 @@ Lists genomes loaded into KBase from selected reference sources (ensembl, phytoz
         Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method list_loaded_genomes",
 					    status_line => $self->{client}->status_line,
 					    method_name => 'list_loaded_genomes',
+				       );
+    }
+}
+ 
+
+
+=head2 list_loaded_taxons
+
+  $output = $obj->list_loaded_taxons($params)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$params is a ReferenceDataManager.ListLoadedTaxonsParams
+$output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+ListLoadedTaxonsParams is a reference to a hash where the following keys are defined:
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
+bool is an int
+KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$params is a ReferenceDataManager.ListLoadedTaxonsParams
+$output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+ListLoadedTaxonsParams is a reference to a hash where the following keys are defined:
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
+bool is an int
+KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
+
+=end text
+
+=item Description
+
+Lists taxons loaded into KBase for a given workspace
+
+=back
+
+=cut
+
+ sub list_loaded_taxons
+{
+    my($self, @args) = @_;
+
+# Authentication: none
+
+    if ((my $n = @args) != 1)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function list_loaded_taxons (received $n, expecting 1)");
+    }
+    {
+	my($params) = @args;
+
+	my @_bad_arguments;
+        (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
+        if (@_bad_arguments) {
+	    my $msg = "Invalid arguments passed to list_loaded_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+								   method_name => 'list_loaded_taxons');
+	}
+    }
+
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ReferenceDataManager.list_loaded_taxons",
+	    params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'list_loaded_taxons',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method list_loaded_taxons",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'list_loaded_taxons',
 				       );
     }
 }
@@ -1128,6 +1255,112 @@ ftp_dir has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+
+
+=end text
+
+=back
+
+
+
+=head2 ListLoadedTaxonsParams
+
+=over 4
+
+
+
+=item Description
+
+Argument(s) for the the lists_loaded_taxons function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+workspace_name has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+workspace_name has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
+
+
+=end text
+
+=back
+
+
+
+=head2 KBaseReferenceTaxonData
+
+=over 4
+
+
+
+=item Description
+
+Struct containing data for a single taxon output by the list_loaded_taxons function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+taxonomy_id has a value which is an int
+scientific_name has a value which is a string
+scientific_lineage has a value which is a string
+rank has a value which is a string
+kingdom has a value which is a string
+domain has a value which is a string
+aliases has a value which is a reference to a list where each element is a string
+genetic_code has a value which is an int
+parent_taxon_ref has a value which is a string
+embl_code has a value which is a string
+inherited_div_flag has a value which is an int
+inherited_GC_flag has a value which is an int
+mitochondrial_genetic_code has a value which is an int
+inherited_MGC_flag has a value which is an int
+GenBank_hidden_flag has a value which is an int
+hidden_subtree_flag has a value which is an int
+division_id has a value which is an int
+comments has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+taxonomy_id has a value which is an int
+scientific_name has a value which is a string
+scientific_lineage has a value which is a string
+rank has a value which is a string
+kingdom has a value which is a string
+domain has a value which is a string
+aliases has a value which is a reference to a list where each element is a string
+genetic_code has a value which is an int
+parent_taxon_ref has a value which is a string
+embl_code has a value which is a string
+inherited_div_flag has a value which is an int
+inherited_GC_flag has a value which is an int
+mitochondrial_genetic_code has a value which is an int
+inherited_MGC_flag has a value which is an int
+GenBank_hidden_flag has a value which is an int
+hidden_subtree_flag has a value which is an int
+division_id has a value which is an int
+comments has a value which is a string
 
 
 =end text
