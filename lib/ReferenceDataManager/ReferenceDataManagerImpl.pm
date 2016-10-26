@@ -1704,8 +1704,6 @@ sub load_taxons
     	workspace_name => undef
     });
 
-    #headers = {'Authorization': 'OAuth '.token};
-    #uuid_string = str(uuid.uuid4());
     my $taxon_file_path=$self->{'scratch'}."/taxon_dump/";
     mkdir($taxon_file_path);
     chdir($taxon_file_path);
