@@ -188,7 +188,7 @@ sub _listGenomesInSolr {
 #
 sub _listTaxonsInSolr {
     my ($self, $solrCore, $fields, $rowStart, $rowCount, $grp) = @_;
-    $solrCore = ($solrCore) ? $solrCore : "taxonomy";
+    $solrCore = ($solrCore) ? $solrCore : "taxonomy_ci";
     my $start = ($rowStart) ? $rowStart : 0;
     my $count = ($rowCount) ? $rowCount : 10;
     $fields = ($fields) ? $fields : "*";
@@ -314,7 +314,7 @@ sub _deleteRecords
         $self->{errmsg} = "No deletion criteria specified";
         return undef;
     }
-        foreach my $key (keys %$criteria) {
+    foreach my $key (keys %$criteria) {
         $queryCriteria .= "<query>$key:". URI::Escape::uri_escape($criteria->{$key}) . "</query>";
     }
 
@@ -322,7 +322,7 @@ sub _deleteRecords
     #print "The deletion query string is: \n" . "$queryCriteria \n";
 
     my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?stream.body=".$queryCriteria;
-    #print "The final deletion query string is: \n" . "$solrQuery \n";
+    print "The final deletion query string is: \n" . "$solrQuery \n";
 
     my $solr_response = $self->_sendRequest("$solrQuery", "GET");
     return $solr_response;
@@ -443,7 +443,6 @@ sub _addXML2Solr
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
-    #print "After request sent by _addXML2Solr:\n" . Dumper($response) ."\n";
     return 1 if ($self->_parseResponse($response));
     return 0;
 }
@@ -781,28 +780,55 @@ sub getTaxon {
     my ($self, $taxonData, $wsref) = @_; 
 
     my $current_taxon = {
-                taxonomy_id => $taxonData -> {taxonomy_id},
-                scientific_name => $taxonData -> {scientific_name},
-                scientific_lineage => $taxonData -> {scientific_lineage},                
-                rank => $taxonData -> {rank},
-                kingdom => $taxonData -> {kingdom},
-                domain => $taxonData -> {domain},                
-                ws_ref => $wsref,
-                aliases => $taxonData -> {alias},
-                genetic_code => $taxonData -> {genetic_code},
-                parent_taxon_ref => $taxonData -> {parent_taxon_ref},                
-                embl_code => $taxonData -> {embl_code},
-                inherited_div_flag => $taxonData -> {inherited_div_flag},
-                inherited_GC_flag => $taxonData -> {inherited_GC_flag},                
-                division_id => $taxonData -> {division_id},
-                mitochondrial_genetic_code => $taxonData -> {mitochondrial_genetic_code},
-                inherited_MGC_flag => $taxonData -> {inherited_MGC_flag},                
-                GenBank_hidden_flag => $taxonData -> {GenBank_hidden_flag},
-                hidden_subtree_flag => $taxonData -> {hidden_subtree_flag},
-                comments => $taxonData -> {comments}                
-            };
-   return $current_taxon;
+        taxonomy_id => $taxonData -> {taxonomy_id},
+        scientific_name => $taxonData -> {scientific_name},
+        scientific_lineage => $taxonData -> {scientific_lineage},
+        rank => $taxonData -> {rank},
+        kingdom => $taxonData -> {kingdom},
+        domain => $taxonData -> {domain},
+        ws_ref => $wsref,
+        aliases => $taxonData -> {alias},
+        genetic_code => ($taxonData -> {genetic_code}) ? ($taxonData -> {genetic_code}) : "0",
+        parent_taxon_ref => $taxonData -> {parent_taxon_ref},
+        embl_code => $taxonData -> {embl_code},
+        inherited_div_flag => ($taxonData -> {inherited_div_flag}) ? $taxonData -> {inherited_div_flag} : "0",
+        inherited_GC_flag => ($taxonData -> {inherited_GC_flag}) ? $taxonData -> {inherited_GC_flag} : "0",
+        division_id => ($taxonData -> {division_id}) ? $taxonData -> {division_id} : "0",
+        mitochondrial_genetic_code => ($taxonData -> {mitochondrial_genetic_code}) ? $taxonData -> {mitochondrial_genetic_code} : "0",
+        inherited_MGC_flag => ($taxonData -> {inherited_MGC_flag}) ? ($taxonData -> {inherited_MGC_flag}) : "0",
+        GenBank_hidden_flag => ($taxonData -> {GenBank_hidden_flag}) ? ($taxonData -> {GenBank_hidden_flag}) : "0",
+        hidden_subtree_flag => ($taxonData -> {hidden_subtree_flag}) ? ($taxonData -> {hidden_subtree_flag}) : "0",
+        comments => $taxonData -> {comments}
+    };
+    return $current_taxon;
 }
+
+#internal method, for sending doc data to SOLR 
+#
+sub indexInSolr {
+        my ($self, $solrCore, $docData) = @_; 
+        if( @{$docData} >= 1) {
+          eval {
+            if( $self -> _addXML2Solr($solrCore, $docData) == 1 ) {
+                #commit the additions
+                if (!$self->_commit($solrCore)) {
+                        print "\n Error: " . $self->_error->{response};
+                }
+                #print "\nIndexed " . @{$docData} . " documents.";
+            }
+            else {
+                print "\nIndexing failed: \n" . $self->{error}->{errmsg};
+            }
+          };
+          if($@) {
+            print "Error from SOLR indexing:\n" . $@;
+            if(defined($@->{status_line})) {
+                print $@->{status_line}."\n";
+            }
+          }
+        }
+}
+
 #################### End methods for accessing SOLR #######################
 
 #END_HEADER
@@ -1295,7 +1321,8 @@ sub list_loaded_taxons
     print "\nFound $maxid taxon objects.\n";
     
     try {
-    for (my $m=0; $m < $pages; $m++) {
+        for (my $m = 6; $m < 11; $m++) {
+        print "\nBatch ". $m . "x$batch_count";
         eval { 
             $wsoutput = $self->util_ws_client()->list_objects({
             workspaces => [$wsname],
@@ -1306,12 +1333,10 @@ sub list_loaded_taxons
         };
         if($@) {
             print "Cannot list objects!\n";
-            print STDERR $@->{message}."\n";
+            print "ERROR:" . $@;#->{message}."\n";
             if(defined($@->{status_line})) {
-                print STDERR $@->{status_line}."\n"; 
+                print "ERROR:" . $@->{status_line}."\n"; 
             }
-            print STDERR "\n";
-            exit 1;
         }
         my $wstaxonrefs = [];
         for (my $j=0; $j < @{$wsoutput}; $j++) {
@@ -1320,19 +1345,19 @@ sub list_loaded_taxons
             });
         }
 
+        print "\nFetch the objects at the batch size of: " . @{$wstaxonrefs};
         eval {
             $taxonout = $self->util_ws_client()->get_objects2({
                 objects => $wstaxonrefs
             }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
         };
         if($@) {
-            print "Cannot get object information!\n$@";
-            print $@->{message}."\n";
+            print "Cannot get object information!\n";
+            print "ERROR:".$@;
+            #print $@->{message}."\n";
             if(defined($@->{status_line})) {
                 print $@->{status_line}."\n";
             }
-            print "\n";
-            exit 1;
         }
         $taxonout = $taxonout -> {data};
         for (my $i=0; $i < @{$taxonout}; $i++) {
@@ -1347,11 +1372,11 @@ sub list_loaded_taxons
             my $current_taxon = $self -> getTaxon($taxonData, $wstaxonrefs -> [$i] -> {ref});
             push(@{$solrTaxonBatch}, $current_taxon); 
         }   
-        if( @{$solrTaxonBatch} >= 1000) {
-            $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
-            print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
-            $solrTaxonBatch = []; 
-        }
+        eval {
+                $self -> indexInSolr( "taxonomy_ci", $solrTaxonBatch );
+                print "\nIndexed ". @{$solrTaxonBatch} . " taxons at: " . $m . "x$batch_count\n";
+                $solrTaxonBatch = [];
+        };
      }  
    }    
    catch { 
@@ -1361,6 +1386,14 @@ sub list_loaded_taxons
        if (@_) {
           print "The trying to call get_objects2 or solr connection died with:\n" . Dumper( @_) . "\n";
        }
+#6.4 Confirm the contents in core "taxonomy_ci" after addition, with/without group option specified
+        my $grpOption = "taxonomy_id";
+        my $lstFields = "taxonomy_id,scientific_name";
+        my $startRow = 0;
+        my $topRows = 10;
+        my $solrCore = "taxonomy_ci";
+        my $solr_ret = $self -> _listTaxonsInSolr($solrCore, $lstFields, $startRow, $topRows, $grpOption );  
+        print "\nList of docs in taxonomy after insertion: \n" . Dumper($solr_ret) . "\n";  
    };
   
     #END list_loaded_taxons
