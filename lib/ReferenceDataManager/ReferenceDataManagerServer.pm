@@ -33,6 +33,7 @@ our %return_counts = (
         'list_loaded_taxons' => 1,
         'load_genomes' => 1,
         'index_genomes_in_solr' => 1,
+        'index_taxons_in_solr' => 1,
         'update_loaded_genomes' => 1,
         'status' => 1,
 );
@@ -43,6 +44,7 @@ our %method_authentication = (
         'list_loaded_taxons' => 'none',
         'load_genomes' => 'required',
         'index_genomes_in_solr' => 'required',
+        'index_taxons_in_solr' => 'required',
         'update_loaded_genomes' => 'required',
 );
 
@@ -55,6 +57,7 @@ sub _build_valid_methods
         'list_loaded_taxons' => 1,
         'load_genomes' => 1,
         'index_genomes_in_solr' => 1,
+        'index_taxons_in_solr' => 1,
         'update_loaded_genomes' => 1,
         'status' => 1,
     };
