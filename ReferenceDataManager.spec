@@ -71,17 +71,88 @@ module ReferenceDataManager {
         Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
     */
     funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output);
-   
+  
+
+    /*
+        Arguments for the list_solr_genomes and list_solr_taxons functions
+        
+    */
+
+    typedef structure {
+        string solr_core;
+        int row_start;
+        int row_count;
+	bool create_report;
+    } ListSolrDocsParams;
+
+    /*
+        Struct containing data for a single genome element output by the list_solr_genomes function
+    */
+    typedef structure {
+        string genome_id;
+        string ws_ref;
+        string aliases;
+        string annotations;
+        string atomic_regulons;
+        string co_occurring_fids;
+        string co_expressed_fids;
+        bool complete;
+        string cs_db_version;
+        int dna_sequence_length;
+        string domain;
+        string feature_id;
+        string feature_publications;
+        string feature_source_id;
+        string feature_type;
+        string function;
+        float gc_content;
+        string gene_name;
+        int genome_dna_size;
+        string genome_publications;
+        string genome_source;
+        string genome_source_id;
+        string go_ontology_description;
+        string go_ontology_domain;
+        bool has_protein_familiies;
+        bool has_publications;
+        int location_begin;
+        string location_contig;
+        int location_end;
+        string location_strand;
+        string locations;
+        int num_cds;
+        int num_contigs;
+        string object_id;
+        string object_name;
+        string object_type;
+        string protein_families;
+        int protein_translation_length;
+        string regulon_data;
+        string roles;
+        string scientific_name;
+        string scientific_name_sort;
+        string subsystems;
+        string subsystem_data;
+        string taxonomy;
+        string workspace_name;
+    } SolrGenomeData;
+
+    /* 
+        Lists taxons indexed in SOLR
+    */
+    funcdef list_solr_genomes(ListSolrDocsParams params) returns (list<SolrGenomeData> output) authentication required;
+
+ 
     /*
         Argument(s) for the the lists_loaded_taxons function 
     */
     typedef structure {
-	    string workspace_name;
-	    bool create_report;
+        string workspace_name;
+        bool create_report;
    } ListLoadedTaxonsParams;
     
     /*
-        Struct containing data for a single taxon output by the list_loaded_taxons function
+        Struct containing data for a single taxon element output by the list_loaded_taxons function
     */
     typedef structure {
         int taxonomy_id;
@@ -104,21 +175,59 @@ module ReferenceDataManager {
         string comments;
     } KBaseReferenceTaxonData;
 
+    typedef structure {
+        list<KBaseReferenceTaxonData> taxon; 
+        string ws_ref;
+    } LoadedReferenceTaxonData;
+
+
     /*
         Lists taxons loaded into KBase for a given workspace 
     */
-    funcdef list_loaded_taxons(ListLoadedTaxonsParams params) returns (list<KBaseReferenceTaxonData> output);
-    
+    funcdef list_loaded_taxons(ListLoadedTaxonsParams params) returns (list<LoadedReferenceTaxonData> output);
+   
+
+    /*
+        Struct containing data for a single taxon element output by the list_solr_taxons function
+    */
+    typedef structure {
+        int taxonomy_id;
+        string scientific_name;
+        string scientific_lineage;
+        string rank;
+        string kingdom;
+        string domain;
+        string ws_ref;
+        list<string> aliases;
+        int genetic_code;
+        string parent_taxon_ref;
+        string embl_code;
+        int inherited_div_flag;
+        int inherited_GC_flag;
+        int mitochondrial_genetic_code;
+        int inherited_MGC_flag;
+        int GenBank_hidden_flag;
+        int hidden_subtree_flag;
+        int division_id;
+        string comments;
+    } SolrTaxonData;
+
+    /* 
+        Lists taxons indexed in SOLR
+    */
+    funcdef list_solr_taxons(ListSolrDocsParams params) returns (list<SolrTaxonData> output) authentication required;
+
+ 
     /*
         Arguments for the load_genomes function
         
     */
     typedef structure {
         string data;
-	    list<ReferenceGenomeData> genomes;
+        list<ReferenceGenomeData> genomes;
         bool index_in_solr;
-	    string workspace_name;
-	    bool create_report;
+        string workspace_name;
+        bool create_report;
     } LoadGenomesParams;
     
     /*
@@ -148,15 +257,15 @@ module ReferenceDataManager {
         
     */
     typedef structure {
-        list<KBaseReferenceTaxonData>taxons;
-        string workspace_name;
+        list<LoadedReferenceTaxonData> taxons;
+        string solr_core;
         bool create_report;
     } IndexTaxonsInSolrParams;
     
     /*
         Index specified genomes in SOLR from KBase workspace
     */
-    funcdef index_taxons_in_solr(IndexTaxonsInSolrParams params) returns (list<KBaseReferenceTaxonData> output) authentication required;
+    funcdef index_taxons_in_solr(IndexTaxonsInSolrParams params) returns (list<SolrTaxonData> output) authentication required;
     
 
    /*
