@@ -1535,8 +1535,8 @@ sub list_loaded_taxons
     print "\nFound $maxid taxon objects.\n";
     
     try {
-        for (my $m = 23; $m < 33; $m++) {
-        print "\nBatch ". $m . "x$batch_count";
+        for (my $m = 46; $m < 61; $m++) {
+        print "\nBatch ". $m . "x$batch_count on " . scalar localtime;
         eval { 
             $wsoutput = $self->util_ws_client()->list_objects({
             workspaces => [$wsname],
@@ -1552,6 +1552,7 @@ sub list_loaded_taxons
                 print "ERROR:" . $@->{status_line}."\n"; 
             }
         }
+        print "\nDone batch ". $m . "x$batch_count listing on ". scalar localtime ."\n";
         my $wstaxonrefs = [];
         for (my $j=0; $j < @{$wsoutput}; $j++) {
             push(@{$wstaxonrefs},{
@@ -1559,7 +1560,7 @@ sub list_loaded_taxons
             });
         }
 
-        print "\nFetch the objects at the batch size of: " . @{$wstaxonrefs};
+        print "\nFetch the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime; 
         eval {
             $taxonout = $self->util_ws_client()->get_objects2({
                 objects => $wstaxonrefs
@@ -1573,6 +1574,7 @@ sub list_loaded_taxons
                 print $@->{status_line}."\n";
             }
         }
+        print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
         $taxonout = $taxonout -> {data};
         for (my $i=0; $i < @{$taxonout}; $i++) {
             my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
