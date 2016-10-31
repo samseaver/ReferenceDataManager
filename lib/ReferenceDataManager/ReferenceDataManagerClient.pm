@@ -471,7 +471,7 @@ SolrGenomeData is a reference to a hash where the following keys are defined:
 
 =item Description
 
-Lists taxons indexed in SOLR
+Lists genomes indexed in SOLR
 
 =back
 
@@ -543,7 +543,7 @@ ListLoadedTaxonsParams is a reference to a hash where the following keys are def
 	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
-	taxon has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+	taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
 	ws_ref has a value which is a string
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
 	taxonomy_id has a value which is an int
@@ -578,7 +578,7 @@ ListLoadedTaxonsParams is a reference to a hash where the following keys are def
 	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
-	taxon has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+	taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
 	ws_ref has a value which is a string
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
 	taxonomy_id has a value which is an int
@@ -1063,7 +1063,7 @@ IndexTaxonsInSolrParams is a reference to a hash where the following keys are de
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
-	taxon has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+	taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
 	ws_ref has a value which is a string
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
 	taxonomy_id has a value which is an int
@@ -1119,7 +1119,7 @@ IndexTaxonsInSolrParams is a reference to a hash where the following keys are de
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
-	taxon has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+	taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
 	ws_ref has a value which is a string
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
 	taxonomy_id has a value which is an int
@@ -1927,13 +1927,18 @@ comments has a value which is a string
 
 
 
+=item Description
+
+Struct containing data for a single output by the list_loaded_taxons function
+
+
 =item Definition
 
 =begin html
 
 <pre>
 a reference to a hash where the following keys are defined:
-taxon has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
 ws_ref has a value which is a string
 
 </pre>
@@ -1943,7 +1948,7 @@ ws_ref has a value which is a string
 =begin text
 
 a reference to a hash where the following keys are defined:
-taxon has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
 ws_ref has a value which is a string
 
 

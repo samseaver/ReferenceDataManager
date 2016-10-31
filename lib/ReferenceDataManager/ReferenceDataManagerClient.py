@@ -79,7 +79,7 @@ class ReferenceDataManager(object):
 
     def list_solr_genomes(self, params, context=None):
         """
-        Lists taxons indexed in SOLR
+        Lists genomes indexed in SOLR
         :param params: instance of type "ListSolrDocsParams" (Arguments for
            the list_solr_genomes and list_solr_taxons functions) ->
            structure: parameter "solr_core" of String, parameter "row_start"
@@ -129,8 +129,9 @@ class ReferenceDataManager(object):
            for the the lists_loaded_taxons function) -> structure: parameter
            "workspace_name" of String, parameter "create_report" of type
            "bool" (A boolean.)
-        :returns: instance of list of type "LoadedReferenceTaxonData" ->
-           structure: parameter "taxon" of list of type
+        :returns: instance of list of type "LoadedReferenceTaxonData" (Struct
+           containing data for a single output by the list_loaded_taxons
+           function) -> structure: parameter "taxon" of type
            "KBaseReferenceTaxonData" (Struct containing data for a single
            taxon element output by the list_loaded_taxons function) ->
            structure: parameter "taxonomy_id" of Long, parameter
@@ -238,17 +239,19 @@ class ReferenceDataManager(object):
         Index specified genomes in SOLR from KBase workspace
         :param params: instance of type "IndexTaxonsInSolrParams" (Arguments
            for the index_taxons_in_solr function) -> structure: parameter
-           "taxons" of list of type "LoadedReferenceTaxonData" -> structure:
-           parameter "taxon" of list of type "KBaseReferenceTaxonData"
-           (Struct containing data for a single taxon element output by the
-           list_loaded_taxons function) -> structure: parameter "taxonomy_id"
-           of Long, parameter "scientific_name" of String, parameter
-           "scientific_lineage" of String, parameter "rank" of String,
-           parameter "kingdom" of String, parameter "domain" of String,
-           parameter "aliases" of list of String, parameter "genetic_code" of
-           Long, parameter "parent_taxon_ref" of String, parameter
-           "embl_code" of String, parameter "inherited_div_flag" of Long,
-           parameter "inherited_GC_flag" of Long, parameter
+           "taxons" of list of type "LoadedReferenceTaxonData" (Struct
+           containing data for a single output by the list_loaded_taxons
+           function) -> structure: parameter "taxon" of type
+           "KBaseReferenceTaxonData" (Struct containing data for a single
+           taxon element output by the list_loaded_taxons function) ->
+           structure: parameter "taxonomy_id" of Long, parameter
+           "scientific_name" of String, parameter "scientific_lineage" of
+           String, parameter "rank" of String, parameter "kingdom" of String,
+           parameter "domain" of String, parameter "aliases" of list of
+           String, parameter "genetic_code" of Long, parameter
+           "parent_taxon_ref" of String, parameter "embl_code" of String,
+           parameter "inherited_div_flag" of Long, parameter
+           "inherited_GC_flag" of Long, parameter
            "mitochondrial_genetic_code" of Long, parameter
            "inherited_MGC_flag" of Long, parameter "GenBank_hidden_flag" of
            Long, parameter "hidden_subtree_flag" of Long, parameter
