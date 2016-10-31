@@ -2362,6 +2362,7 @@ sub index_taxons_in_solr
     my $taxons = $params->{taxons};
     my $solrCore = $params->{solr_core};
     my $solrBatch = [];
+    my $solrBatchCount = 10000;
     print "\nTotal taxons to be indexed: ". @{$taxons} . "\n";
 
     for (my $i = 0; $i < @{$taxons}; $i++) {
@@ -2370,7 +2371,7 @@ sub index_taxons_in_solr
         my $current_taxon = $self -> getTaxon($taxonData, $wref);
 
         push(@{$solrBatch}, $current_taxon); 
-        if( @{$solrBatch} >= 10000) { 
+        if(@{$solrBatch} >= $solrBatchCount) { 
             eval {
                 $self -> _indexInSolr($solrCore, $solrBatch );
             };
@@ -2393,7 +2394,21 @@ sub index_taxons_in_solr
             $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
         } 
     }
-    
+    if(@{$solrBatch} > 0) {
+            eval {
+                $self -> _indexInSolr($solrCore, $solrBatch );
+            };
+            if($@) {
+                print "Failed to index the taxons!\n";
+                print "ERROR:".$@;
+                if(defined($@->{status_line})) {
+                    print $@->{status_line}."\n";
+                }
+            }
+            else {
+                print "\nIndexed ". @{$solrBatch} . " taxons.\n";
+            }
+    }
     if ($params->{create_report}) {
         print "Indexed ". scalar @{$output}. " taxons!\n";
         $self->util_create_report({

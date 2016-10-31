@@ -138,7 +138,7 @@ module ReferenceDataManager {
     } SolrGenomeData;
 
     /* 
-        Lists taxons indexed in SOLR
+        Lists genomes indexed in SOLR
     */
     funcdef list_solr_genomes(ListSolrDocsParams params) returns (list<SolrGenomeData> output) authentication required;
 
@@ -175,8 +175,12 @@ module ReferenceDataManager {
         string comments;
     } KBaseReferenceTaxonData;
 
+
+    /*
+        Struct containing data for a single output by the list_loaded_taxons function
+    */
     typedef structure {
-        list<KBaseReferenceTaxonData> taxon; 
+        KBaseReferenceTaxonData taxon; 
         string ws_ref;
     } LoadedReferenceTaxonData;
 
