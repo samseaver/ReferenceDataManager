@@ -164,7 +164,7 @@ eval {
     my $solr_ret;
     eval {
         $solr_ret = $impl->index_taxa_in_solr({ 
-                taxons => $taxon_ret,
+                taxa => $taxon_ret,
                 solr_core => "taxonomy_ci",
                 create_report => 0
         });
