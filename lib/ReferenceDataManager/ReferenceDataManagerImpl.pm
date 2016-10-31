@@ -5,7 +5,7 @@ use Bio::KBase::Exceptions;
 # http://semver.org 
 our $VERSION = '0.0.1';
 our $GIT_URL = 'https://github.com/kbaseapps/ReferenceDataManager.git';
-our $GIT_COMMIT_HASH = 'ec9b0adbbfa905d6219cdcc2a301c30b68fbe34a';
+our $GIT_COMMIT_HASH = 'ff66b2ea47a32692271c1ecab60d0ff0ed4da321';
 
 =head1 NAME
 
@@ -184,9 +184,9 @@ sub _listGenomesInSolr {
 }
 
 #
-#Internal Method: to list the taxons already in SOLR and return an array of those taxons
+#Internal Method: to list the taxa already in SOLR and return an array of those taxa
 #
-sub _listTaxonsInSolr {
+sub _listTaxaInSolr {
     my ($self, $solrCore, $fields, $rowStart, $rowCount, $grp) = @_;
     $solrCore = ($solrCore) ? $solrCore : "taxonomy_ci";
     my $start = ($rowStart) ? $rowStart : 0;
@@ -1406,9 +1406,9 @@ sub list_solr_genomes
 
 
 
-=head2 list_loaded_taxons
+=head2 list_loaded_taxa
 
-  $output = $obj->list_loaded_taxons($params)
+  $output = $obj->list_loaded_taxa($params)
 
 =over 4
 
@@ -1417,9 +1417,9 @@ sub list_solr_genomes
 =begin html
 
 <pre>
-$params is a ReferenceDataManager.ListLoadedTaxonsParams
+$params is a ReferenceDataManager.ListLoadedTaxaParams
 $output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
-ListLoadedTaxonsParams is a reference to a hash where the following keys are defined:
+ListLoadedTaxaParams is a reference to a hash where the following keys are defined:
 	workspace_name has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
@@ -1452,9 +1452,9 @@ KBaseReferenceTaxonData is a reference to a hash where the following keys are de
 
 =begin text
 
-$params is a ReferenceDataManager.ListLoadedTaxonsParams
+$params is a ReferenceDataManager.ListLoadedTaxaParams
 $output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
-ListLoadedTaxonsParams is a reference to a hash where the following keys are defined:
+ListLoadedTaxaParams is a reference to a hash where the following keys are defined:
 	workspace_name has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
@@ -1488,13 +1488,13 @@ KBaseReferenceTaxonData is a reference to a hash where the following keys are de
 
 =item Description
 
-Lists taxons loaded into KBase for a given workspace
+Lists taxa loaded into KBase for a given workspace
 
 =back
 
 =cut
 
-sub list_loaded_taxons
+sub list_loaded_taxa
 {
     my $self = shift;
     my($params) = @_;
@@ -1502,14 +1502,14 @@ sub list_loaded_taxons
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-	my $msg = "Invalid arguments passed to list_loaded_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	my $msg = "Invalid arguments passed to list_loaded_taxa:\n" . join("", map { "\t$_\n" } @_bad_arguments);
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'list_loaded_taxons');
+							       method_name => 'list_loaded_taxa');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
-    #BEGIN list_loaded_taxons
+    #BEGIN list_loaded_taxa
     $params = $self->util_initialize_call($params,$ctx);    
     $params = $self->util_args($params,[],{
         create_report => 0,
@@ -1596,13 +1596,13 @@ sub list_loaded_taxons
        }
    };
   
-    #END list_loaded_taxons
+    #END list_loaded_taxa
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-	my $msg = "Invalid returns passed to list_loaded_taxons:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	my $msg = "Invalid returns passed to list_loaded_taxa:\n" . join("", map { "\t$_\n" } @_bad_returns);
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'list_loaded_taxons');
+							       method_name => 'list_loaded_taxa');
     }
     return($output);
 }
@@ -1610,9 +1610,9 @@ sub list_loaded_taxons
 
 
 
-=head2 list_solr_taxons
+=head2 list_solr_taxa
 
-  $output = $obj->list_solr_taxons($params)
+  $output = $obj->list_solr_taxa($params)
 
 =over 4
 
@@ -1692,13 +1692,13 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
 
 =item Description
 
-Lists taxons indexed in SOLR
+Lists taxa indexed in SOLR
 
 =back
 
 =cut
 
-sub list_solr_taxons
+sub list_solr_taxa
 {
     my $self = shift;
     my($params) = @_;
@@ -1706,14 +1706,14 @@ sub list_solr_taxons
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-	my $msg = "Invalid arguments passed to list_solr_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	my $msg = "Invalid arguments passed to list_solr_taxa:\n" . join("", map { "\t$_\n" } @_bad_arguments);
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'list_solr_taxons');
+							       method_name => 'list_solr_taxa');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
-    #BEGIN list_solr_taxons
+    #BEGIN list_solr_taxa
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
         solr_core => "taxonomy_ci",
@@ -1731,17 +1731,17 @@ sub list_solr_taxons
     my $topRows = $params -> {row_count};
     
     eval {
-        $solrout = $self->_listTaxonsInSolr($solrCore, $fields, $startRow, $topRows);
+        $solrout = $self->_listTaxaInSolr($solrCore, $fields, $startRow, $topRows);
     };
     if($@) {
-        print "Cannot list taxons in SOLR information!\n";
+        print "Cannot list taxa in SOLR information!\n";
         print "ERROR:".$@;
         if(defined($@->{status_line})) {
             print $@->{status_line}."\n";
         }
     }
     else {
-        print "\nList of taxons: \n" . Dumper($solrout) . "\n";  
+        print "\nList of taxa: \n" . Dumper($solrout) . "\n";  
         $output = $solrout->{response}->{docs}; 
         
         if (@{$output} < 10) {
@@ -1749,13 +1749,13 @@ sub list_solr_taxons
             $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
         } 
     }
-    #END list_solr_taxons
+    #END list_solr_taxa
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-	my $msg = "Invalid returns passed to list_solr_taxons:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	my $msg = "Invalid returns passed to list_solr_taxa:\n" . join("", map { "\t$_\n" } @_bad_returns);
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'list_solr_taxons');
+							       method_name => 'list_solr_taxa');
     }
     return($output);
 }
@@ -2201,9 +2201,9 @@ sub index_genomes_in_solr
 
 
 
-=head2 index_taxons_in_solr
+=head2 index_taxa_in_solr
 
-  $output = $obj->index_taxons_in_solr($params)
+  $output = $obj->index_taxa_in_solr($params)
 
 =over 4
 
@@ -2212,10 +2212,10 @@ sub index_genomes_in_solr
 =begin html
 
 <pre>
-$params is a ReferenceDataManager.IndexTaxonsInSolrParams
+$params is a ReferenceDataManager.IndexTaxaInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
-IndexTaxonsInSolrParams is a reference to a hash where the following keys are defined:
-	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+IndexTaxaInSolrParams is a reference to a hash where the following keys are defined:
+	taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
@@ -2268,10 +2268,10 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
 
 =begin text
 
-$params is a ReferenceDataManager.IndexTaxonsInSolrParams
+$params is a ReferenceDataManager.IndexTaxaInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
-IndexTaxonsInSolrParams is a reference to a hash where the following keys are defined:
-	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+IndexTaxaInSolrParams is a reference to a hash where the following keys are defined:
+	taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
@@ -2331,7 +2331,7 @@ Index specified genomes in SOLR from KBase workspace
 
 =cut
 
-sub index_taxons_in_solr
+sub index_taxa_in_solr
 {
     my $self = shift;
     my($params) = @_;
@@ -2339,35 +2339,35 @@ sub index_taxons_in_solr
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-	my $msg = "Invalid arguments passed to index_taxons_in_solr:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	my $msg = "Invalid arguments passed to index_taxa_in_solr:\n" . join("", map { "\t$_\n" } @_bad_arguments);
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'index_taxons_in_solr');
+							       method_name => 'index_taxa_in_solr');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
-    #BEGIN index_taxons_in_solr
+    #BEGIN index_taxa_in_solr
     if (! $self->_ping()) {
         die "\nError--Solr server not responding:\n" . $self->_error->{response};
     }
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
-        taxons => {},
+        taxa => {},
         create_report => 0,
         solr_core => undef
     });
  
     my $msg = "";
     $output = [];
-    my $taxons = $params->{taxons};
+    my $taxa = $params->{taxa};
     my $solrCore = $params->{solr_core};
     my $solrBatch = [];
     my $solrBatchCount = 10000;
-    print "\nTotal taxons to be indexed: ". @{$taxons} . "\n";
+    print "\nTotal taxa to be indexed: ". @{$taxa} . "\n";
 
-    for (my $i = 0; $i < @{$taxons}; $i++) {
-        my $taxonData = $taxons -> [$i] -> {taxon};#an UnspecifiedObject
-        my $wref = $taxons -> [$i] -> {ws_ref};
+    for (my $i = 0; $i < @{$taxa}; $i++) {
+        my $taxonData = $taxa -> [$i] -> {taxon};#an UnspecifiedObject
+        my $wref = $taxa -> [$i] -> {ws_ref};
         my $current_taxon = $self -> getTaxon($taxonData, $wref);
 
         push(@{$solrBatch}, $current_taxon); 
@@ -2376,14 +2376,14 @@ sub index_taxons_in_solr
                 $self -> _indexInSolr($solrCore, $solrBatch );
             };
             if($@) {
-                print "Failed to index the taxons!\n";
+                print "Failed to index the taxa!\n";
                 print "ERROR:".$@;
                 if(defined($@->{status_line})) {
                     print $@->{status_line}."\n";
                 }
             }
             else {
-                print "\nIndexed ". @{$solrBatch} . " taxons.\n";
+                print "\nIndexed ". @{$solrBatch} . " taxa.\n";
                 $solrBatch = [];
             }
         }
@@ -2399,31 +2399,31 @@ sub index_taxons_in_solr
                 $self -> _indexInSolr($solrCore, $solrBatch );
             };
             if($@) {
-                print "Failed to index the taxons!\n";
+                print "Failed to index the taxa!\n";
                 print "ERROR:".$@;
                 if(defined($@->{status_line})) {
                     print $@->{status_line}."\n";
                 }
             }
             else {
-                print "\nIndexed ". @{$solrBatch} . " taxons.\n";
+                print "\nIndexed ". @{$solrBatch} . " taxa.\n";
             }
     }
     if ($params->{create_report}) {
-        print "Indexed ". scalar @{$output}. " taxons!\n";
+        print "Indexed ". scalar @{$output}. " taxa!\n";
         $self->util_create_report({
-            message => "Indexed ".@{$output}." taxons!",
+            message => "Indexed ".@{$output}." taxa!",
             workspace => undef
         });
         $output = ["indexed taxones"];
     }
-    #END index_taxons_in_solr
+    #END index_taxa_in_solr
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-	my $msg = "Invalid returns passed to index_taxons_in_solr:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	my $msg = "Invalid returns passed to index_taxa_in_solr:\n" . join("", map { "\t$_\n" } @_bad_returns);
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-							       method_name => 'index_taxons_in_solr');
+							       method_name => 'index_taxa_in_solr');
     }
     return($output);
 }
@@ -2860,7 +2860,7 @@ domain has a value which is a string
 
 =item Description
 
-Arguments for the list_solr_genomes and list_solr_taxons functions
+Arguments for the list_solr_genomes and list_solr_taxa functions
 
 
 =item Definition
@@ -3018,7 +3018,7 @@ workspace_name has a value which is a string
 
 
 
-=head2 ListLoadedTaxonsParams
+=head2 ListLoadedTaxaParams
 
 =over 4
 
@@ -3026,7 +3026,7 @@ workspace_name has a value which is a string
 
 =item Description
 
-Argument(s) for the the lists_loaded_taxons function
+Argument(s) for the the lists_loaded_taxa function
 
 
 =item Definition
@@ -3063,7 +3063,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 =item Description
 
-Struct containing data for a single taxon element output by the list_loaded_taxons function
+Struct containing data for a single taxon element output by the list_loaded_taxa function
 
 
 =item Definition
@@ -3132,7 +3132,7 @@ comments has a value which is a string
 
 =item Description
 
-Struct containing data for a single output by the list_loaded_taxons function
+Struct containing data for a single output by the list_loaded_taxa function
 
 
 =item Definition
@@ -3169,7 +3169,7 @@ ws_ref has a value which is a string
 
 =item Description
 
-Struct containing data for a single taxon element output by the list_solr_taxons function
+Struct containing data for a single taxon element output by the list_solr_taxa function
 
 
 =item Definition
@@ -3314,7 +3314,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 
 
-=head2 IndexTaxonsInSolrParams
+=head2 IndexTaxaInSolrParams
 
 =over 4
 
@@ -3322,7 +3322,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 =item Description
 
-Arguments for the index_taxons_in_solr function
+Arguments for the index_taxa_in_solr function
 
 
 =item Definition
@@ -3331,7 +3331,7 @@ Arguments for the index_taxons_in_solr function
 
 <pre>
 a reference to a hash where the following keys are defined:
-taxons has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
 
@@ -3342,7 +3342,7 @@ create_report has a value which is a ReferenceDataManager.bool
 =begin text
 
 a reference to a hash where the following keys are defined:
-taxons has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
 

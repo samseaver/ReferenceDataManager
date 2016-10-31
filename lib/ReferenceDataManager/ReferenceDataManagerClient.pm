@@ -525,9 +525,9 @@ Lists genomes indexed in SOLR
  
 
 
-=head2 list_loaded_taxons
+=head2 list_loaded_taxa
 
-  $output = $obj->list_loaded_taxons($params)
+  $output = $obj->list_loaded_taxa($params)
 
 =over 4
 
@@ -536,9 +536,9 @@ Lists genomes indexed in SOLR
 =begin html
 
 <pre>
-$params is a ReferenceDataManager.ListLoadedTaxonsParams
+$params is a ReferenceDataManager.ListLoadedTaxaParams
 $output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
-ListLoadedTaxonsParams is a reference to a hash where the following keys are defined:
+ListLoadedTaxaParams is a reference to a hash where the following keys are defined:
 	workspace_name has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
@@ -571,9 +571,9 @@ KBaseReferenceTaxonData is a reference to a hash where the following keys are de
 
 =begin text
 
-$params is a ReferenceDataManager.ListLoadedTaxonsParams
+$params is a ReferenceDataManager.ListLoadedTaxaParams
 $output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
-ListLoadedTaxonsParams is a reference to a hash where the following keys are defined:
+ListLoadedTaxaParams is a reference to a hash where the following keys are defined:
 	workspace_name has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
@@ -605,13 +605,13 @@ KBaseReferenceTaxonData is a reference to a hash where the following keys are de
 
 =item Description
 
-Lists taxons loaded into KBase for a given workspace
+Lists taxa loaded into KBase for a given workspace
 
 =back
 
 =cut
 
- sub list_loaded_taxons
+ sub list_loaded_taxa
 {
     my($self, @args) = @_;
 
@@ -620,7 +620,7 @@ Lists taxons loaded into KBase for a given workspace
     if ((my $n = @args) != 1)
     {
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function list_loaded_taxons (received $n, expecting 1)");
+							       "Invalid argument count for function list_loaded_taxa (received $n, expecting 1)");
     }
     {
 	my($params) = @args;
@@ -628,40 +628,40 @@ Lists taxons loaded into KBase for a given workspace
 	my @_bad_arguments;
         (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
         if (@_bad_arguments) {
-	    my $msg = "Invalid arguments passed to list_loaded_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    my $msg = "Invalid arguments passed to list_loaded_taxa:\n" . join("", map { "\t$_\n" } @_bad_arguments);
 	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'list_loaded_taxons');
+								   method_name => 'list_loaded_taxa');
 	}
     }
 
     my $url = $self->{url};
     my $result = $self->{client}->call($url, $self->{headers}, {
-	    method => "ReferenceDataManager.list_loaded_taxons",
+	    method => "ReferenceDataManager.list_loaded_taxa",
 	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
 	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
 					       code => $result->content->{error}->{code},
-					       method_name => 'list_loaded_taxons',
+					       method_name => 'list_loaded_taxa',
 					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
 					      );
 	} else {
 	    return wantarray ? @{$result->result} : $result->result->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method list_loaded_taxons",
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method list_loaded_taxa",
 					    status_line => $self->{client}->status_line,
-					    method_name => 'list_loaded_taxons',
+					    method_name => 'list_loaded_taxa',
 				       );
     }
 }
  
 
 
-=head2 list_solr_taxons
+=head2 list_solr_taxa
 
-  $output = $obj->list_solr_taxons($params)
+  $output = $obj->list_solr_taxa($params)
 
 =over 4
 
@@ -739,13 +739,13 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
 
 =item Description
 
-Lists taxons indexed in SOLR
+Lists taxa indexed in SOLR
 
 =back
 
 =cut
 
- sub list_solr_taxons
+ sub list_solr_taxa
 {
     my($self, @args) = @_;
 
@@ -754,7 +754,7 @@ Lists taxons indexed in SOLR
     if ((my $n = @args) != 1)
     {
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function list_solr_taxons (received $n, expecting 1)");
+							       "Invalid argument count for function list_solr_taxa (received $n, expecting 1)");
     }
     {
 	my($params) = @args;
@@ -762,31 +762,31 @@ Lists taxons indexed in SOLR
 	my @_bad_arguments;
         (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
         if (@_bad_arguments) {
-	    my $msg = "Invalid arguments passed to list_solr_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    my $msg = "Invalid arguments passed to list_solr_taxa:\n" . join("", map { "\t$_\n" } @_bad_arguments);
 	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'list_solr_taxons');
+								   method_name => 'list_solr_taxa');
 	}
     }
 
     my $url = $self->{url};
     my $result = $self->{client}->call($url, $self->{headers}, {
-	    method => "ReferenceDataManager.list_solr_taxons",
+	    method => "ReferenceDataManager.list_solr_taxa",
 	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
 	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
 					       code => $result->content->{error}->{code},
-					       method_name => 'list_solr_taxons',
+					       method_name => 'list_solr_taxa',
 					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
 					      );
 	} else {
 	    return wantarray ? @{$result->result} : $result->result->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method list_solr_taxons",
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method list_solr_taxa",
 					    status_line => $self->{client}->status_line,
-					    method_name => 'list_solr_taxons',
+					    method_name => 'list_solr_taxa',
 				       );
     }
 }
@@ -1045,9 +1045,9 @@ Index specified genomes in SOLR from KBase workspace
  
 
 
-=head2 index_taxons_in_solr
+=head2 index_taxa_in_solr
 
-  $output = $obj->index_taxons_in_solr($params)
+  $output = $obj->index_taxa_in_solr($params)
 
 =over 4
 
@@ -1056,10 +1056,10 @@ Index specified genomes in SOLR from KBase workspace
 =begin html
 
 <pre>
-$params is a ReferenceDataManager.IndexTaxonsInSolrParams
+$params is a ReferenceDataManager.IndexTaxaInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
-IndexTaxonsInSolrParams is a reference to a hash where the following keys are defined:
-	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+IndexTaxaInSolrParams is a reference to a hash where the following keys are defined:
+	taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
@@ -1112,10 +1112,10 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
 
 =begin text
 
-$params is a ReferenceDataManager.IndexTaxonsInSolrParams
+$params is a ReferenceDataManager.IndexTaxaInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
-IndexTaxonsInSolrParams is a reference to a hash where the following keys are defined:
-	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+IndexTaxaInSolrParams is a reference to a hash where the following keys are defined:
+	taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
@@ -1173,7 +1173,7 @@ Index specified genomes in SOLR from KBase workspace
 
 =cut
 
- sub index_taxons_in_solr
+ sub index_taxa_in_solr
 {
     my($self, @args) = @_;
 
@@ -1182,7 +1182,7 @@ Index specified genomes in SOLR from KBase workspace
     if ((my $n = @args) != 1)
     {
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
-							       "Invalid argument count for function index_taxons_in_solr (received $n, expecting 1)");
+							       "Invalid argument count for function index_taxa_in_solr (received $n, expecting 1)");
     }
     {
 	my($params) = @args;
@@ -1190,31 +1190,31 @@ Index specified genomes in SOLR from KBase workspace
 	my @_bad_arguments;
         (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
         if (@_bad_arguments) {
-	    my $msg = "Invalid arguments passed to index_taxons_in_solr:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    my $msg = "Invalid arguments passed to index_taxa_in_solr:\n" . join("", map { "\t$_\n" } @_bad_arguments);
 	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-								   method_name => 'index_taxons_in_solr');
+								   method_name => 'index_taxa_in_solr');
 	}
     }
 
     my $url = $self->{url};
     my $result = $self->{client}->call($url, $self->{headers}, {
-	    method => "ReferenceDataManager.index_taxons_in_solr",
+	    method => "ReferenceDataManager.index_taxa_in_solr",
 	    params => \@args,
     });
     if ($result) {
 	if ($result->is_error) {
 	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
 					       code => $result->content->{error}->{code},
-					       method_name => 'index_taxons_in_solr',
+					       method_name => 'index_taxa_in_solr',
 					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
 					      );
 	} else {
 	    return wantarray ? @{$result->result} : $result->result->[0];
 	}
     } else {
-        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method index_taxons_in_solr",
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method index_taxa_in_solr",
 					    status_line => $self->{client}->status_line,
-					    method_name => 'index_taxons_in_solr',
+					    method_name => 'index_taxa_in_solr',
 				       );
     }
 }
@@ -1657,7 +1657,7 @@ domain has a value which is a string
 
 =item Description
 
-Arguments for the list_solr_genomes and list_solr_taxons functions
+Arguments for the list_solr_genomes and list_solr_taxa functions
 
 
 =item Definition
@@ -1815,7 +1815,7 @@ workspace_name has a value which is a string
 
 
 
-=head2 ListLoadedTaxonsParams
+=head2 ListLoadedTaxaParams
 
 =over 4
 
@@ -1823,7 +1823,7 @@ workspace_name has a value which is a string
 
 =item Description
 
-Argument(s) for the the lists_loaded_taxons function
+Argument(s) for the the lists_loaded_taxa function
 
 
 =item Definition
@@ -1860,7 +1860,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 =item Description
 
-Struct containing data for a single taxon element output by the list_loaded_taxons function
+Struct containing data for a single taxon element output by the list_loaded_taxa function
 
 
 =item Definition
@@ -1929,7 +1929,7 @@ comments has a value which is a string
 
 =item Description
 
-Struct containing data for a single output by the list_loaded_taxons function
+Struct containing data for a single output by the list_loaded_taxa function
 
 
 =item Definition
@@ -1966,7 +1966,7 @@ ws_ref has a value which is a string
 
 =item Description
 
-Struct containing data for a single taxon element output by the list_solr_taxons function
+Struct containing data for a single taxon element output by the list_solr_taxa function
 
 
 =item Definition
@@ -2111,7 +2111,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 
 
-=head2 IndexTaxonsInSolrParams
+=head2 IndexTaxaInSolrParams
 
 =over 4
 
@@ -2119,7 +2119,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 =item Description
 
-Arguments for the index_taxons_in_solr function
+Arguments for the index_taxa_in_solr function
 
 
 =item Definition
@@ -2128,7 +2128,7 @@ Arguments for the index_taxons_in_solr function
 
 <pre>
 a reference to a hash where the following keys are defined:
-taxons has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
 
@@ -2139,7 +2139,7 @@ create_report has a value which is a ReferenceDataManager.bool
 =begin text
 
 a reference to a hash where the following keys are defined:
-taxons has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
 

@@ -81,10 +81,10 @@ class ReferenceDataManager(object):
         """
         Lists genomes indexed in SOLR
         :param params: instance of type "ListSolrDocsParams" (Arguments for
-           the list_solr_genomes and list_solr_taxons functions) ->
-           structure: parameter "solr_core" of String, parameter "row_start"
-           of Long, parameter "row_count" of Long, parameter "create_report"
-           of type "bool" (A boolean.)
+           the list_solr_genomes and list_solr_taxa functions) -> structure:
+           parameter "solr_core" of String, parameter "row_start" of Long,
+           parameter "row_count" of Long, parameter "create_report" of type
+           "bool" (A boolean.)
         :returns: instance of list of type "SolrGenomeData" (Struct
            containing data for a single genome element output by the
            list_solr_genomes function) -> structure: parameter "genome_id" of
@@ -122,18 +122,18 @@ class ReferenceDataManager(object):
             'ReferenceDataManager.list_solr_genomes',
             [params], self._service_ver, context)
 
-    def list_loaded_taxons(self, params, context=None):
+    def list_loaded_taxa(self, params, context=None):
         """
-        Lists taxons loaded into KBase for a given workspace
-        :param params: instance of type "ListLoadedTaxonsParams" (Argument(s)
-           for the the lists_loaded_taxons function) -> structure: parameter
+        Lists taxa loaded into KBase for a given workspace
+        :param params: instance of type "ListLoadedTaxaParams" (Argument(s)
+           for the the lists_loaded_taxa function) -> structure: parameter
            "workspace_name" of String, parameter "create_report" of type
            "bool" (A boolean.)
         :returns: instance of list of type "LoadedReferenceTaxonData" (Struct
-           containing data for a single output by the list_loaded_taxons
+           containing data for a single output by the list_loaded_taxa
            function) -> structure: parameter "taxon" of type
            "KBaseReferenceTaxonData" (Struct containing data for a single
-           taxon element output by the list_loaded_taxons function) ->
+           taxon element output by the list_loaded_taxa function) ->
            structure: parameter "taxonomy_id" of Long, parameter
            "scientific_name" of String, parameter "scientific_lineage" of
            String, parameter "rank" of String, parameter "kingdom" of String,
@@ -149,19 +149,19 @@ class ReferenceDataManager(object):
            "ws_ref" of String
         """
         return self._client.call_method(
-            'ReferenceDataManager.list_loaded_taxons',
+            'ReferenceDataManager.list_loaded_taxa',
             [params], self._service_ver, context)
 
-    def list_solr_taxons(self, params, context=None):
+    def list_solr_taxa(self, params, context=None):
         """
-        Lists taxons indexed in SOLR
+        Lists taxa indexed in SOLR
         :param params: instance of type "ListSolrDocsParams" (Arguments for
-           the list_solr_genomes and list_solr_taxons functions) ->
-           structure: parameter "solr_core" of String, parameter "row_start"
-           of Long, parameter "row_count" of Long, parameter "create_report"
-           of type "bool" (A boolean.)
+           the list_solr_genomes and list_solr_taxa functions) -> structure:
+           parameter "solr_core" of String, parameter "row_start" of Long,
+           parameter "row_count" of Long, parameter "create_report" of type
+           "bool" (A boolean.)
         :returns: instance of list of type "SolrTaxonData" (Struct containing
-           data for a single taxon element output by the list_solr_taxons
+           data for a single taxon element output by the list_solr_taxa
            function) -> structure: parameter "taxonomy_id" of Long, parameter
            "scientific_name" of String, parameter "scientific_lineage" of
            String, parameter "rank" of String, parameter "kingdom" of String,
@@ -176,7 +176,7 @@ class ReferenceDataManager(object):
            "division_id" of Long, parameter "comments" of String
         """
         return self._client.call_method(
-            'ReferenceDataManager.list_solr_taxons',
+            'ReferenceDataManager.list_solr_taxa',
             [params], self._service_ver, context)
 
     def load_genomes(self, params, context=None):
@@ -234,16 +234,16 @@ class ReferenceDataManager(object):
             'ReferenceDataManager.index_genomes_in_solr',
             [params], self._service_ver, context)
 
-    def index_taxons_in_solr(self, params, context=None):
+    def index_taxa_in_solr(self, params, context=None):
         """
         Index specified genomes in SOLR from KBase workspace
-        :param params: instance of type "IndexTaxonsInSolrParams" (Arguments
-           for the index_taxons_in_solr function) -> structure: parameter
-           "taxons" of list of type "LoadedReferenceTaxonData" (Struct
-           containing data for a single output by the list_loaded_taxons
+        :param params: instance of type "IndexTaxaInSolrParams" (Arguments
+           for the index_taxa_in_solr function) -> structure: parameter
+           "taxa" of list of type "LoadedReferenceTaxonData" (Struct
+           containing data for a single output by the list_loaded_taxa
            function) -> structure: parameter "taxon" of type
            "KBaseReferenceTaxonData" (Struct containing data for a single
-           taxon element output by the list_loaded_taxons function) ->
+           taxon element output by the list_loaded_taxa function) ->
            structure: parameter "taxonomy_id" of Long, parameter
            "scientific_name" of String, parameter "scientific_lineage" of
            String, parameter "rank" of String, parameter "kingdom" of String,
@@ -259,7 +259,7 @@ class ReferenceDataManager(object):
            "ws_ref" of String, parameter "solr_core" of String, parameter
            "create_report" of type "bool" (A boolean.)
         :returns: instance of list of type "SolrTaxonData" (Struct containing
-           data for a single taxon element output by the list_solr_taxons
+           data for a single taxon element output by the list_solr_taxa
            function) -> structure: parameter "taxonomy_id" of Long, parameter
            "scientific_name" of String, parameter "scientific_lineage" of
            String, parameter "rank" of String, parameter "kingdom" of String,
@@ -274,7 +274,7 @@ class ReferenceDataManager(object):
            "division_id" of Long, parameter "comments" of String
         """
         return self._client.call_method(
-            'ReferenceDataManager.index_taxons_in_solr',
+            'ReferenceDataManager.index_taxa_in_solr',
             [params], self._service_ver, context)
 
     def update_loaded_genomes(self, params, context=None):
