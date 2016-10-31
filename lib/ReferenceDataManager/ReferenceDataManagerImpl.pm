@@ -805,28 +805,138 @@ sub getTaxon {
 }
 #################### End methods for accessing SOLR #######################
 
+sub _extract_ncbi_taxons {
+    my $self=shift;
+    my $taxon_file_path=$self->{'scratch'}."/taxon_dump/";
+    mkdir($taxon_file_path);
+    chdir($taxon_file_path);
+    system("curl -o taxdump.tar.gz ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz");
+    system("tar -zxf taxdump.tar.gz");
+
+    open(my $fh, "< ${taxon_file_path}nodes.dmp");
+    my $taxon_objects={};
+    while(<$fh>){
+	chomp;
+	my @temp=split(/\s*\|\s*/,$_,-1);
+	next unless $temp[0] =~ /^(1|2|131567|1224|28211|356|335928|6)$/;
+	my $object = {'taxonomy_id'=>$temp[0]+0,
+		      'parent_taxon_id'=>$temp[1]+0,
+		      'rank'=>$temp[2],
+		      'embl_code'=>$temp[3],
+		      'division_id'=>$temp[4]+0,
+		      'inherited_div_flag'=>$temp[5]+0,
+		      'genetic_code'=>$temp[6]+0,
+		      'inherited_GC_flag'=>$temp[7]+0,
+		      'mitochondrial_genetic_code'=>$temp[8]+0,
+		      'inherited_MGC_flag'=>$temp[9]+0,
+		      'GenBank_hidden_flag'=>$temp[10]+0,
+		      'hidden_substree_root_flag'=>$temp[11],
+		      'comments'=>$temp[12],
+		      'domain'=>"Unknown",
+		      'scientific_name'=>"",
+		      'scientific_lineage'=>"",
+		      'aliases'=>[]};
+
+	$taxon_objects->{$temp[0]}=$object;
+    }
+    close($fh);
+
+    open(my $fh, "< ${taxon_file_path}names.dmp");
+    while(<$fh>){
+	chomp;
+	my @temp=split(/\s*\|\s*/,$_,-1);
+	if(exists($taxon_objects->{$temp[0]})){
+	    if($temp[3] eq "scientific name"){
+		$taxon_objects->{$temp[0]}{"scientific_name"}=$temp[1];
+	    }else{
+		push(@{$taxon_objects->{$temp[0]}{"aliases"}},$temp[1]);
+	    }
+	}
+    }
+    close($fh);
+
+    #Iterate through to make lineage, need to determine "level" of each object so to sort properly before loading
+    my %taxon_level=();
+    foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %$taxon_objects ){
+	$obj->{"scientific_lineage"} = _make_lineage($obj->{"taxonomy_id"},$taxon_objects);
+
+	#Determine Domain
+	foreach my $domain ("Eukaryota","Bacteria","Viruses","Archaea"){
+	    if($obj->{"scientific_lineage"} =~ /${domain}/){
+		$obj->{"domain"}=$domain;
+		last;
+	    }
+	}
+
+	#Determine Kingdom
+	foreach my $kingdom ("Fungi","Viridiplantae","Metazoa"){
+	    if($obj->{"domain"} eq "Eukaryota" && $obj->{"scientific_lineage"} =~ /${kingdom}/){
+		$obj->{"kingdom"}=$kingdom;
+		last;
+	    }
+	}
+	
+	my $level = scalar( split(/;\s/,$obj->{"scientific_lineage"}) );
+	$taxon_level{$level}{$obj->{"taxonomy_id"}}=1;
+    }
+
+    my $taxon_objs=[];
+    foreach my $level ( sort { $a <=> $b } keys %taxon_level ){
+	foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %{$taxon_level{$level}} ){
+	    delete $obj->{"parent_taxon_ref"} if $obj->{"taxonomy_id"} == 1;
+	    push(@$taxon_objs,$obj);
+	}
+    }
+    return $taxon_objs;
+}
+
 sub _make_lineage {
     my ($taxon_id,$taxon_objects)=@_;
     return "" if $taxon_id == 1;
     my @lineages=($taxon_objects->{$taxon_id}{"scientific_name"});
-    if(exists($taxon_objects->{$taxon_id}) && exists($taxon_objects->{$taxon_id}{"parent_taxon_ref"}) && $taxon_objects->{$taxon_id}{"parent_taxon_ref"} !~ /\/1$/){
-	my @temp = split(/\//,$taxon_objects->{$taxon_id}{"parent_taxon_ref"});
-	my $parent_taxon_id=$temp[$#temp];
-	$parent_taxon_id =~ s/_taxon//;
-	while($parent_taxon_id != -1 && $parent_taxon_id != 1){
+    if(exists($taxon_objects->{$taxon_id}) && exists($taxon_objects->{$taxon_id}{"parent_taxon_id"})){
+	my $parent_taxon_id=$taxon_objects->{$taxon_id}{"parent_taxon_id"};
+	while($parent_taxon_id > 1){
 	    if(exists($taxon_objects->{$parent_taxon_id}{"scientific_name"}) && $taxon_objects->{$parent_taxon_id}{"scientific_name"} ne ""){
 		unshift(@lineages,$taxon_objects->{$parent_taxon_id}{"scientific_name"});
 	    }
-	    if(exists($taxon_objects->{$parent_taxon_id}{"parent_taxon_ref"})){
-		@temp = split(/\//,$taxon_objects->{$parent_taxon_id}{"parent_taxon_ref"});
-		$parent_taxon_id=$temp[$#temp];
-		$parent_taxon_id =~ s/_taxon//;
+	    if(exists($taxon_objects->{$parent_taxon_id}{"parent_taxon_id"})){
+		$parent_taxon_id=$taxon_objects->{$parent_taxon_id}{"parent_taxon_id"};
 	    }else{
-		$parent_taxon_id = -1;
+		$parent_taxon_id = 0;
 	    }
 	}
     }
     return join("; ",@lineages);
+}
+
+sub _check_taxon {
+    my $self=shift;
+    my ($taxon,$taxon_list) = @_;
+    my %taxon_hash = map { $_->{'taxonomy_id'} => $_ } @$taxon_list;
+
+    if(!exists($taxon_hash{$taxon->{'taxonomy_id'}})){
+	return 0;
+    }else{
+	my @Fields_to_Check = ('parent_taxon_ref','rank','domain','scientific_name','scientific_lineage');
+	my $current_taxon = $taxon_hash{$taxon->{'taxonomy_id'}};
+	foreach my $field (@Fields_to_Check){
+	    if($field eq 'parent_taxon_ref'){
+		#retrieve parent taxon object to find identity
+		#if($current_parent_id ne $taxon->{'parent_taxon_id'}){
+		#    print "\tno match\n";
+		#    return 0;
+		#}
+	    }else{
+		if($current_taxon->{$field} ne $taxon->{$field}){
+		    print "\tno match!\n";
+		    return 0;
+		}
+	    }
+	}
+    }
+
+    return 1;
 }
 
 #END_HEADER
@@ -1371,11 +1481,11 @@ sub list_loaded_taxons
             my $current_taxon = $self -> getTaxon($taxonData, $wstaxonrefs -> [$i] -> {ref});
             push(@{$solrTaxonBatch}, $current_taxon); 
         }   
-        if( @{$solrTaxonBatch} >= 1000) {
-            $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
-            print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
-            $solrTaxonBatch = []; 
-        }
+#        if( @{$solrTaxonBatch} >= 1000) {
+#            $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
+#            print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
+#            $solrTaxonBatch = []; 
+#        }
      }  
    }    
    catch { 
@@ -1742,94 +1852,26 @@ sub load_taxons
     	workspace_name => undef
     });
 
-    my $taxon_file_path=$self->{'scratch'}."/taxon_dump/";
-    mkdir($taxon_file_path);
-    chdir($taxon_file_path);
-    system("curl -o taxdump.tar.gz ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz");
-    system("tar -zxf taxdump.tar.gz");
+    my $ncbi_taxon_objs = $self->_extract_ncbi_taxons();
+#    my $loaded_taxon_objs = $self->list_loaded_taxons();
 
-    open(my $fh, "< ${taxon_file_path}nodes.dmp");
-    my $taxon_objects={};
     my $Taxon_WS = "Taxon_Test"; #ReferenceTaxons
-    while(<$fh>){
-	chomp;
-	my @temp=split(/\s*\|\s*/,$_,-1);
-	next unless $temp[0] =~ /^(1|2|131567|1224|28211|356|335928|6)$/;
-	my $object = {'taxonomy_id'=>$temp[0]+0,
-		      'parent_taxon_ref'=>$Taxon_WS."/".$temp[1]."_taxon",
-		      'rank'=>$temp[2],
-		      'embl_code'=>$temp[3],
-		      'division_id'=>$temp[4]+0,
-		      'inherited_div_flag'=>$temp[5]+0,
-		      'genetic_code'=>$temp[6]+0,
-		      'inherited_GC_flag'=>$temp[7]+0,
-		      'mitochondrial_genetic_code'=>$temp[8]+0,
-		      'inherited_MGC_flag'=>$temp[9]+0,
-		      'GenBank_hidden_flag'=>$temp[10]+0,
-		      'hidden_substree_root_flag'=>$temp[11],
-		      'comments'=>$temp[12],
-		      'domain'=>"Unknowmn",
-		      'scientific_name'=>"",
-		      'scientific_lineage'=>"",
-		      'aliases'=>[]};
-
-	$taxon_objects->{$temp[0]}=$object;
-    }
-    close($fh);
-
-    open(my $fh, "< ${taxon_file_path}names.dmp");
-    while(<$fh>){
-	chomp;
-	my @temp=split(/\s*\|\s*/,$_,-1);
-	if(exists($taxon_objects->{$temp[0]})){
-	    if($temp[3] eq "scientific name"){
-		$taxon_objects->{$temp[0]}{"scientific_name"}=$temp[1];
-	    }else{
-		push(@{$taxon_objects->{$temp[0]}{"aliases"}},$temp[1]);
-	    }
-	}
-    }
-    close($fh);
-
-    #Iterate through to make lineage, need to determine "level" of each object so to sort properly before loading
-    my %taxon_level=();
-    foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %$taxon_objects ){
-	$obj->{"scientific_lineage"} = _make_lineage($obj->{"taxonomy_id"},$taxon_objects);
-
-	#Determine Domain
-	foreach my $domain ("Eukaryota","Bacteria","Viruses","Archaea"){
-	    if($obj->{"scientific_lineage"} =~ /${domain}/){
-		$obj->{"domain"}=$domain;
-		last;
-	    }
-	}
-
-	#Determine Kingdom
-	foreach my $kingdom ("Fungi","Viridiplantae","Metazoa"){
-	    if($obj->{"domain"} eq "Eukaryota" && $obj->{"scientific_lineage"} =~ /${kingdom}/){
-		$obj->{"kingdom"}=$kingdom;
-		last;
-	    }
-	}
-	
-	my $level = scalar( split(/;\s/,$obj->{"scientific_lineage"}) );
-	$taxon_level{$level}{$obj->{"taxonomy_id"}}=1;
-    }
-
     my $taxon_provenance = [{"script"=>$0, "script_ver"=>"0.1", "description"=>"Taxon generated from NCBI taxonomy names and nodes files downloaded on 10/20/2016."}];
-    foreach my $level ( sort { $a <=> $b } keys %taxon_level ){
-	foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %{$taxon_level{$level}} ){
-	    my $taxon_name = $obj->{"taxonomy_id"}."_taxon";
-	    $obj->{"taxonomy_id"}+=0;
-	    delete $obj->{"parent_taxon_ref"} if $obj->{"taxonomy_id"} == 1;
-	    print "Loading $taxon_name at $level\n";
-	    $self->{_wsclient}->save_objects({"workspace"=>$Taxon_WS,"objects"=>[ {"type"=>"KBaseGenomeAnnotations.Taxon",
-										   "data"=>$obj, 
-										   "name"=>$taxon_name,
-										   "provenance"=>$taxon_provenance}] });
-	}
+    foreach my $obj (@$ncbi_taxon_objs){
+	$obj->{'parent_taxon_ref'}=$Taxon_WS."/".$obj->{'parent_taxon_id'}."_taxon";
+	delete $obj->{'parent_taxon_id'};
+
+	my $taxon_name = $obj->{"taxonomy_id"}."_taxon";
+	$obj->{"taxonomy_id"}+=0;
+
+#	$self->
+	print "Loading $taxon_name\n";
+	$self->{_wsclient}->save_objects({"workspace"=>$Taxon_WS,"objects"=>[ {"type"=>"KBaseGenomeAnnotations.Taxon",
+									       "data"=>$obj, 
+									       "name"=>$taxon_name,
+									       "provenance"=>$taxon_provenance}] });
     }
-    $output=[];
+    $output=[];#$taxon_objs;
     #END load_taxons
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
