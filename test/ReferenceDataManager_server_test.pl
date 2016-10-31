@@ -141,12 +141,12 @@ eval {
     #Testing list_loaded_taxons
     my $taxon_ret;
     eval {
-        $taxon_ret = $impl->list_loaded_taxons({ 
+        $taxon_ret = $impl->list_loaded_taxa({ 
             workspace_name => "ReferenceTaxons",
             create_report => 0
     });
     };
-    ok(!$@,"list_loaded_taxons command successful");
+    ok(!$@,"list_loaded_taxa command successful");
     if ($@) {
 		my $err = $@;
 		print "Error type: " . ref($err) . "\n";
@@ -158,18 +158,18 @@ eval {
         print "First record:\n";
         print Data::Dumper->Dump([$taxon_ret->[0]])."\n";
     }
-    ok(defined($taxon_ret->[0]),"list_loaded_taxons command returned at least one taxon");
+    ok(defined($taxon_ret->[0]),"list_loaded_taxa command returned at least one taxon");
     
-    #Testing index_taxons_in_solr
+    #Testing index_taxa_in_solr
     my $solr_ret;
     eval {
-        $solr_ret = $impl->index_taxons_in_solr({ 
+        $solr_ret = $impl->index_taxa_in_solr({ 
                 taxons => $taxon_ret,
                 solr_core => "taxonomy_ci",
                 create_report => 0
         });
     };
-    ok(!$@,"index_taxons_in_solr command successful");
+    ok(!$@,"index_taxa_in_solr command successful");
     if ($@) {
 		my $err = $@;
 		print "Error type: " . ref($err) . "\n";
@@ -181,7 +181,7 @@ eval {
         print "First record:\n";
         print Data::Dumper->Dump([$solr_ret->[0]])."\n";
     }
-    ok(defined($solr_ret->[0]),"index_taxons_in_solr command returned at least one taxon");
+    ok(defined($solr_ret->[0]),"index_taxa_in_solr command returned at least one taxon");
 =begin
     #Testing update_loaded_genomes
     my $ret;
