@@ -2263,7 +2263,7 @@ sub load_taxons
     my $ncbi_taxon_objs = $self->_extract_ncbi_taxons();
 
     my $Taxon_WS = "Taxon_Test"; #ReferenceTaxons
-    my $loaded_taxon_objs = $self->list_loaded_taxons({workspace_name=>$Taxon_WS});
+    my $loaded_taxon_objs = $self->list_loaded_taxa({workspace_name=>$Taxon_WS});
 
     my $taxon_provenance = [{"script"=>$0, "script_ver"=>"0.1", "description"=>"Taxon generated from NCBI taxonomy names and nodes files downloaded on 10/20/2016."}];
     foreach my $obj (@$ncbi_taxon_objs){
