@@ -1522,79 +1522,85 @@ sub list_loaded_taxa
     my $wsinfo;
     my $wsoutput;
     my $taxonout;
-    my $solrTaxonBatch = []; 
     if(defined($self->util_ws_client())){
-    $wsinfo = $self->util_ws_client()->get_workspace_info({
+        $wsinfo = $self->util_ws_client()->get_workspace_info({
             workspace => $wsname
         });
     }
 
-    my $batch_count = 10000;
+    my $batch_count = 1000;
     my $maxid = $wsinfo->[4];
     my $pages = ceil($maxid/$batch_count);
     print "\nFound $maxid taxon objects.\n";
     
     try {
-        for (my $m = 46; $m < 61; $m++) {
-        print "\nBatch ". $m . "x$batch_count on " . scalar localtime;
-        eval { 
-            $wsoutput = $self->util_ws_client()->list_objects({
-            workspaces => [$wsname],
-            type => "KBaseGenomeAnnotations.Taxon-1.0",
-            minObjectID => $batch_count * $m,
-            maxObjectID => $batch_count * ( $m + 1)
-            });
-        };
-        if($@) {
-            print "Cannot list objects!\n";
-            print "ERROR:" . $@;#->{message}."\n";
-            if(defined($@->{status_line})) {
-                print "ERROR:" . $@->{status_line}."\n"; 
+        for (my $m = 1313; $m < 1316; $m++) {
+            print "\nBatch ". $m . "x$batch_count";# on " . scalar localtime;
+            eval { 
+                    $wsoutput = $self->util_ws_client()->list_objects({
+                        workspaces => [$wsname],
+                        type => "KBaseGenomeAnnotations.Taxon-1.0",
+                        minObjectID => $batch_count * $m,
+                        maxObjectID => $batch_count * ( $m + 1)
+                    });
+            };
+            if($@) {
+                print "Cannot list objects!\n";
+                print "ERROR:" . $@;#->{message}."\n";
+                if(defined($@->{status_line})) {
+                        print "ERROR:" . $@->{status_line}."\n"; 
+                }
             }
-        }
-        print "\nDone batch ". $m . "x$batch_count listing on ". scalar localtime ."\n";
-        my $wstaxonrefs = [];
-        for (my $j=0; $j < @{$wsoutput}; $j++) {
-            push(@{$wstaxonrefs},{
-                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4]
-            });
-        }
+            if( @{$wsoutput} > 0 ) { 
+                my $wstaxonrefs = [];
+                for (my $j=0; $j < @{$wsoutput}; $j++) {
+                        push(@{$wstaxonrefs},{
+                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4]
+                        });
+                }       
 
-        print "\nFetch the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime; 
-        eval {
-            $taxonout = $self->util_ws_client()->get_objects2({
-                objects => $wstaxonrefs
-            }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
-        };
-        if($@) {
-            print "Cannot get object information!\n";
-            print "ERROR:".$@;
-            #print $@->{message}."\n";
-            if(defined($@->{status_line})) {
-                print $@->{status_line}."\n";
+                print "\nStart to fetch the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime; 
+                eval {
+                        $taxonout = $self->util_ws_client()->get_objects2({
+                                objects => $wstaxonrefs
+                        }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
+                };
+                if($@) {
+                        print "Cannot get object information!\n";
+                        print "ERROR:".$@;
+                        if(defined($@->{status_line})) {
+                                print $@->{status_line}."\n";
+                        }
+               }
+               print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
+               $taxonout = $taxonout -> {data};
+               my $taxon_ret = [];
+               for (my $i=0; $i < @{$taxonout}; $i++) {
+                       my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
+                       push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
+                       if (@{$output} < 10) {
+                               my $curr = @{$output}-1;
+                               $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+                       } 
+              
+                       push(@{$taxon_ret}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
+               }
+               $self->index_taxa_in_solr({ 
+                       taxa => $taxon_ret,
+                       solr_core => "taxonomy_ci",
+                       create_report => 0
+               });
             }
-        }
-        print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
-        $taxonout = $taxonout -> {data};
-        for (my $i=0; $i < @{$taxonout}; $i++) {
-            my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
-
-            push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
-            if (@{$output} < 10) {
-                    my $curr = @{$output}-1;
-                    $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
-            } 
-        }   
-     }  
-   }    
-   catch { 
+         }  
+    }    
+    catch { 
         warn "Got an exception from calling get_objects2 or solr connection\n $_";
-   }   
-   finally {
+    }   
+    finally {
        if (@_) {
           print "The trying to call get_objects2 or solr connection died with:\n" . Dumper( @_) . "\n";
        }
-   };
+    };
   
     #END list_loaded_taxa
     my @_bad_returns;
@@ -2360,6 +2366,7 @@ sub index_taxa_in_solr
     my $msg = "";
     $output = [];
     my $taxa = $params->{taxa};
+    #print Dumper($taxa);
     my $solrCore = $params->{solr_core};
     my $solrBatch = [];
     my $solrBatchCount = 10000;
@@ -2552,7 +2559,6 @@ sub update_loaded_genomes
 
             if ($gnstatus=~/(new|updated)/i){
                 $count ++;
-                #$self->load_genomes( {genomes => [$genome], index_in_solr => 1} );
                 push(@{$output},$genome);
             
                 if ($count < 10) {
