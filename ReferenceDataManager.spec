@@ -240,7 +240,7 @@ module ReferenceDataManager {
     funcdef load_genomes(LoadGenomesParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
 
     /*
-        Struct containing data for a single taxon output by the list_loaded_taxons function
+        Struct containing data for a single taxon output by the list_loaded_taxa function
     */
     typedef structure {
         string ref;
