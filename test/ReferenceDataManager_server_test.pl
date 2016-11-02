@@ -160,6 +160,7 @@ eval {
     }
     ok(defined($taxon_ret->[0]),"list_loaded_taxa command returned at least one taxon");
     
+=begin 
     #Testing index_taxa_in_solr
     my $solr_ret;
     eval {
@@ -182,7 +183,7 @@ eval {
         print Data::Dumper->Dump([$solr_ret->[0]])."\n";
     }
     ok(defined($solr_ret->[0]),"index_taxa_in_solr command returned at least one taxon");
-=begin
+    
     #Testing update_loaded_genomes
     my $ret;
     eval {
