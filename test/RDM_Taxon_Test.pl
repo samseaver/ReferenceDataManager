@@ -21,16 +21,30 @@ $ReferenceDataManager::ReferenceDataManagerServer::CallContext = $ctx;
 my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
+    $impl->util_initialize_call({},$ctx);
     my $listed_taxons=[];
+    my $ids_to_extract = {1=>1,2=>1,131567=>1,1224=>1,28211=>1,356=>1,335928=>1,6=>1};
     eval {
-        $listed_taxons = $impl->list_loaded_taxons({workspace_name=>"Taxon_Test"});
+#        $listed_taxons = $impl->list_loaded_taxons({workspace_name=>"Taxon_Test"});
+#        $listed_taxons = $impl->list_loaded_taxons({workspace_name=>"ReferenceTaxons"});
+	my @refs = ();
+	foreach my $id (keys %$ids_to_extract){
+	    push(@refs,{ref=>"ReferenceTaxons/".$id."_taxon"});
+	}
+
+	my $results = $impl->util_ws_client()->get_objects2({objects=>\@refs,ignoreErrors=>1})->{data};
+	foreach my $result (@$results){
+	    push(@$listed_taxons,$result->{data}) if $result;
+	}
     };
     print $@,"\n" if $@;
     ok(!$@,"Listed ".scalar(@$listed_taxons)." WS taxons");
-    
+
+    print Data::Dumper::Dumper($listed_taxons),"\n";
+
     my $ncbi_taxons=[];
     eval {
-	$ncbi_taxons = $impl->_extract_ncbi_taxons();
+	$ncbi_taxons = $impl->_extract_ncbi_taxons($ids_to_extract);
     };
     print $@,"\n" if $@;
     ok(!$@,"Extracted ".scalar(@$ncbi_taxons)." NCBI taxons");
@@ -38,13 +52,25 @@ eval {
     my $taxons_to_load=[];
     eval {
 	foreach my $obj (@$ncbi_taxons){
-	    push(@$taxons_to_load,$obj) if !$impl->_check_taxon($obj,$listed_taxons);
+	    my $result = $impl->_check_taxon($obj,$listed_taxons);
+	    if(scalar(@$result)){
+		print "Re-loading Taxon ".$obj->{'taxonomy_id'}."\n";
+		print "\t".join("\n\t",@$result)."\n";
+		push(@$taxons_to_load,$obj);
+	    }
 	}
     };
     print $@,"\n" if $@;
     ok(!$@,"Will load ".scalar(@$taxons_to_load)." NCBI taxons");
-    done_testing(3);
 };
+
+eval {
+    my $loaded_taxons = $impl->load_taxons({});
+    print $@,"\n" if $@;
+    ok(!$@,"Loaded ".scalar(@$loaded_taxons)."NCBI Taxons\n");
+};
+
+done_testing(4);
 
 my $err = undef;
 if ($@) {

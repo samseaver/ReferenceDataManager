@@ -807,6 +807,7 @@ sub getTaxon {
 
 sub _extract_ncbi_taxons {
     my $self=shift;
+    my $ids_to_extract = shift;
     my $taxon_file_path=$self->{'scratch'}."/taxon_dump/";
     mkdir($taxon_file_path);
     chdir($taxon_file_path);
@@ -818,7 +819,7 @@ sub _extract_ncbi_taxons {
     while(<$fh>){
 	chomp;
 	my @temp=split(/\s*\|\s*/,$_,-1);
-	next unless $temp[0] =~ /^(1|2|131567|1224|28211|356|335928|6)$/;
+	next if defined($ids_to_extract) && !exists($ids_to_extract->{$temp[0]});
 	my $object = {'taxonomy_id'=>$temp[0]+0,
 		      'parent_taxon_id'=>$temp[1]+0,
 		      'rank'=>$temp[2],
@@ -883,7 +884,7 @@ sub _extract_ncbi_taxons {
     my $taxon_objs=[];
     foreach my $level ( sort { $a <=> $b } keys %taxon_level ){
 	foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %{$taxon_level{$level}} ){
-	    delete $obj->{"parent_taxon_ref"} if $obj->{"taxonomy_id"} == 1;
+	    delete $obj->{"parent_taxon_id"} if $obj->{"taxonomy_id"} == 1;
 	    push(@$taxon_objs,$obj);
 	}
     }
@@ -893,7 +894,7 @@ sub _extract_ncbi_taxons {
 sub _make_lineage {
     my ($taxon_id,$taxon_objects)=@_;
     return "" if $taxon_id == 1;
-    my @lineages=($taxon_objects->{$taxon_id}{"scientific_name"});
+    my @lineages=();
     if(exists($taxon_objects->{$taxon_id}) && exists($taxon_objects->{$taxon_id}{"parent_taxon_id"})){
 	my $parent_taxon_id=$taxon_objects->{$taxon_id}{"parent_taxon_id"};
 	while($parent_taxon_id > 1){
@@ -915,28 +916,42 @@ sub _check_taxon {
     my ($taxon,$taxon_list) = @_;
     my %taxon_hash = map { $_->{'taxonomy_id'} => $_ } @$taxon_list;
 
+    my @Mismatches=();
     if(!exists($taxon_hash{$taxon->{'taxonomy_id'}})){
-	return 0;
+	push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." not found");
     }else{
 	my @Fields_to_Check = ('parent_taxon_ref','rank','domain','scientific_name','scientific_lineage');
 	my $current_taxon = $taxon_hash{$taxon->{'taxonomy_id'}};
 	foreach my $field (@Fields_to_Check){
 	    if($field eq 'parent_taxon_ref'){
-		#retrieve parent taxon object to find identity
-		#if($current_parent_id ne $taxon->{'parent_taxon_id'}){
-		#    print "\tno match\n";
-		#    return 0;
-		#}
+		my $parent_taxon = undef;
+		$parent_taxon = $current_taxon->{'parent_taxon_ref'} if exists $current_taxon->{'parent_taxon_ref'};
+		if(defined($parent_taxon)){
+		    if(!defined($taxon->{'parent_taxon_id'})){
+			push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." does not contain parent taxon, but current taxon does");
+		    }else{
+			$parent_taxon = $self->{_wsclient}->get_objects2({objects=>[{"ref" => $parent_taxon}],ignoreErrors=>1})->{data};
+			if(scalar(@$parent_taxon)){
+			    $parent_taxon=$parent_taxon->[0]{data};
+			}else{
+			    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." and current taxon contain parent taxon, but cannot retrieve current parent taxon");
+			}
+			if($parent_taxon->{'taxonomy_id'} != $taxon->{'parent_taxon_id'}){
+			    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." parent taxon id does not match current parent taxon id");
+			}
+		    }
+		}elsif(defined($taxon->{'parent_taxon_id'})){
+		    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." does contains parent taxon, but current taxon does not");
+		}
 	    }else{
 		if($current_taxon->{$field} ne $taxon->{$field}){
-		    print "\tno match!\n";
-		    return 0;
+		    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." field $field does not match current value");
 		}
 	    }
 	}
     }
 
-    return 1;
+    return \@Mismatches;
 }
 
 #END_HEADER
@@ -1424,12 +1439,15 @@ sub list_loaded_taxons
     }
 
     my $batch_count = 10000;
+    $batch_count=1000;
     my $maxid = $wsinfo->[4];
     my $pages = ceil($maxid/$batch_count);
+
     print "\nFound $maxid taxon objects.\n";
-    
+    print "\nPaging through $pages of $batch_count objects\n";
     try {
     for (my $m=0; $m < $pages; $m++) {
+	print scalar(localtime),"\n";
         eval { 
             $wsoutput = $self->util_ws_client()->list_objects({
             workspaces => [$wsname],
@@ -1481,11 +1499,11 @@ sub list_loaded_taxons
             my $current_taxon = $self -> getTaxon($taxonData, $wstaxonrefs -> [$i] -> {ref});
             push(@{$solrTaxonBatch}, $current_taxon); 
         }   
-#        if( @{$solrTaxonBatch} >= 1000) {
-#            $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
-#            print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
-#            $solrTaxonBatch = []; 
-#        }
+        if( @{$solrTaxonBatch} >= 1000) {
+            $self -> _addXML2Solr("taxonomy", $solrTaxonBatch);
+            print "\nIndexed " . @{$solrTaxonBatch} . " taxons.\n";
+            $solrTaxonBatch = []; 
+        }
      }  
    }    
    catch { 
@@ -1853,25 +1871,27 @@ sub load_taxons
     });
 
     my $ncbi_taxon_objs = $self->_extract_ncbi_taxons();
-#    my $loaded_taxon_objs = $self->list_loaded_taxons();
 
     my $Taxon_WS = "Taxon_Test"; #ReferenceTaxons
+    my $loaded_taxon_objs = $self->list_loaded_taxons({workspace_name=>$Taxon_WS});
+
     my $taxon_provenance = [{"script"=>$0, "script_ver"=>"0.1", "description"=>"Taxon generated from NCBI taxonomy names and nodes files downloaded on 10/20/2016."}];
     foreach my $obj (@$ncbi_taxon_objs){
+	$self->_check_taxon($obj,$loaded_taxon_objs);
+
 	$obj->{'parent_taxon_ref'}=$Taxon_WS."/".$obj->{'parent_taxon_id'}."_taxon";
+	delete $obj->{'parent_taxon_ref'} if $obj->{'taxonomy_id'}==1;
 	delete $obj->{'parent_taxon_id'};
 
 	my $taxon_name = $obj->{"taxonomy_id"}."_taxon";
-	$obj->{"taxonomy_id"}+=0;
-
-#	$self->
 	print "Loading $taxon_name\n";
+	$obj->{"taxonomy_id"}+=0;
 	$self->{_wsclient}->save_objects({"workspace"=>$Taxon_WS,"objects"=>[ {"type"=>"KBaseGenomeAnnotations.Taxon",
 									       "data"=>$obj, 
 									       "name"=>$taxon_name,
 									       "provenance"=>$taxon_provenance}] });
+	pus(@$output, $self->getTaxon($obj, $Taxon_WS."/".$taxon_name);
     }
-    $output=[];#$taxon_objs;
     #END load_taxons
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
