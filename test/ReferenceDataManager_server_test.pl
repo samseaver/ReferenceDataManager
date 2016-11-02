@@ -139,14 +139,14 @@ eval {
 =cut
 
     #Testing list_loaded_taxons
-    my $ret;
+    my $taxon_ret;
     eval {
-        $ret = $impl->list_loaded_taxons({ 
+        $taxon_ret = $impl->list_loaded_taxa({ 
             workspace_name => "ReferenceTaxons",
             create_report => 0
     });
     };
-    ok(!$@,"list_loaded_taxons command successful");
+    ok(!$@,"list_loaded_taxa command successful");
     if ($@) {
 		my $err = $@;
 		print "Error type: " . ref($err) . "\n";
@@ -154,12 +154,35 @@ eval {
 		print "Error error: " . $err->{error} . "\n";
 		print "Error data: " .$err->{data} . "\n";
     } else {
-        print "Number of records:".@{$ret}."\n";
+        print "Number of records:".@{$taxon_ret}."\n";
         print "First record:\n";
-        print Data::Dumper->Dump([$ret->[0]])."\n";
+        print Data::Dumper->Dump([$taxon_ret->[0]])."\n";
     }
-    ok(defined($ret->[0]),"list_loaded_taxons command returned at least one taxon");
-
+    ok(defined($taxon_ret->[0]),"list_loaded_taxa command returned at least one taxon");
+    
+    #Testing index_taxa_in_solr
+    my $solr_ret;
+    eval {
+        $solr_ret = $impl->index_taxa_in_solr({ 
+                taxa => $taxon_ret,
+                solr_core => "taxonomy_ci",
+                create_report => 0
+        });
+    };
+    ok(!$@,"index_taxa_in_solr command successful");
+    if ($@) {
+		my $err = $@;
+		print "Error type: " . ref($err) . "\n";
+		print "Error message: " . $err->{message} . "\n";
+		print "Error error: " . $err->{error} . "\n";
+		print "Error data: " .$err->{data} . "\n";
+    } else {
+        print "Number of records:".@{$solr_ret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$solr_ret->[0]])."\n";
+    }
+    ok(defined($solr_ret->[0]),"index_taxa_in_solr command returned at least one taxon");
+=begin
     #Testing update_loaded_genomes
     my $ret;
     eval {
@@ -180,7 +203,7 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"update_loaded_genomes command returned at least one genome");
-
+=cut
     done_testing(2);
 };
 
