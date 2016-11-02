@@ -3572,7 +3572,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 =item Description
 
-Struct containing data for a single taxon output by the list_loaded_taxons function
+Struct containing data for a single taxon output by the list_loaded_taxa function
 
 
 =item Definition
