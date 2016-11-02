@@ -931,6 +931,124 @@ Loads specified genomes into KBase workspace and indexes in SOLR on demand
  
 
 
+=head2 load_taxons
+
+  $output = $obj->load_taxons($params)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$params is a ReferenceDataManager.LoadTaxonsParams
+$output is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+LoadTaxonsParams is a reference to a hash where the following keys are defined:
+	data has a value which is a string
+	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
+ReferenceTaxonData is a reference to a hash where the following keys are defined:
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	ftp_dir has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+bool is an int
+
+</pre>
+
+=end html
+
+=begin text
+
+$params is a ReferenceDataManager.LoadTaxonsParams
+$output is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+LoadTaxonsParams is a reference to a hash where the following keys are defined:
+	data has a value which is a string
+	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
+ReferenceTaxonData is a reference to a hash where the following keys are defined:
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	ftp_dir has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+bool is an int
+
+
+=end text
+
+=item Description
+
+Loads specified genomes into KBase workspace and indexes in SOLR on demand
+
+=back
+
+=cut
+
+ sub load_taxons
+{
+    my($self, @args) = @_;
+
+# Authentication: required
+
+    if ((my $n = @args) != 1)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function load_taxons (received $n, expecting 1)");
+    }
+    {
+	my($params) = @args;
+
+	my @_bad_arguments;
+        (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
+        if (@_bad_arguments) {
+	    my $msg = "Invalid arguments passed to load_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+								   method_name => 'load_taxons');
+	}
+    }
+
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ReferenceDataManager.load_taxons",
+	    params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'load_taxons',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method load_taxons",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'load_taxons',
+				       );
+    }
+}
+ 
+
+
 =head2 index_genomes_in_solr
 
   $output = $obj->index_genomes_in_solr($params)
@@ -2061,6 +2179,102 @@ create_report has a value which is a ReferenceDataManager.bool
 a reference to a hash where the following keys are defined:
 data has a value which is a string
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+index_in_solr has a value which is a ReferenceDataManager.bool
+workspace_name has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
+
+
+=end text
+
+=back
+
+
+
+=head2 ReferenceTaxonData
+
+=over 4
+
+
+
+=item Description
+
+Struct containing data for a single taxon output by the list_loaded_taxons function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+ref has a value which is a string
+id has a value which is a string
+workspace_name has a value which is a string
+source_id has a value which is a string
+accession has a value which is a string
+name has a value which is a string
+ftp_dir has a value which is a string
+version has a value which is a string
+source has a value which is a string
+domain has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+ref has a value which is a string
+id has a value which is a string
+workspace_name has a value which is a string
+source_id has a value which is a string
+accession has a value which is a string
+name has a value which is a string
+ftp_dir has a value which is a string
+version has a value which is a string
+source has a value which is a string
+domain has a value which is a string
+
+
+=end text
+
+=back
+
+
+
+=head2 LoadTaxonsParams
+
+=over 4
+
+
+
+=item Description
+
+Arguments for the load_taxons function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+data has a value which is a string
+taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+index_in_solr has a value which is a ReferenceDataManager.bool
+workspace_name has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+data has a value which is a string
+taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool

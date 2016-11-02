@@ -831,6 +831,155 @@ sub _indexInSolr {
 
 #################### End methods for accessing SOLR #######################
 
+sub _extract_ncbi_taxons {
+    my $self=shift;
+    my $ids_to_extract = shift;
+    my $taxon_file_path=$self->{'scratch'}."/taxon_dump/";
+    mkdir($taxon_file_path);
+    chdir($taxon_file_path);
+    system("curl -o taxdump.tar.gz ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz");
+    system("tar -zxf taxdump.tar.gz");
+
+    open(my $fh, "< ${taxon_file_path}nodes.dmp");
+    my $taxon_objects={};
+    while(<$fh>){
+	chomp;
+	my @temp=split(/\s*\|\s*/,$_,-1);
+	next if defined($ids_to_extract) && !exists($ids_to_extract->{$temp[0]});
+	my $object = {'taxonomy_id'=>$temp[0]+0,
+		      'parent_taxon_id'=>$temp[1]+0,
+		      'rank'=>$temp[2],
+		      'embl_code'=>$temp[3],
+		      'division_id'=>$temp[4]+0,
+		      'inherited_div_flag'=>$temp[5]+0,
+		      'genetic_code'=>$temp[6]+0,
+		      'inherited_GC_flag'=>$temp[7]+0,
+		      'mitochondrial_genetic_code'=>$temp[8]+0,
+		      'inherited_MGC_flag'=>$temp[9]+0,
+		      'GenBank_hidden_flag'=>$temp[10]+0,
+		      'hidden_substree_root_flag'=>$temp[11],
+		      'comments'=>$temp[12],
+		      'domain'=>"Unknown",
+		      'scientific_name'=>"",
+		      'scientific_lineage'=>"",
+		      'aliases'=>[]};
+
+	$taxon_objects->{$temp[0]}=$object;
+    }
+    close($fh);
+
+    open(my $fh, "< ${taxon_file_path}names.dmp");
+    while(<$fh>){
+	chomp;
+	my @temp=split(/\s*\|\s*/,$_,-1);
+	if(exists($taxon_objects->{$temp[0]})){
+	    if($temp[3] eq "scientific name"){
+		$taxon_objects->{$temp[0]}{"scientific_name"}=$temp[1];
+	    }else{
+		push(@{$taxon_objects->{$temp[0]}{"aliases"}},$temp[1]);
+	    }
+	}
+    }
+    close($fh);
+
+    #Iterate through to make lineage, need to determine "level" of each object so to sort properly before loading
+    my %taxon_level=();
+    foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %$taxon_objects ){
+	$obj->{"scientific_lineage"} = _make_lineage($obj->{"taxonomy_id"},$taxon_objects);
+
+	#Determine Domain
+	foreach my $domain ("Eukaryota","Bacteria","Viruses","Archaea"){
+	    if($obj->{"scientific_lineage"} =~ /${domain}/){
+		$obj->{"domain"}=$domain;
+		last;
+	    }
+	}
+
+	#Determine Kingdom
+	foreach my $kingdom ("Fungi","Viridiplantae","Metazoa"){
+	    if($obj->{"domain"} eq "Eukaryota" && $obj->{"scientific_lineage"} =~ /${kingdom}/){
+		$obj->{"kingdom"}=$kingdom;
+		last;
+	    }
+	}
+	
+	my $level = scalar( split(/;\s/,$obj->{"scientific_lineage"}) );
+	$taxon_level{$level}{$obj->{"taxonomy_id"}}=1;
+    }
+
+    my $taxon_objs=[];
+    foreach my $level ( sort { $a <=> $b } keys %taxon_level ){
+	foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %{$taxon_level{$level}} ){
+	    delete $obj->{"parent_taxon_id"} if $obj->{"taxonomy_id"} == 1;
+	    push(@$taxon_objs,$obj);
+	}
+    }
+    return $taxon_objs;
+}
+
+sub _make_lineage {
+    my ($taxon_id,$taxon_objects)=@_;
+    return "" if $taxon_id == 1;
+    my @lineages=();
+    if(exists($taxon_objects->{$taxon_id}) && exists($taxon_objects->{$taxon_id}{"parent_taxon_id"})){
+	my $parent_taxon_id=$taxon_objects->{$taxon_id}{"parent_taxon_id"};
+	while($parent_taxon_id > 1){
+	    if(exists($taxon_objects->{$parent_taxon_id}{"scientific_name"}) && $taxon_objects->{$parent_taxon_id}{"scientific_name"} ne ""){
+		unshift(@lineages,$taxon_objects->{$parent_taxon_id}{"scientific_name"});
+	    }
+	    if(exists($taxon_objects->{$parent_taxon_id}{"parent_taxon_id"})){
+		$parent_taxon_id=$taxon_objects->{$parent_taxon_id}{"parent_taxon_id"};
+	    }else{
+		$parent_taxon_id = 0;
+	    }
+	}
+    }
+    return join("; ",@lineages);
+}
+
+sub _check_taxon {
+    my $self=shift;
+    my ($taxon,$taxon_list) = @_;
+    my %taxon_hash = map { $_->{'taxonomy_id'} => $_ } @$taxon_list;
+
+    my @Mismatches=();
+    if(!exists($taxon_hash{$taxon->{'taxonomy_id'}})){
+	push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." not found");
+    }else{
+	my @Fields_to_Check = ('parent_taxon_ref','rank','domain','scientific_name','scientific_lineage');
+	my $current_taxon = $taxon_hash{$taxon->{'taxonomy_id'}};
+	foreach my $field (@Fields_to_Check){
+	    if($field eq 'parent_taxon_ref'){
+		my $parent_taxon = undef;
+		$parent_taxon = $current_taxon->{'parent_taxon_ref'} if exists $current_taxon->{'parent_taxon_ref'};
+		if(defined($parent_taxon)){
+		    if(!defined($taxon->{'parent_taxon_id'})){
+			push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." does not contain parent taxon, but current taxon does");
+		    }else{
+			$parent_taxon = $self->{_wsclient}->get_objects2({objects=>[{"ref" => $parent_taxon}],ignoreErrors=>1})->{data};
+			if(scalar(@$parent_taxon)){
+			    $parent_taxon=$parent_taxon->[0]{data};
+			}else{
+			    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." and current taxon contain parent taxon, but cannot retrieve current parent taxon");
+			}
+			if($parent_taxon->{'taxonomy_id'} != $taxon->{'parent_taxon_id'}){
+			    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." parent taxon id does not match current parent taxon id");
+			}
+		    }
+		}elsif(defined($taxon->{'parent_taxon_id'})){
+		    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." does contains parent taxon, but current taxon does not");
+		}
+	    }else{
+		if($current_taxon->{$field} ne $taxon->{$field}){
+		    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." field $field does not match current value");
+		}
+	    }
+	}
+    }
+
+    return \@Mismatches;
+}
+
 #END_HEADER
 
 sub new
@@ -1531,8 +1680,9 @@ sub list_loaded_taxa
     my $batch_count = 1000;
     my $maxid = $wsinfo->[4];
     my $pages = ceil($maxid/$batch_count);
+
     print "\nFound $maxid taxon objects.\n";
-    
+    print "\nPaging through $pages of $batch_count objects\n";
     try {
         for (my $m = 1313; $m < 1316; $m++) {
             print "\nBatch ". $m . "x$batch_count";# on " . scalar localtime;
@@ -2006,6 +2156,139 @@ sub load_genomes
 	my $msg = "Invalid returns passed to load_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
 	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
 							       method_name => 'load_genomes');
+    }
+    return($output);
+}
+
+
+
+
+=head2 load_taxons
+
+  $output = $obj->load_taxons($params)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$params is a ReferenceDataManager.LoadTaxonsParams
+$output is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+LoadTaxonsParams is a reference to a hash where the following keys are defined:
+	data has a value which is a string
+	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
+ReferenceTaxonData is a reference to a hash where the following keys are defined:
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	ftp_dir has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+bool is an int
+
+</pre>
+
+=end html
+
+=begin text
+
+$params is a ReferenceDataManager.LoadTaxonsParams
+$output is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+LoadTaxonsParams is a reference to a hash where the following keys are defined:
+	data has a value which is a string
+	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
+ReferenceTaxonData is a reference to a hash where the following keys are defined:
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	ftp_dir has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+bool is an int
+
+
+=end text
+
+
+
+=item Description
+
+Loads specified genomes into KBase workspace and indexes in SOLR on demand
+
+=back
+
+=cut
+
+sub load_taxons
+{
+    my $self = shift;
+    my($params) = @_;
+
+    my @_bad_arguments;
+    (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
+    if (@_bad_arguments) {
+	my $msg = "Invalid arguments passed to load_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'load_taxons');
+    }
+
+    my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
+    my($output);
+    #BEGIN load_taxons
+    $params = $self->util_initialize_call($params,$ctx);
+    $params = $self->util_args($params,[],{
+    	data => undef,
+    	taxons => [],
+        index_in_solr => 0,
+        create_report => 0,
+    	workspace_name => undef
+    });
+
+    my $ncbi_taxon_objs = $self->_extract_ncbi_taxons();
+
+    my $Taxon_WS = "Taxon_Test"; #ReferenceTaxons
+    my $loaded_taxon_objs = $self->list_loaded_taxons({workspace_name=>$Taxon_WS});
+
+    my $taxon_provenance = [{"script"=>$0, "script_ver"=>"0.1", "description"=>"Taxon generated from NCBI taxonomy names and nodes files downloaded on 10/20/2016."}];
+    foreach my $obj (@$ncbi_taxon_objs){
+	$self->_check_taxon($obj,$loaded_taxon_objs);
+
+	$obj->{'parent_taxon_ref'}=$Taxon_WS."/".$obj->{'parent_taxon_id'}."_taxon";
+	delete $obj->{'parent_taxon_ref'} if $obj->{'taxonomy_id'}==1;
+	delete $obj->{'parent_taxon_id'};
+
+	my $taxon_name = $obj->{"taxonomy_id"}."_taxon";
+	print "Loading $taxon_name\n";
+	$obj->{"taxonomy_id"}+=0;
+	$self->{_wsclient}->save_objects({"workspace"=>$Taxon_WS,"objects"=>[ {"type"=>"KBaseGenomeAnnotations.Taxon",
+									       "data"=>$obj, 
+									       "name"=>$taxon_name,
+									       "provenance"=>$taxon_provenance}] });
+	pus(@$output, $self->getTaxon($obj, $Taxon_WS."/".$taxon_name);
+    }
+    #END load_taxons
+    my @_bad_returns;
+    (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
+    if (@_bad_returns) {
+	my $msg = "Invalid returns passed to load_taxons:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'load_taxons');
     }
     return($output);
 }
@@ -3270,6 +3553,102 @@ create_report has a value which is a ReferenceDataManager.bool
 a reference to a hash where the following keys are defined:
 data has a value which is a string
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+index_in_solr has a value which is a ReferenceDataManager.bool
+workspace_name has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
+
+
+=end text
+
+=back
+
+
+
+=head2 ReferenceTaxonData
+
+=over 4
+
+
+
+=item Description
+
+Struct containing data for a single taxon output by the list_loaded_taxons function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+ref has a value which is a string
+id has a value which is a string
+workspace_name has a value which is a string
+source_id has a value which is a string
+accession has a value which is a string
+name has a value which is a string
+ftp_dir has a value which is a string
+version has a value which is a string
+source has a value which is a string
+domain has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+ref has a value which is a string
+id has a value which is a string
+workspace_name has a value which is a string
+source_id has a value which is a string
+accession has a value which is a string
+name has a value which is a string
+ftp_dir has a value which is a string
+version has a value which is a string
+source has a value which is a string
+domain has a value which is a string
+
+
+=end text
+
+=back
+
+
+
+=head2 LoadTaxonsParams
+
+=over 4
+
+
+
+=item Description
+
+Arguments for the load_taxons function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+data has a value which is a string
+taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+index_in_solr has a value which is a ReferenceDataManager.bool
+workspace_name has a value which is a string
+create_report has a value which is a ReferenceDataManager.bool
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+data has a value which is a string
+taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool

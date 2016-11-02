@@ -207,6 +207,34 @@ class ReferenceDataManager(object):
             'ReferenceDataManager.load_genomes',
             [params], self._service_ver, context)
 
+    def load_taxons(self, params, context=None):
+        """
+        Loads specified genomes into KBase workspace and indexes in SOLR on demand
+        :param params: instance of type "LoadTaxonsParams" (Arguments for the
+           load_taxons function) -> structure: parameter "data" of String,
+           parameter "taxons" of list of type "ReferenceTaxonData" (Struct
+           containing data for a single taxon output by the
+           list_loaded_taxons function) -> structure: parameter "ref" of
+           String, parameter "id" of String, parameter "workspace_name" of
+           String, parameter "source_id" of String, parameter "accession" of
+           String, parameter "name" of String, parameter "ftp_dir" of String,
+           parameter "version" of String, parameter "source" of String,
+           parameter "domain" of String, parameter "index_in_solr" of type
+           "bool" (A boolean.), parameter "workspace_name" of String,
+           parameter "create_report" of type "bool" (A boolean.)
+        :returns: instance of list of type "ReferenceTaxonData" (Struct
+           containing data for a single taxon output by the
+           list_loaded_taxons function) -> structure: parameter "ref" of
+           String, parameter "id" of String, parameter "workspace_name" of
+           String, parameter "source_id" of String, parameter "accession" of
+           String, parameter "name" of String, parameter "ftp_dir" of String,
+           parameter "version" of String, parameter "source" of String,
+           parameter "domain" of String
+        """
+        return self._client.call_method(
+            'ReferenceDataManager.load_taxons',
+            [params], self._service_ver, context)
+
     def index_genomes_in_solr(self, params, context=None):
         """
         Index specified genomes in SOLR from KBase workspace
