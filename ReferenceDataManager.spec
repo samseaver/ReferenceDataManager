@@ -257,7 +257,7 @@ module ReferenceDataManager {
     } LoadTaxonsParams;
 
     /*
-        Loads specified genomes into KBase workspace and indexes in SOLR on demand
+        Loads specified taxa into KBase workspace and indexes in SOLR on demand
     */
     funcdef load_taxons(LoadTaxonsParams params) returns (list<ReferenceTaxonData> output) authentication required;
     
