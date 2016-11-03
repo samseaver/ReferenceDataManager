@@ -104,8 +104,7 @@ module ReferenceDataManager {
 	string gene_name;
         string object_name;
 	string location_contig;   
-	string location_strand; 
-        string roles;       
+	string location_strand;    
         string taxonomy;
         string workspace_name;
 	string genetic_code;
