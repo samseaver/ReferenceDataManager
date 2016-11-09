@@ -158,7 +158,6 @@ module ReferenceDataManager {
     */
     typedef structure {
         list<KBaseReferenceGenomeData> genomes;
-        string workspace_name;
         string solr_core;
         bool create_report;
     } IndexGenomesInSolrParams;
