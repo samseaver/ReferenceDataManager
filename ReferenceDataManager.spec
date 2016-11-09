@@ -67,26 +67,9 @@ module ReferenceDataManager {
         string domain; 
     } KBaseReferenceGenomeData;
 
-    /*
-        Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
-    */
-    funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output);
-  
 
     /*
-        Arguments for the list_solr_genomes and list_solr_taxa functions
-        
-    */
-
-    typedef structure {
-        string solr_core;
-        int row_start;
-        int row_count;
-	bool create_report;
-    } ListSolrDocsParams;
-
-    /*
-        Struct containing data for a single genome element output by the list_solr_genomes function
+        Struct containing data for a single genome element output by the list_solr_genomes and index_genomes_in_solr functions 
     */
     typedef structure {
 	string genome_feature_id;
@@ -125,12 +108,66 @@ module ReferenceDataManager {
         int protein_translation_length;	    
         float gc_content;
 	bool complete;  	    	 
-    } SolrGenomeData;
+    } SolrGenomeFeatureData;
+
+    /*
+        Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
+    */
+    funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output);
+  
+
+    /*
+        Arguments for the list_solr_genomes and list_solr_taxa functions
+        
+    */
+
+    typedef structure {
+        string solr_core;
+        int row_start;
+        int row_count;
+	bool create_report;
+    } ListSolrDocsParams;
 
     /* 
         Lists genomes indexed in SOLR
     */
-    funcdef list_solr_genomes(ListSolrDocsParams params) returns (list<SolrGenomeData> output) authentication required;
+    funcdef list_solr_genomes(ListSolrDocsParams params) returns (list<SolrGenomeFeatureData> output) authentication required;
+
+ 
+    /*
+        Arguments for the load_genomes function
+        
+    */
+    typedef structure {
+        string data;
+        list<ReferenceGenomeData> genomes;
+        bool index_in_solr;
+        string workspace_name;
+        bool create_report;
+    } LoadGenomesParams;
+    
+    /*
+        Loads specified genomes into KBase workspace and indexes in SOLR on demand
+    */
+    funcdef load_genomes(LoadGenomesParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
+
+
+    /*
+        Arguments for the index_genomes_in_solr function
+        
+    */
+    typedef structure {
+        list<KBaseReferenceGenomeData> genomes;
+        string workspace_name;
+        string solr_core;
+        bool create_report;
+    } IndexGenomesInSolrParams;
+    
+    /*
+        Index specified genomes in SOLR from KBase workspace
+    */
+    funcdef index_genomes_in_solr(IndexGenomesInSolrParams params) returns (list<SolrGenomeFeatureData> output) authentication required;
+    
 
  
     /*
@@ -211,23 +248,6 @@ module ReferenceDataManager {
     */
     funcdef list_solr_taxa(ListSolrDocsParams params) returns (list<SolrTaxonData> output) authentication required;
 
- 
-    /*
-        Arguments for the load_genomes function
-        
-    */
-    typedef structure {
-        string data;
-        list<ReferenceGenomeData> genomes;
-        bool index_in_solr;
-        string workspace_name;
-        bool create_report;
-    } LoadGenomesParams;
-    
-    /*
-        Loads specified genomes into KBase workspace and indexes in SOLR on demand
-    */
-    funcdef load_genomes(LoadGenomesParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
 
     /*
         Struct containing data for a single taxon output by the list_loaded_taxa function
@@ -260,21 +280,6 @@ module ReferenceDataManager {
         Loads specified genomes into KBase workspace and indexes in SOLR on demand
     */
     funcdef load_taxons(LoadTaxonsParams params) returns (list<ReferenceTaxonData> output) authentication required;
-    
-    /*
-        Arguments for the index_genomes_in_solr function
-        
-    */
-    typedef structure {
-        list<KBaseReferenceGenomeData> genomes;
-        string workspace_name;
-        bool create_report;
-    } IndexGenomesInSolrParams;
-    
-    /*
-        Index specified genomes in SOLR from KBase workspace
-    */
-    funcdef index_genomes_in_solr(IndexGenomesInSolrParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
     
 
     /*
