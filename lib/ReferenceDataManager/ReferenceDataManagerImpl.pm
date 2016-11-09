@@ -2872,7 +2872,7 @@ sub index_taxa_in_solr
             message => "Indexed ".@{$output}." taxa!",
             workspace => undef
         });
-        $output = ["indexed taxones"];
+        $output = ["indexed taxa"];
     }
     #END index_taxa_in_solr
     my @_bad_returns;
