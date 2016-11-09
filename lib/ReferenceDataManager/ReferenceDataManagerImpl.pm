@@ -2136,7 +2136,6 @@ sub index_genomes_in_solr
     $params = $self->util_args($params,[],{
         genomes => {},
         create_report => 0,
-        workspace_name => undef,
         solr_core => "QZtest"
     });
  
