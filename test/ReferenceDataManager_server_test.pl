@@ -29,7 +29,7 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     #Altering workspace map
-    $impl->{_workspace_map}->{refseq} = "qzTestWS";
+    $impl->{_workspace_map}->{refseq} = "RefSeq_Genomes";
     #Testing the list_reference_genomes function
 =begin passed tests
     my $solrret;
@@ -63,24 +63,6 @@ eval {
     }
     ok(defined($refret->[0]),"list_reference_Genomes command returned at least one genome");
 
-	#Testing list_loaded_genomes function
-	my $wsret;
-    eval {
-        $wsret = $impl->list_loaded_genomes({
-            refseq => 1,
-			phytozome => 0,
-			ensembl => 0	
-		});
-    };
-    ok(!$@,"list_loaded_genomes command successful");
-    if ($@) {
-        print "ERROR:".$@;
-    } else {
-        print "Number of records:".@{$wsret}."\n";
-        print "First record:\n";
-        print Data::Dumper->Dump([$wsret->[0]])."\n";
-    }
-    ok(defined($wsret->[0]),"list_loaded_genomes command returned at least one genome");
 
 	#Testing load_genomes function
 	my $ret;
@@ -104,22 +86,40 @@ eval {
     ok(defined($ret->[0]),"load_genomes command returned at least one genome");
 =end passed tests
 =cut
+=begin
+    #Wipe out the whole QZtest content!
+    my $ds = {
+         #'workspace_name' => 'qzTest',
+         #'genome_id' => 'kb|g.0'
+         '*' => '*' 
+    };
+    $impl->_deleteRecords("QZtest", $ds);
+=cut
 
-=begin testing index_genomes_in_solr--TODO
-	my $ret;
-    my $gnms = [{
-            "object_id"=>"kb|ws.2869.obj.72239/features/kb|g.239991.CDS.5060",
-            "workspace_name"=>"KBasePublicRichGenomesV5",
-            "object_type"=>"KBaseSearch.Feature",
-            "object_name"=>"kb|g.239991.featureset/features/kb|g.239991.CDS.5060",
-            "genome_id"=>"kb|g.239991",
-            "feature_id"=>"kb|g.239991.CDS.5060",
-            "genome_source"=>"KBase Central Store"
-        }];
-
+    #Testing list_loaded_genomes function
+    my $wsret;
+    eval {
+        $wsret = $impl->list_loaded_genomes({
+            refseq => 1,
+			phytozome => 0,
+			ensembl => 0	
+		});
+    };
+    ok(!$@,"list_loaded_genomes command successful");
+    if ($@) {
+        print "ERROR:".$@;
+    } else {
+        print "Number of records:".@{$wsret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$wsret->[0]])."\n";
+    }
+    ok(defined($wsret->[0]),"list_loaded_genomes command returned at least one genome");
+    #Testing index_genomes_in_solr
+    my $ret;
     eval {
         $ret = $impl->index_genomes_in_solr({
-             genomes => $gnms
+             genomes => $wsret,
+             solr_core => "QZtest",
         });
     };
     ok(!$@,"index_genomes_in_solr command successful");
@@ -135,9 +135,8 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"index_genomes_in_solr command returned at least one genome");
-=end testing index_genomes_in_solr
-=cut
 
+=begin 
     #Testing list_loaded_taxons
     my $taxon_ret;
     eval {
@@ -160,7 +159,6 @@ eval {
     }
     ok(defined($taxon_ret->[0]),"list_loaded_taxa command returned at least one taxon");
     
-=begin 
     #Testing index_taxa_in_solr
     my $solr_ret;
     eval {

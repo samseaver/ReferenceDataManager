@@ -443,8 +443,8 @@ sub _addXML2Solr
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
-    #print "\nSolr response:\n" . Dumper($response);
     return 1 if ($self->_parseResponse($response));
+    print "\nSolr response:\n" . Dumper($response);
     return 0;
 }
 
@@ -809,9 +809,13 @@ sub _indexGenomeFeatureData
     my $gnout;
     my $solr_gnftData = [];
     my $gnft_batch = [];    
+    my $g_count = 1;
+    my $batchCount = 10000;
 
-    foreach my $wref (@{$wsgnrefs}) { 
-        print "\nStart to fetch the object(s) for ". $wref->{ref} .  " on " . scalar localtime . "\n";
+    #foreach my $wref (@{$wsgnrefs}) { 
+    for( my $gf_i = 303; $gf_i < 500; $gf_i ++ ) {
+        my $wref = $wsgnrefs->[$gf_i];
+        print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $wref->{ref} .  " on " . scalar localtime . "\n";
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
                 $gnout = $self->util_ws_client()->get_objects2({
                         objects => [$wref] #$wsgnrefs #$wref
@@ -930,10 +934,39 @@ sub _indexGenomeFeatureData
                 };
                 push @{$solr_gnftData}, $current_gnft;
                 push @{$gnft_batch}, $current_gnft;
+                if(@{$gnft_batch} >= $batchCount) {
+                    eval {
+                        $self->_indexInSolr($solrCore, $gnft_batch);
+                    };
+                    if($@) {
+                        print "Failed to index the genome_feature(s)!\n";
+                        print "ERROR:".$@;
+                        if(defined($@->{status_line})) {
+                            print $@->{status_line}."\n";
+                        }
+                    }
+                    else {
+                        print "\nIndexed " . @{$gnft_batch} . " genome_feature(s) on " . scalar localtime . "\n";
+                        $gnft_batch = [];
+                    }
+                }
             }
-            $self->_indexInSolr($solrCore, $gnft_batch);
-            print "Done indexing " . @{$gnft_batch} . " genome_feature(s) on " . scalar localtime . "\n";
-            $gnft_batch = [];
+            if(@{$gnft_batch} > 0) {
+                eval {
+                    $self->_indexInSolr($solrCore, $gnft_batch);
+                };
+                if($@) {
+                    print "Failed to index the genome_feature(s)!\n";
+                    print "ERROR:".$@;
+                    if(defined($@->{status_line})) {
+                        print $@->{status_line}."\n";
+                    }
+                }
+                else {
+                    print "\nIndexed " . @{$gnft_batch} . " genome_feature(s) on " . scalar localtime . "\n";
+                    $gnft_batch = [];
+                }
+            }
         }
     }
     return $solr_gnftData;
@@ -1159,7 +1192,7 @@ sub new
     $self->{_workspace_map} = {
         ensembl => "Ensembl_Genomes",
         phytozome => "Phytozome_Genomes",
-        refseq => "RefseqGenomesWS"# "ReferenceDataManagerWS"#"KBasePublicRichGenomesV5"#"RefSeq_Genomes"
+        refseq => "RefSeq_Genomes"
     };  
         
     #SOLR specific parameters
@@ -2145,8 +2178,12 @@ sub index_genomes_in_solr
     my $solrCore = $params->{solr_core}; 
     print "\nTotal genomes to be indexed: ". @{$genomes} . "\n";
 
-    $output = $self->_indexGenomeFeatureData($solrCore, $genomes);
-    
+    my $solr_ret = $self->_indexGenomeFeatureData($solrCore, $genomes);
+    push(@{$output}, $solr_ret);   
+    if (@{$output} < 10) {
+            my $curr = @{$output}-1;
+            $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+    } 
     #END index_genomes_in_solr
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
@@ -2872,7 +2909,7 @@ sub index_taxa_in_solr
             message => "Indexed ".@{$output}." taxa!",
             workspace => undef
         });
-        $output = ["indexed taxones"];
+        $output = ["indexed taxa"];
     }
     #END index_taxa_in_solr
     my @_bad_returns;
