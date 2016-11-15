@@ -658,7 +658,6 @@ $params is a ReferenceDataManager.IndexGenomesInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrGenomeFeatureData
 IndexGenomesInSolrParams is a reference to a hash where the following keys are defined:
 	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-	workspace_name has a value which is a string
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
@@ -721,7 +720,6 @@ $params is a ReferenceDataManager.IndexGenomesInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrGenomeFeatureData
 IndexGenomesInSolrParams is a reference to a hash where the following keys are defined:
 	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-	workspace_name has a value which is a string
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
@@ -1165,7 +1163,7 @@ bool is an int
 
 =item Description
 
-Loads specified genomes into KBase workspace and indexes in SOLR on demand
+Loads specified taxa into KBase workspace and indexes in SOLR on demand
 
 =back
 
@@ -2030,7 +2028,6 @@ Arguments for the index_genomes_in_solr function
 <pre>
 a reference to a hash where the following keys are defined:
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-workspace_name has a value which is a string
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
 
@@ -2042,7 +2039,6 @@ create_report has a value which is a ReferenceDataManager.bool
 
 a reference to a hash where the following keys are defined:
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-workspace_name has a value which is a string
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
 

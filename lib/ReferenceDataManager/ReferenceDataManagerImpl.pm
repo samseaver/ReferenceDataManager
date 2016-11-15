@@ -5,7 +5,7 @@ use Bio::KBase::Exceptions;
 # http://semver.org 
 our $VERSION = '0.0.1';
 our $GIT_URL = 'https://github.com/kbaseapps/ReferenceDataManager.git';
-our $GIT_COMMIT_HASH = 'c3bbdbc026deb29a8d22d82e74f9c1a03dfbbeaa';
+our $GIT_COMMIT_HASH = '622d36efff704437f617da473a4603727ef48255';
 
 =head1 NAME
 
@@ -205,10 +205,10 @@ sub _listTaxaInSolr {
     
     return $self->_searchSolr($solrCore, $params, $query, "json", $grp);    
 }
+
 #
-#
-# method name: _searchSolr
-# Internal Method: to execute a search in SOLR according to the passed parameters
+# method name: _buildQueryString
+# Internal Method: to build the query string for SOLR according to the passed parameters
 # parameters:
 # $searchParams is a hash, see the example below:
 # $searchParams {
@@ -221,16 +221,10 @@ sub _listTaxaInSolr {
 #   count => $count
 #}
 #
-sub _searchSolr {
-    my ($self, $searchCore, $searchParams, $searchQuery, $resultFormat, $groupOption, $skipEscape) = @_;
+sub _buildQueryString {
+    my ($self, $searchQuery, $searchParams, $groupOption, $skipEscape) = @_;
     $skipEscape = {} unless $skipEscape;
-
-    if (!$self->_ping()) {
-        die "\nError--Solr server not responding:\n" . $self->_error->{response};
-    }
     
-    # If output format is not passed set it to XML
-    $resultFormat = "xml" unless $resultFormat;
     my $DEFAULT_FIELD_CONNECTOR = "AND";
 
     # Build the queryFields string with $searchQuery and $searchParams
@@ -260,13 +254,87 @@ sub _searchSolr {
         # Remove last occurance of ' AND '
         $qStr =~ s/ AND $//g;
     }
-    $queryFields .= "$qStr";
-    
-    my $solrCore = "/$searchCore"; 
-    my $sort = "&sort=genome_id asc";
     my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
-    my $solrQuery = $self->{_SOLR_URL}.$solrCore."/select?".$queryFields.$solrGroup;
-    print "Query string:\n$solrQuery\n";
+    my $retStr = $queryFields . $qStr . $solrGroup;
+    print "Query string:\n$retStr\n";
+    return $retStr;
+}
+
+#
+# method name: updateDocs
+# Internal Method: to execute an update in SOLR according to the passed parameters
+# parameters:
+# $searchParams is a hash, see the example below:
+# $searchParams {
+#   fl => 'object_id,gene_name,genome_source',
+#   wt => 'json',
+#   rows => $count,
+#   sort => 'object_id asc',
+#   hl => 'false',
+#   start => $start,
+#   count => $count
+#}
+# Return a list of updated docs
+#
+sub _updateDocs {
+    my ($self, $searchCore, $searchParams, $searchQuery, $resultFormat, $skipEscape) = @_;
+    $skipEscape = {} unless $skipEscape;
+
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+        
+    # If output format is not passed set it to XML
+    $resultFormat = "xml" unless $resultFormat;
+    my $queryString = $self->_buildQueryString($searchQuery, $searchParams, "", $skipEscape);
+    my $solrCore = "/$searchCore"; 
+    my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?".$queryString;
+    print "Search string:\n$solrQuery\n";
+    
+    my $solr_response = $self->_sendRequest("$solrQuery", "GET");
+    print "\nRaw response: \n" . $solr_response->{response} . "\n";
+    
+    my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
+        if ($responseCode) {
+            if ($resultFormat eq "json") {
+                my $out = JSON::from_json($solr_response->{response});
+                $solr_response->{response}= $out;
+            }
+    }
+    
+    return $solr_response;
+}
+
+#
+# method name: _searchSolr
+# Internal Method: to execute a search in SOLR according to the passed parameters
+# parameters:
+# $searchParams is a hash, see the example below:
+# $searchParams {
+#   fl => 'object_id,gene_name,genome_source',
+#   wt => 'json',
+#   rows => $count,
+#   sort => 'object_id asc',
+#   hl => 'false',
+#   start => $start,
+#   count => $count
+#}
+#
+sub _searchSolr {
+    my ($self, $searchCore, $searchParams, $searchQuery, $resultFormat, $groupOption, $skipEscape) = @_;
+    $skipEscape = {} unless $skipEscape;
+
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+    
+    # If output format is not passed set it to XML
+    $resultFormat = "xml" unless $resultFormat;
+    my $queryString = $self->_buildQueryString($searchQuery, $searchParams, $groupOption, $skipEscape);
+    my $solrCore = "/$searchCore"; 
+    #my $sort = "&sort=genome_id asc";
+    my $solrQuery = $self->{_SOLR_URL}.$solrCore."/select?".$queryString;
+    print "Search string:\n$solrQuery\n";
     
     my $solr_response = $self->_sendRequest("$solrQuery", "GET");
     #print "\nRaw response: \n" . $solr_response->{response} . "\n";
@@ -280,7 +348,7 @@ sub _searchSolr {
     }
     if($groupOption){
         my @solr_records = @{$solr_response->{response}->{grouped}->{$groupOption}->{groups}};
-        print "\n\nFound unique genome_id groups of:" . scalar @solr_records . "\n";
+        print "\n\nFound unique $groupOption groups of:" . scalar @solr_records . "\n";
         print @solr_records[0]->{doclist}->{numFound} ."\n";
     }
     
@@ -813,7 +881,7 @@ sub _indexGenomeFeatureData
     my $batchCount = 10000;
 
     #foreach my $wref (@{$wsgnrefs}) { 
-    for( my $gf_i = 303; $gf_i < 500; $gf_i ++ ) {
+    for( my $gf_i = 0; $gf_i < @{$wsgnrefs}; $gf_i ++ ) {
         my $wref = $wsgnrefs->[$gf_i];
         print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $wref->{ref} .  " on " . scalar localtime . "\n";
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
@@ -1497,8 +1565,11 @@ sub list_loaded_genomes
                    eval {
                         $wsoutput = $self->util_ws_client()->list_objects({
                           workspaces => [$wsname],
-                          type => "KBaseGenomes.Genome-8.0",
                           minObjectID => $batch_count * $m,
+                          type => "KBaseGenomes.Genome-8.0",#11539 objects
+                          #type => "KBaseGenomeAnnotations.Assembly-4.1",#17929 objects
+                          #type => "KBaseGenomeAnnotations.GenomeAnnotation-3.1",#17925 objects
+                          #type => "KBaseGenomes.ContigSet-3.0",#18018 objects
                           maxObjectID => $batch_count * ( $m + 1)
                         });
                     };
@@ -1509,7 +1580,7 @@ sub list_loaded_genomes
                             print "ERROR:" . $@->{status_line}."\n"; 
                         }
                     }
-                    print "\nTotal genome object count=" . @{$wsoutput}. "\n";
+                    #print "\nTotal genome object count=" . @{$wsoutput}. "\n";
                     if( @{$wsoutput} > 0 ) {
                         for (my $j=0; $j < @{$wsoutput}; $j++) {
                             push @{$output}, {
@@ -1710,9 +1781,10 @@ sub list_solr_genomes
     #BEGIN list_solr_genomes
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
-        solr_core => "taxonomy_ci",
+        solr_core => "genomes",
         row_start => 0,
-        row_count => 10,
+        row_count => 100,
+        group_option => "",
         create_report => 0
     });
 
@@ -1723,9 +1795,10 @@ sub list_solr_genomes
     my $fields = "*";
     my $startRow = $params -> {row_start};
     my $topRows = $params -> {row_count};
-    
+    my $grpOpt = $params -> {group_option}; #"genome_id";
+
     eval {
-        $solrout = $self->_listGenomesInSolr($solrCore, $fields, $startRow, $topRows);
+        $solrout = $self->_listGenomesInSolr($solrCore, $fields, $startRow, $topRows, $grpOpt);
     };
     if($@) {
         print "Cannot list genomes in SOLR information!\n";
@@ -1735,8 +1808,8 @@ sub list_solr_genomes
         }
     }
     else {
-        print "\nList of genomes: \n" . Dumper($solrout) . "\n";  
-        $output = $solrout->{response}->{docs}; 
+        #print "\nList of genomes: \n" . Dumper($solrout) . "\n";  
+        $output = ($grpOpt eq "") ? $solrout->{response}->{response}->{docs} : $solrout->{response}->{grouped}->{$grpOpt}->{groups}; 
         
         if (@{$output} < 10) {
             my $curr = @{$output}-1;
@@ -2017,7 +2090,6 @@ $params is a ReferenceDataManager.IndexGenomesInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrGenomeFeatureData
 IndexGenomesInSolrParams is a reference to a hash where the following keys are defined:
 	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-	workspace_name has a value which is a string
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
@@ -2080,7 +2152,6 @@ $params is a ReferenceDataManager.IndexGenomesInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrGenomeFeatureData
 IndexGenomesInSolrParams is a reference to a hash where the following keys are defined:
 	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-	workspace_name has a value which is a string
 	solr_core has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
@@ -2173,13 +2244,13 @@ sub index_genomes_in_solr
     });
  
     my $msg = "";
-    $output = [];
+    #$output = [];
     my $genomes = $params->{genomes};
     my $solrCore = $params->{solr_core}; 
     print "\nTotal genomes to be indexed: ". @{$genomes} . "\n";
 
-    my $solr_ret = $self->_indexGenomeFeatureData($solrCore, $genomes);
-    push(@{$output}, $solr_ret);   
+    $output = $self->_indexGenomeFeatureData($solrCore, $genomes);
+    #push(@{$output}, $solr_ret);   
     if (@{$output} < 10) {
             my $curr = @{$output}-1;
             $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
@@ -2305,12 +2376,12 @@ sub list_loaded_taxa
     $params = $self->util_initialize_call($params,$ctx);    
     $params = $self->util_args($params,[],{
         create_report => 0,
-        workspace_name => undef
+        workspace_name => "ReferenceTaxons"
     });
     my $msg = "";
     my $output = [];
 
-    my $wsname = $params ->{workspace_name}; #'ReferenceTaxons';
+    my $wsname = $params ->{workspace_name}; 
     my $wsinfo;
     my $wsoutput;
     my $taxonout;
@@ -2324,11 +2395,11 @@ sub list_loaded_taxa
     my $maxid = $wsinfo->[4];
     my $pages = ceil($maxid/$batch_count);
 
-    print "\nFound $maxid taxon objects.\n";
-    print "\nPaging through $pages of $batch_count objects\n";
+    #print "\nFound $maxid taxon objects.\n";
+    #print "\nPaging through $pages of $batch_count objects\n";
     try {
-        for (my $m = 1313; $m < 1316; $m++) {
-            print "\nBatch ". $m . "x$batch_count";# on " . scalar localtime;
+        for (my $m = 0; $m < $pages; $m++) {
+            #print "\nBatch ". $m . "x$batch_count";# on " . scalar localtime;
             eval { 
                     $wsoutput = $self->util_ws_client()->list_objects({
                         workspaces => [$wsname],
@@ -2367,7 +2438,6 @@ sub list_loaded_taxa
                }
                print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
                $taxonout = $taxonout -> {data};
-               my $taxon_ret = [];
                for (my $i=0; $i < @{$taxonout}; $i++) {
                        my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
                        push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
@@ -2375,14 +2445,7 @@ sub list_loaded_taxa
                                my $curr = @{$output}-1;
                                $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
                        } 
-              
-                       push(@{$taxon_ret}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
                }
-               $self->index_taxa_in_solr({ 
-                       taxa => $taxon_ret,
-                       solr_core => "taxonomy_ci",
-                       create_report => 0
-               });
             }
          }  
     }    
@@ -2517,7 +2580,8 @@ sub list_solr_taxa
     $params = $self->util_args($params,[],{
         solr_core => "taxonomy_ci",
         row_start => 0,
-        row_count => 10,
+        row_count => 100,
+        group_option => "",
         create_report => 0
     });
 
@@ -2528,9 +2592,9 @@ sub list_solr_taxa
     my $fields = "*";
     my $startRow = $params -> {row_start};
     my $topRows = $params -> {row_count};
-    
+    my $grpOpt = $params -> {group_option}; #"taxonomy_id";    
     eval {
-        $solrout = $self->_listTaxaInSolr($solrCore, $fields, $startRow, $topRows);
+        $solrout = $self->_listTaxaInSolr($solrCore, $fields, $startRow, $topRows, $grpOpt);
     };
     if($@) {
         print "Cannot list taxa in SOLR information!\n";
@@ -2540,9 +2604,9 @@ sub list_solr_taxa
         }
     }
     else {
-        print "\nList of taxa: \n" . Dumper($solrout) . "\n";  
-        $output = $solrout->{response}->{docs}; 
-        
+        #print "\nList of taxa: \n" . Dumper($solrout) . "\n";  
+        $output = ($grpOpt eq "") ? $solrout->{response}->{response}->{docs} : $solrout->{response}->{grouped}->{$grpOpt}->{groups}; 
+
         if (@{$output} < 10) {
             my $curr = @{$output}-1;
             $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
@@ -2628,7 +2692,7 @@ bool is an int
 
 =item Description
 
-Loads specified genomes into KBase workspace and indexes in SOLR on demand
+Loads specified taxa into KBase workspace and indexes in SOLR on demand
 
 =back
 
@@ -2679,7 +2743,7 @@ sub load_taxons
 									       "data"=>$obj, 
 									       "name"=>$taxon_name,
 									       "provenance"=>$taxon_provenance}] });
-	push(@$output, $self->getTaxon($obj, $Taxon_WS."/".$taxon_name));
+	push(@$output, $self->_getTaxon($obj, $Taxon_WS."/".$taxon_name));
     }
     #END load_taxons
     my @_bad_returns;
@@ -2857,7 +2921,7 @@ sub index_taxa_in_solr
     my $solrCore = $params->{solr_core};
     my $solrBatch = [];
     my $solrBatchCount = 10000;
-    print "\nTotal taxa to be indexed: ". @{$taxa} . "\n";
+    #print "\nTotal taxa to be indexed: ". @{$taxa} . "\n";
 
     for (my $i = 0; $i < @{$taxa}; $i++) {
         my $taxonData = $taxa -> [$i] -> {taxon};#an UnspecifiedObject
@@ -3552,7 +3616,6 @@ Arguments for the index_genomes_in_solr function
 <pre>
 a reference to a hash where the following keys are defined:
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-workspace_name has a value which is a string
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
 
@@ -3564,7 +3627,6 @@ create_report has a value which is a ReferenceDataManager.bool
 
 a reference to a hash where the following keys are defined:
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-workspace_name has a value which is a string
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
 

@@ -296,7 +296,6 @@ module ReferenceDataManager {
     */
     funcdef index_taxa_in_solr(IndexTaxaInSolrParams params) returns (list<SolrTaxonData> output) authentication required;
     
-
    /*
         Arguments for the update_loaded_genomes function
 
@@ -314,4 +313,3 @@ module ReferenceDataManager {
     */
     funcdef update_loaded_genomes(UpdateLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output) authentication required;
 };
-

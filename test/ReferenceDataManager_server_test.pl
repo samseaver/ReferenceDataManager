@@ -30,72 +30,25 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 eval {
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeq_Genomes";
-    #Testing the list_reference_genomes function
-=begin passed tests
-    my $solrret;
+
+    #Testing update_loaded_taxa function
+    my $wsret;
     eval {
-        $solrret = $impl->_listGenomesInSolr("QZtest", "*");
+        $wsret = $impl->update_loaded_taxa({
+            workspace_name => "ReferenceTaxons",
+            solr_core => "taxonomy_ci"
+	});
     };
-    ok(!$@, "list genomes in Solr command successful");
-    if ($@) { 
-         print "ERROR:".$@;
-     } else {
-         print "Number of records:".@{$solrret}."\n";
-         print "First record:\n";
-         print Data::Dumper->Dump([$solrret->[0]])."\n";
-     }
-     ok(defined($solrret->[0]),"_listGenomesInSolr command returned at least one genome");
-    
-    my $refret;
-    eval {
-        $refret = $impl->list_reference_genomes({
-            refseq => 1,
-            update_only => 0
-        });
-    };
-    ok(!$@,"list_reference_Genomes command successful");
+    ok(!$@,"update_loaded_taxa command successful");
     if ($@) {
         print "ERROR:".$@;
     } else {
-        print "Number of records:".@{$refret}."\n";
+        print "Number of records:".@{$wsret}."\n";
         print "First record:\n";
-        print Data::Dumper->Dump([$refret->[0]])."\n";
+        print Data::Dumper->Dump([$wsret->[0]])."\n";
     }
-    ok(defined($refret->[0]),"list_reference_Genomes command returned at least one genome");
-
-
-	#Testing load_genomes function
-	my $ret;
-    eval {
-        $ret = $impl->load_genomes({
-            genomes => [$refret->[0]],
-            index_in_solr => 0
-        });
-    };
-    ok(!$@,"load_genomes command successful");
-    if ($@) {
-		my $err = $@;
-		print "Error type: " . ref($err) . "\n";
-		print "Error message: " . $err->{message} . "\n";
-		print "Error error: " . $err->{error} . "\n";
-		print "Error data: " .$err->{data} . "\n";
-    } else {
-        print "Loaded @{$ret} genomes:\n";
-        print Data::Dumper->Dump([$ret->[0]])."\n";
-    }
-    ok(defined($ret->[0]),"load_genomes command returned at least one genome");
-=end passed tests
-=cut
+    ok(defined($wsret->[0]),"update_loaded_taxa command returned at least one genome");
 =begin
-    #Wipe out the whole QZtest content!
-    my $ds = {
-         #'workspace_name' => 'qzTest',
-         #'genome_id' => 'kb|g.0'
-         '*' => '*' 
-    };
-    $impl->_deleteRecords("QZtest", $ds);
-=cut
-
     #Testing list_loaded_genomes function
     my $wsret;
     eval {
@@ -135,8 +88,102 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"index_genomes_in_solr command returned at least one genome");
+=cut
+=begin passed tests
+    my $solrret;
+    eval {
+        $solrret = $impl->_listGenomesInSolr("QZtest", "*");
+    };
+    ok(!$@, "list genomes in Solr command successful");
+    if ($@) { 
+         print "ERROR:".$@;
+     } else {
+         print "Number of records:".@{$solrret}."\n";
+         print "First record:\n";
+         print Data::Dumper->Dump([$solrret->[0]])."\n";
+     }
+     ok(defined($solrret->[0]),"_listGenomesInSolr command returned at least one genome");
+    
+    #Testing list_solr_genomes function
+    my $sgret;
+    eval {
+        $sgret = $impl->list_solr_genomes({
+            solr_core => "genomes"
+        });
+    };
+    ok(!$@,"list_solr_genomes command successful");
+    if ($@) {
+        print "ERROR:".$@;
+    } else {
+        print "Number of records:".@{$sgret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$sgret->[0]])."\n";
+    }
+    ok(defined($sgret->[0]),"list_solr_genomes command returned at least one genome");t
+    #Testing list_solr_taxa function
+    my $stret;
+    eval {
+        $stret = $impl->list_solr_taxa({
+            solr_core => "taxonomy_ci",
+            group_option => "taxonomy_id"
+        });
+    };
+    ok(!$@,"list_solr_taxa command successful");
+    if ($@) {
+        print "ERROR:".$@;
+    } else {
+        print "Number of records:".@{$stret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$stret->[0]])."\n";
+    }
+    ok(defined($stret->[0]),"list_solr_taxa command returned at least one genome");
+    #Testing the list_reference_genomes function
+    my $refret;
+    eval {
+        $refret = $impl->list_reference_genomes({
+            refseq => 1,
+            update_only => 0
+        });
+    };
+    ok(!$@,"list_reference_Genomes command successful");
+    if ($@) {
+        print "ERROR:".$@;
+    } else {
+        print "Number of records:".@{$refret}."\n";
+        print "First record:\n";
+        print Data::Dumper->Dump([$refret->[0]])."\n";
+    }
+    ok(defined($refret->[0]),"list_reference_Genomes command returned at least one genome");
 
-=begin 
+    #Testing load_genomes function
+    my $ret;
+    eval {
+        $ret = $impl->load_genomes({
+            genomes => [$refret->[0]],
+            index_in_solr => 0
+        });
+    };
+    ok(!$@,"load_genomes command successful");
+    if ($@) {
+		my $err = $@;
+		print "Error type: " . ref($err) . "\n";
+		print "Error message: " . $err->{message} . "\n";
+		print "Error error: " . $err->{error} . "\n";
+		print "Error data: " .$err->{data} . "\n";
+    } else {
+        print "Loaded @{$ret} genomes:\n";
+        print Data::Dumper->Dump([$ret->[0]])."\n";
+    }
+    ok(defined($ret->[0]),"load_genomes command returned at least one genome");
+
+    #Wipe out the whole QZtest content!
+    my $ds = {
+         #'workspace_name' => 'qzTest',
+         #'genome_id' => 'kb|g.0'
+         '*' => '*' 
+    };
+    #$impl->_deleteRecords("QZtest", $ds);
+   
     #Testing list_loaded_taxons
     my $taxon_ret;
     eval {
@@ -202,6 +249,8 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"update_loaded_genomes command returned at least one genome");
+
+=end passed tests
 =cut
     done_testing(2);
 };

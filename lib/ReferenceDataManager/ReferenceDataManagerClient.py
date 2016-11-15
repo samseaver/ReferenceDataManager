@@ -156,9 +156,8 @@ class ReferenceDataManager(object):
            String, parameter "source_id" of String, parameter "accession" of
            String, parameter "name" of String, parameter "ftp_dir" of String,
            parameter "version" of String, parameter "source" of String,
-           parameter "domain" of String, parameter "workspace_name" of
-           String, parameter "solr_core" of String, parameter "create_report"
-           of type "bool" (A boolean.)
+           parameter "domain" of String, parameter "solr_core" of String,
+           parameter "create_report" of type "bool" (A boolean.)
         :returns: instance of list of type "SolrGenomeFeatureData" (Struct
            containing data for a single genome element output by the
            list_solr_genomes and index_genomes_in_solr functions) ->
@@ -249,7 +248,7 @@ class ReferenceDataManager(object):
 
     def load_taxons(self, params, context=None):
         """
-        Loads specified genomes into KBase workspace and indexes in SOLR on demand
+        Loads specified taxa into KBase workspace and indexes in SOLR on demand
         :param params: instance of type "LoadTaxonsParams" (Arguments for the
            load_taxons function) -> structure: parameter "data" of String,
            parameter "taxons" of list of type "ReferenceTaxonData" (Struct
