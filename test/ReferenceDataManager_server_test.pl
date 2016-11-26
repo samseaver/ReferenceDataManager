@@ -30,7 +30,8 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 eval {
     #Altering workspace map
     $impl->{_workspace_map}->{refseq} = "RefSeq_Genomes";
-
+    #$impl->{_workspace_map}->{refseq} = "Ensembl_Genomes";
+=begin
     #Testing update_loaded_taxa function
     my $wsret;
     eval {
@@ -48,15 +49,15 @@ eval {
         print Data::Dumper->Dump([$wsret->[0]])."\n";
     }
     ok(defined($wsret->[0]),"update_loaded_taxa command returned at least one genome");
-=begin
-    #Testing list_loaded_genomes function
+=cut
+    #Testing list_loaded_genomes
     my $wsret;
     eval {
         $wsret = $impl->list_loaded_genomes({
             refseq => 1,
-			phytozome => 0,
-			ensembl => 0	
-		});
+	    phytozome => 0,
+	    ensembl => 0	
+	});
     };
     ok(!$@,"list_loaded_genomes command successful");
     if ($@) {
@@ -67,11 +68,20 @@ eval {
         print Data::Dumper->Dump([$wsret->[0]])."\n";
     }
     ok(defined($wsret->[0]),"list_loaded_genomes command returned at least one genome");
+
+    #Wipe out the whole QZtest content!
+    my $ds = {
+         #'workspace_name' => 'qzTest',
+         #'genome_id' => 'kb|g.0'
+         '*' => '*' 
+    };
+    #$impl->_deleteRecords("QZtest", $ds);
+
     #Testing index_genomes_in_solr
     my $ret;
     eval {
         $ret = $impl->index_genomes_in_solr({
-             genomes => $wsret,
+             genomes => [@{$wsret}[0..1]],
              solr_core => "QZtest",
         });
     };
@@ -87,8 +97,8 @@ eval {
         print "First record:\n";
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
-    ok(defined($ret->[0]),"index_genomes_in_solr command returned at least one genome");
-=cut
+    ok(defined($ret->[0]),"\nindex_genomes_in_solr command returned at least one genome");
+
 =begin passed tests
     my $solrret;
     eval {
@@ -175,14 +185,6 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"load_genomes command returned at least one genome");
-
-    #Wipe out the whole QZtest content!
-    my $ds = {
-         #'workspace_name' => 'qzTest',
-         #'genome_id' => 'kb|g.0'
-         '*' => '*' 
-    };
-    #$impl->_deleteRecords("QZtest", $ds);
    
     #Testing list_loaded_taxons
     my $taxon_ret;

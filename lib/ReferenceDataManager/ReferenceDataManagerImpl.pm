@@ -512,7 +512,9 @@ sub _addXML2Solr
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
     return 1 if ($self->_parseResponse($response));
-    print "\nSolr response:\n" . Dumper($response);
+    $self->{error} = $response;
+    $self->{error}->{errmsg} = $@;
+    #print "\nSolr indexing error:\n" . $self->_error->{response}; #Dumper($response);
     return 0;
 }
 
@@ -639,11 +641,11 @@ sub _rawDsToSolrDs
 }
 #
 # method name: _error
-#     returns the errors details that was occured during last transaction action.
+#     returns the errors details that has occured during last transaction action.
 # params : -
 # returns : response details includes the following details
 #    {
-#          url => 'url which is being accessed',
+#       url => 'url which is being accessed',
 #       response => 'response from server',
 #       code => 'response code',
 #       errmsg => 'for any internal error error msg'
@@ -886,7 +888,7 @@ sub _indexGenomeFeatureData
         print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $wref->{ref} .  " on " . scalar localtime . "\n";
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
                 $gnout = $self->util_ws_client()->get_objects2({
-                        objects => [$wref] #$wsgnrefs #$wref
+                        objects => [$wref]
                 }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
         };
         if($@) {
@@ -897,6 +899,7 @@ sub _indexGenomeFeatureData
                 }
         }
         print "Done getting the object(s) for " . $wref->{ref} . " on " . scalar localtime . "\n";
+        #print Dumper($gnout);exit 0;
         #fetch individual data item to assemble the $solr_gnftData
         $gnout = $gnout -> {data};
         my $gn_data;
@@ -940,6 +943,13 @@ sub _indexGenomeFeatureData
                 my $gn_funcs = $gn_features->[$ii]->{function}; 
                 $gn_funcs = join(";;", split(/\s*;\s+|\s+[\@\/]\s+/, $gn_funcs));
 
+                my $gn_roles;
+                if( defined($gn_features->[$ii]->{roles}) ) {
+                    $gn_roles = join(";;", $gn_features->[$ii]->{roles});
+                }
+                else {
+                    $gn_roles = undef;
+                }
                 $loc_contig = "";
                 $loc_begin = 0;
                 $loc_end = "";
@@ -989,6 +999,7 @@ sub _indexGenomeFeatureData
                           feature_type => $gn_features->[$ii]->{type},
                           feature_id => $gn_features->[$ii]->{id},
                           functions => $gn_funcs,
+                          roles => $gn_roles,
                           md5 => $gn_features->[$ii]->{md5},
                           gene_name => $gn_nm, 
                           protein_translation_length => ($gn_features->[$ii]->{protein_translation_length}) != "" ? $gn_features->[$ii]->{protein_translation_length} : 0,
@@ -1008,7 +1019,7 @@ sub _indexGenomeFeatureData
                     };
                     if($@) {
                         print "Failed to index the genome_feature(s)!\n";
-                        print "ERROR:".$@;
+                        print "ERROR:". Dumper( $@ );
                         if(defined($@->{status_line})) {
                             print $@->{status_line}."\n";
                         }
@@ -1025,7 +1036,7 @@ sub _indexGenomeFeatureData
                 };
                 if($@) {
                     print "Failed to index the genome_feature(s)!\n";
-                    print "ERROR:".$@;
+                    print "ERROR:". Dumper( $@ );
                     if(defined($@->{status_line})) {
                         print $@->{status_line}."\n";
                     }
@@ -1077,23 +1088,15 @@ sub _indexInSolr
 {
     my ($self, $solrCore, $docData) = @_; 
     if( @{$docData} >= 1) {
-        eval {
-            if( $self -> _addXML2Solr($solrCore, $docData) == 1 ) {
-                #commit the additions
-                if (!$self->_commit($solrCore)) {
-                        print "\n Error: " . $self->_error->{response};
-                }
-            }
-            else {
-                print "\nIndexing failed: \n" . $self->{error}->{errmsg};
-            }
-        };
-        if($@) {
-            print "Error from SOLR indexing:\n" . $@;
-            if(defined($@->{status_line})) {
-                print $@->{status_line}."\n";
-            }
-        }
+       if( $self -> _addXML2Solr($solrCore, $docData) == 1 ) {
+           #commit the additions
+           if (!$self->_commit($solrCore)) {
+               die $self->_error->{response};
+           }
+       }
+       else {
+          die $self->{error};
+       }
     }
 }
 
@@ -1538,7 +1541,7 @@ sub list_loaded_genomes
     $params = $self->util_args($params,[],{
         ensembl => 0,
         phytozome => 0,
-        refseq => 0,
+        refseq => 1,
         create_report => 0,
         workspace_name => undef
     });
@@ -2935,7 +2938,7 @@ sub index_taxa_in_solr
             };
             if($@) {
                 print "Failed to index the taxa!\n";
-                print "ERROR:".$@;
+                print "ERROR:". Dumper( $@ );
                 if(defined($@->{status_line})) {
                     print $@->{status_line}."\n";
                 }
