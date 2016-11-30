@@ -210,8 +210,16 @@ sub _listTaxaInSolr {
 # method name: _buildQueryString
 # Internal Method: to build the query string for SOLR according to the passed parameters
 # parameters:
-# $searchParams is a hash, see the example below:
-# $searchParams {
+# $searchQuery is a hash which specifies how the documents will be searched, see the example below:
+# $searchQuery={
+#   parent_taxon_ref => '1779/116411/1',
+#   rank => 'species',
+#   scientific_lineage => 'cellular organisms; Bacteria; Proteobacteria; Alphaproteobacteria; Rhizobiales; Bradyrhizobiaceae; Bradyrhizobium',
+#   scientific_name => 'Bradyrhizobium sp. rp3',
+#   domain => 'Bacteria'
+#}
+# $searchParams is a hash which specifies how the query results will be displayed, see the example below:
+# $searchParams={
 #   fl => 'object_id,gene_name,genome_source',
 #   wt => 'json',
 #   rows => $count,
@@ -227,35 +235,36 @@ sub _buildQueryString {
     
     my $DEFAULT_FIELD_CONNECTOR = "AND";
 
-    # Build the queryFields string with $searchQuery and $searchParams
-    my $queryFields = "";
     if (! $searchQuery) {
         $self->{is_error} = 1;
         $self->{errmsg} = "Query parameters not specified";
         return undef;
     }
+    
+    # Build the display parameter part 
+    my $paramFields = "";
     foreach my $key (keys %$searchParams) {
-        $queryFields .= "$key=". URI::Escape::uri_escape($searchParams->{$key}) . "&";
+        $paramFields .= "$key=". URI::Escape::uri_escape($searchParams->{$key}) . "&";
     }
     
-    # Add solr query to queryString
+    # Build the solr query part
     my $qStr = "q=";
     if (defined $searchQuery->{q}) {
         $qStr .= URI::Escape::uri_escape($searchQuery->{q});
     } else {
         foreach my $key (keys %$searchQuery) {
             if (defined $skipEscape->{$key}) {
-                $qStr .= "+$key:" . $searchQuery->{$key} ." $DEFAULT_FIELD_CONNECTOR ";
+                $qStr .= "+$key:\"" . $searchQuery->{$key} ."\" $DEFAULT_FIELD_CONNECTOR ";
             } else {
-                $qStr .= "+$key:" . URI::Escape::uri_escape($searchQuery->{$key}) .
-                        " $DEFAULT_FIELD_CONNECTOR ";
+                $qStr .= "+$key:\"" . URI::Escape::uri_escape($searchQuery->{$key}) .
+                        "\" $DEFAULT_FIELD_CONNECTOR ";
             }
         }
         # Remove last occurance of ' AND '
         $qStr =~ s/ AND $//g;
     }
     my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
-    my $retStr = $queryFields . $qStr . $solrGroup;
+    my $retStr = $paramFields . $qStr . $solrGroup;
     print "Query string:\n$retStr\n";
     return $retStr;
 }
@@ -728,29 +737,35 @@ sub _rollback
 
 #
 # method name: _exists
-#    This method is used for checking if the document with ID specified
-# exists in solr index database or not.
+# Checking if the document with the specified search string exists
 # params :
-#    id: document id for searching in solr dabase for existance
+#    searchCriteria: criteria for searching in solr dabase for existance, in 'key1:value1,key2:value2...' format
+# $searchCriteria is a hash which specifies how the documents will be searched, see the example below:
+# $searchCriteria={
+#   parent_taxon_ref => '1779/116411/1',
+#   rank => 'species',
+#   scientific_lineage => 'cellular organisms; Bacteria; Proteobacteria; Alphaproteobacteria; Rhizobiales; Bradyrhizobiaceae; Bradyrhizobium',
+#   scientific_name => 'Bradyrhizobium sp. rp3',
+#   domain => 'Bacteria'
+#}
 # returns :
-#    1 for success
+#    1 for yes (document match found) 
 #    0 for any failure
 #
 #
 sub _exists
 {
-    my ($self, $solrCore, $solrKey, $searchId) = @_;
+    my ($self, $solrCore, $searchCriteria) = @_;
  
     if (!$self->_ping()) {
         die "\nError--Solr server not responding:\n" . $self->_error->{response};
     }
-    
+    my $queryString = $self->_buildQueryString($searchCriteria); 
+    #my $searchStr = $searchCriteria =~ s/\s*,\s*/&fq=/gr;
     my $url = $self->{_SOLR_URL}."/$solrCore/select?";
-    $url = $url. "q=$solrKey:$searchId";
+    $url = $url. $queryString; #"q=$searchStr";
     
     my $response = $self->_sendRequest($url, 'GET');
-    
-    #print "\n$searchId:\n" . Dumper($response). "\n";
 
     my $status = $self->_parseResponse($response);
     if ($status == 1) {
@@ -759,7 +774,7 @@ sub _exists
         eval {
             $xmlRef = $xs->XMLin($response->{response});
         };
-        #print "\n$url result:\n" . Dumper($xmlRef->{result}) . "\n";
+        print "\n$url result:\n" . Dumper($xmlRef->{result}) . "\n";
         if ($xmlRef->{lst}->{'int'}->{status}->{content} eq 0){
             if ($xmlRef->{result}->{numFound} gt 0) {
             return 1;
@@ -883,7 +898,7 @@ sub _indexGenomeFeatureData
     my $batchCount = 10000;
 
     #foreach my $wref (@{$wsgnrefs}) { 
-    for( my $gf_i = 0; $gf_i < @{$wsgnrefs}; $gf_i ++ ) {
+    for( my $gf_i = 11297; $gf_i < @{$wsgnrefs}; $gf_i ++ ) {
         my $wref = $wsgnrefs->[$gf_i];
         print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $wref->{ref} .  " on " . scalar localtime . "\n";
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
@@ -980,7 +995,7 @@ sub _indexGenomeFeatureData
                 $gn_onterms = $gn_features->[$ii]->{ontology_terms};
 
                 my $current_gnft = {
-                          genome_feature_id => $gn_data->{id} . "_" . $gn_features->[$ii]->{id},
+                          genome_feature_id => $gn_data->{id} . "/" . $gn_features->[$ii]->{id},
                           genome_id => $gn_data->{id},
                           ws_ref => $wref->{ref}, 
                           genome_source => $gn_data -> {source},
@@ -2407,7 +2422,7 @@ sub list_loaded_taxa
                     $wsoutput = $self->util_ws_client()->list_objects({
                         workspaces => [$wsname],
                         type => "KBaseGenomeAnnotations.Taxon-1.0",
-                        minObjectID => $batch_count * $m,
+                        minObjectID => $batch_count * $m + 1,
                         maxObjectID => $batch_count * ( $m + 1)
                     });
             };
