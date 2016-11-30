@@ -739,7 +739,6 @@ sub _rollback
 # method name: _exists
 # Checking if the document with the specified search string exists
 # params :
-#    searchCriteria: criteria for searching in solr dabase for existance, in 'key1:value1,key2:value2...' format
 # $searchCriteria is a hash which specifies how the documents will be searched, see the example below:
 # $searchCriteria={
 #   parent_taxon_ref => '1779/116411/1',
@@ -761,9 +760,8 @@ sub _exists
         die "\nError--Solr server not responding:\n" . $self->_error->{response};
     }
     my $queryString = $self->_buildQueryString($searchCriteria); 
-    #my $searchStr = $searchCriteria =~ s/\s*,\s*/&fq=/gr;
     my $url = $self->{_SOLR_URL}."/$solrCore/select?";
-    $url = $url. $queryString; #"q=$searchStr";
+    $url = $url. $queryString; 
     
     my $response = $self->_sendRequest($url, 'GET');
 
