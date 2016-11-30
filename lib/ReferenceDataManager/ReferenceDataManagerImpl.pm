@@ -218,6 +218,9 @@ sub _listTaxaInSolr {
 #   scientific_name => 'Bradyrhizobium sp. rp3',
 #   domain => 'Bacteria'
 #}
+# OR, simply:
+# $searchQuery= { q => "*" };
+#
 # $searchParams is a hash which specifies how the query results will be displayed, see the example below:
 # $searchParams={
 #   fl => 'object_id,gene_name,genome_source',
@@ -270,56 +273,22 @@ sub _buildQueryString {
 }
 
 #
-# method name: updateDocs
-# Internal Method: to execute an update in SOLR according to the passed parameters
-# parameters:
-# $searchParams is a hash, see the example below:
-# $searchParams {
-#   fl => 'object_id,gene_name,genome_source',
-#   wt => 'json',
-#   rows => $count,
-#   sort => 'object_id asc',
-#   hl => 'false',
-#   start => $start,
-#   count => $count
-#}
-# Return a list of updated docs
-#
-sub _updateDocs {
-    my ($self, $searchCore, $searchParams, $searchQuery, $resultFormat, $skipEscape) = @_;
-    $skipEscape = {} unless $skipEscape;
-
-    if (!$self->_ping()) {
-        die "\nError--Solr server not responding:\n" . $self->_error->{response};
-    }
-        
-    # If output format is not passed set it to XML
-    $resultFormat = "xml" unless $resultFormat;
-    my $queryString = $self->_buildQueryString($searchQuery, $searchParams, "", $skipEscape);
-    my $solrCore = "/$searchCore"; 
-    my $solrQuery = $self->{_SOLR_URL}.$solrCore."/update?".$queryString;
-    print "Search string:\n$solrQuery\n";
-    
-    my $solr_response = $self->_sendRequest("$solrQuery", "GET");
-    print "\nRaw response: \n" . $solr_response->{response} . "\n";
-    
-    my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
-        if ($responseCode) {
-            if ($resultFormat eq "json") {
-                my $out = JSON::from_json($solr_response->{response});
-                $solr_response->{response}= $out;
-            }
-    }
-    
-    return $solr_response;
-}
-
-#
 # method name: _searchSolr
 # Internal Method: to execute a search in SOLR according to the passed parameters
 # parameters:
+# $searchQuery is a hash which specifies how the documents will be searched, see the example below:
+# $searchQuery={
+#   parent_taxon_ref => '1779/116411/1',
+#   rank => 'species',
+#   scientific_lineage => 'cellular organisms; Bacteria; Proteobacteria; Alphaproteobacteria; Rhizobiales; Bradyrhizobiaceae; Bradyrhizobium',
+#   scientific_name => 'Bradyrhizobium sp. rp3',
+#   domain => 'Bacteria'
+#}
+# OR, simply:
+# $searchQuery= { q => "*" };
+#
 # $searchParams is a hash, see the example below:
-# $searchParams {
+# $searchParams={
 #   fl => 'object_id,gene_name,genome_source',
 #   wt => 'json',
 #   rows => $count,
