@@ -897,16 +897,19 @@ sub _indexGenomeFeatureData
         my $loc_end;
         my $loc_strand;
         my $gn_loc;
-               
+        my $gn_save_date;       
         my $numCDs = 0;
-               
+        my $gn_refseqcat;
+
         for (my $i=0; $i < @{$gnout}; $i++) {
             $gn_data = $gnout -> [$i] -> {data};#an UnspecifiedObject
             $gn_info = $gnout -> [$i] -> {info};
             $gn_features = $gn_data->{features};
             $gn_tax = $gn_data->{taxonomy};
             $gn_tax =~s/ *; */;;/g;
-                       
+            $gn_save_date = $gn_info -> [3];
+            $gn_refseqcat = $gn_info -> [2];
+
             $numCDs  = 0;
             foreach my $feature (@{$gn_features}) {
                 $numCDs++ if $feature->{type} = 'CDS'; 
@@ -977,6 +980,8 @@ sub _indexGenomeFeatureData
                           taxonomy => $gn_tax,
                           workspace_name => $gn_info -> [7],
                           num_cds => $numCDs,
+                          refseq_category => $gn_refseqcat,
+                          save_date => $gn_save_date,
                           #feature data
                           feature_type => $gn_features->[$ii]->{type},
                           feature_id => $gn_features->[$ii]->{id},
@@ -1388,12 +1393,13 @@ sub list_reference_genomes
                 domain => $division
             };
             $current_genome->{accession} = $attribs[0];
-            $current_genome->{status} = $attribs[10];
-            $current_genome->{name} = $attribs[15];
+            $current_genome->{version_status} = $attribs[10];
+            $current_genome->{asm_name} = $attribs[15];
             $current_genome->{ftp_dir} = $attribs[19];
             $current_genome->{file} = $current_genome->{ftp_dir};
             $current_genome->{file}=~s/.*\///;
             ($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
+            $current_genome->{refseq_category} = $attribs[4];
             #$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
             push(@{$output},$current_genome);
             if ($count < 10) {
@@ -1546,7 +1552,8 @@ sub list_loaded_genomes
             print "\nMax genome object id=$maxid\n";
         
             try {
-                for (my $m = 0; $m < $pages; $m++) {
+                #for (my $m = 0; $m < $pages; $m++) {
+                for (my $m = 0; $m < 1; $m++) { 
                    eval {
                         $wsoutput = $self->util_ws_client()->list_objects({
                           workspaces => [$wsname],
@@ -1572,9 +1579,10 @@ sub list_loaded_genomes
                                 "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
                                 id => $wsoutput->[$j]->[1],
                                 workspace_name => $wsoutput->[$j]->[7],
+                                refseq_category => $wsoutput->[$j]->[2],
                                 source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-                                accession => $wsoutput->[$j]->[10]->{"Source ID"},
-                                name => $wsoutput->[$j]->[10]->{Name},
+                                accession => $wsoutput->[$j]->[1],#0]->{"Source ID"},
+                                asm_name => $wsoutput->[$j]->[1],#0]->{Name},
                                 version => $wsoutput->[$j]->[4],
                                 source => $wsoutput->[$j]->[10]->{Source},
                                 domain => $wsoutput->[$j]->[10]->{Domain},

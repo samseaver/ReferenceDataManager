@@ -25,14 +25,15 @@ module ReferenceDataManager {
     */
     typedef structure {
         string accession;
-        string status;
-        string name;
+        string version_status;
+        string asm_name;
         string ftp_dir;
         string file;
         string id;
         string version;
         string source;
         string domain;
+        string refseq_category;
     } ReferenceGenomeData;
 
     /*
@@ -60,13 +61,20 @@ module ReferenceDataManager {
         string workspace_name;
         string source_id;
         string accession;
-        string name;
+        string asm_name;
         string ftp_dir;
         string version;
         string source;
-        string domain; 
+        string domain;
+        string refseq_category; 
+        string save_date;
     } KBaseReferenceGenomeData;
 
+    /*
+        Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
+    */
+    funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output);
+  
 
     /*
         Struct containing data for a single genome element output by the list_solr_genomes and index_genomes_in_solr functions 
@@ -107,14 +115,10 @@ module ReferenceDataManager {
         int num_contigs;
         int protein_translation_length;	    
         float gc_content;
-	bool complete;  	    	 
+	bool complete;
+        string refseq_category;  	    	 
+        string save_date;
     } SolrGenomeFeatureData;
-
-    /*
-        Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
-    */
-    funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output);
-  
 
     /*
         Arguments for the list_solr_genomes and list_solr_taxa functions
