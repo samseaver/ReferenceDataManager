@@ -1962,7 +1962,7 @@ sub load_genomes
     
     for (my $i=0; $i < @{$genomes}; $i++) {
         my $genome = $genomes->[$i];
-     
+        print "******************Genome#: $i ********************\n"; 
         my $wsname = "";
         if(defined( $genome->{workspace_name}))
         {
@@ -1972,13 +1972,19 @@ sub load_genomes
         {
             $wsname = $self->util_workspace_names($genome->{source});   
         }
-        
+        my $gn_type = "User upload";
+        if( $genome->{refseq_category} eq "reference genome") {
+           $gn_type = "Reference";
+        }
+        elsif($genome->{refseq_category} eq "representative genome") {
+           $gn_type = "Representative";
+        } 
         print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
      
         if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
-            my $genutilout;
             my $genomeout;
-            try {
+            my $genutilout;
+            eval {
                 $genutilout = $loader->genbank_to_genome({
                 file => {
                     ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
@@ -1990,7 +1996,7 @@ sub load_genomes
                 release => $genome->{version},
                 generate_ids_if_needed => 1,
                 genetic_code => 11,
-                type => "Reference",
+                type => $gn_type,
                 metadata => {
                     refid => $genome->{id},
                     accession => $genome->{accession},
@@ -1999,7 +2005,13 @@ sub load_genomes
                     version => $genome->{version}
                 }
                 });
-                $genomeout = {
+            };
+            if ($@) {
+                print "**********Received an exception from calling genbank_to_genome to load $genome->{id}:\n" . Dumper($@);
+            }
+            else
+            {
+              $genomeout = {
                 "ref" => $genutilout->{genome_ref},
                 id => $genome->{id},
                 workspace_name => $wsname,
@@ -2010,24 +2022,16 @@ sub load_genomes
                 version => $genome->{version},
                 source => $genome->{source},
                 domain => $genome->{domain}
-                };
-                push(@{$output},$genomeout);
+             };
+             push(@{$output},$genomeout);
             
-                if ($params->{index_in_solr} == 1) {
+             if ($params->{index_in_solr} == 1) {
                     $self->index_genomes_in_solr({
                         genomes => [$genomeout]
                     });
-                }
-            }
-            catch { 
-                warn "Got an exception from calling genbank_to_genome:\n $_";
-                $genomeout = {};
-            }
-            finally {
-                if (@_) {
-                    print "The trying to call genbank_to_genome died with: @_\n";
-                }
-            };
+             }
+             print "**********Loading of $genome->{id} succeeded!!\n";
+           }
         } elsif ($genome->{source} eq "phytozome") {
             #NEED SAM TO PUT CODE FOR HIS LOADER HERE
             my $genomeout = {

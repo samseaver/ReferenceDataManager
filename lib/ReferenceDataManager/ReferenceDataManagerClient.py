@@ -46,10 +46,11 @@ class ReferenceDataManager(object):
         :returns: instance of list of type "ReferenceGenomeData" (Struct
            containing data for a single genome output by the
            list_reference_genomes function) -> structure: parameter
-           "accession" of String, parameter "status" of String, parameter
-           "name" of String, parameter "ftp_dir" of String, parameter "file"
-           of String, parameter "id" of String, parameter "version" of
-           String, parameter "source" of String, parameter "domain" of String
+           "accession" of String, parameter "version_status" of String,
+           parameter "asm_name" of String, parameter "ftp_dir" of String,
+           parameter "file" of String, parameter "id" of String, parameter
+           "version" of String, parameter "source" of String, parameter
+           "domain" of String, parameter "refseq_category" of String
         """
         return self._client.call_method(
             'ReferenceDataManager.list_reference_genomes',
@@ -69,9 +70,10 @@ class ReferenceDataManager(object):
            list_loaded_genomes function) -> structure: parameter "ref" of
            String, parameter "id" of String, parameter "workspace_name" of
            String, parameter "source_id" of String, parameter "accession" of
-           String, parameter "name" of String, parameter "ftp_dir" of String,
-           parameter "version" of String, parameter "source" of String,
-           parameter "domain" of String
+           String, parameter "asm_name" of String, parameter "ftp_dir" of
+           String, parameter "version" of String, parameter "source" of
+           String, parameter "domain" of String, parameter "refseq_category"
+           of String, parameter "save_date" of String
         """
         return self._client.call_method(
             'ReferenceDataManager.list_loaded_genomes',
@@ -110,7 +112,8 @@ class ReferenceDataManager(object):
            parameter "num_cds" of Long, parameter "num_contigs" of Long,
            parameter "protein_translation_length" of Long, parameter
            "gc_content" of Double, parameter "complete" of type "bool" (A
-           boolean.)
+           boolean.), parameter "refseq_category" of String, parameter
+           "save_date" of String
         """
         return self._client.call_method(
             'ReferenceDataManager.list_solr_genomes',
@@ -124,21 +127,23 @@ class ReferenceDataManager(object):
            String, parameter "genomes" of list of type "ReferenceGenomeData"
            (Struct containing data for a single genome output by the
            list_reference_genomes function) -> structure: parameter
-           "accession" of String, parameter "status" of String, parameter
-           "name" of String, parameter "ftp_dir" of String, parameter "file"
-           of String, parameter "id" of String, parameter "version" of
-           String, parameter "source" of String, parameter "domain" of
-           String, parameter "index_in_solr" of type "bool" (A boolean.),
-           parameter "workspace_name" of String, parameter "create_report" of
-           type "bool" (A boolean.)
+           "accession" of String, parameter "version_status" of String,
+           parameter "asm_name" of String, parameter "ftp_dir" of String,
+           parameter "file" of String, parameter "id" of String, parameter
+           "version" of String, parameter "source" of String, parameter
+           "domain" of String, parameter "refseq_category" of String,
+           parameter "index_in_solr" of type "bool" (A boolean.), parameter
+           "workspace_name" of String, parameter "create_report" of type
+           "bool" (A boolean.)
         :returns: instance of list of type "KBaseReferenceGenomeData" (Struct
            containing data for a single genome output by the
            list_loaded_genomes function) -> structure: parameter "ref" of
            String, parameter "id" of String, parameter "workspace_name" of
            String, parameter "source_id" of String, parameter "accession" of
-           String, parameter "name" of String, parameter "ftp_dir" of String,
-           parameter "version" of String, parameter "source" of String,
-           parameter "domain" of String
+           String, parameter "asm_name" of String, parameter "ftp_dir" of
+           String, parameter "version" of String, parameter "source" of
+           String, parameter "domain" of String, parameter "refseq_category"
+           of String, parameter "save_date" of String
         """
         return self._client.call_method(
             'ReferenceDataManager.load_genomes',
@@ -154,10 +159,11 @@ class ReferenceDataManager(object):
            list_loaded_genomes function) -> structure: parameter "ref" of
            String, parameter "id" of String, parameter "workspace_name" of
            String, parameter "source_id" of String, parameter "accession" of
-           String, parameter "name" of String, parameter "ftp_dir" of String,
-           parameter "version" of String, parameter "source" of String,
-           parameter "domain" of String, parameter "solr_core" of String,
-           parameter "create_report" of type "bool" (A boolean.)
+           String, parameter "asm_name" of String, parameter "ftp_dir" of
+           String, parameter "version" of String, parameter "source" of
+           String, parameter "domain" of String, parameter "refseq_category"
+           of String, parameter "save_date" of String, parameter "solr_core"
+           of String, parameter "create_report" of type "bool" (A boolean.)
         :returns: instance of list of type "SolrGenomeFeatureData" (Struct
            containing data for a single genome element output by the
            list_solr_genomes and index_genomes_in_solr functions) ->
@@ -183,7 +189,8 @@ class ReferenceDataManager(object):
            parameter "num_cds" of Long, parameter "num_contigs" of Long,
            parameter "protein_translation_length" of Long, parameter
            "gc_content" of Double, parameter "complete" of type "bool" (A
-           boolean.)
+           boolean.), parameter "refseq_category" of String, parameter
+           "save_date" of String
         """
         return self._client.call_method(
             'ReferenceDataManager.index_genomes_in_solr',
@@ -331,9 +338,10 @@ class ReferenceDataManager(object):
            list_loaded_genomes function) -> structure: parameter "ref" of
            String, parameter "id" of String, parameter "workspace_name" of
            String, parameter "source_id" of String, parameter "accession" of
-           String, parameter "name" of String, parameter "ftp_dir" of String,
-           parameter "version" of String, parameter "source" of String,
-           parameter "domain" of String
+           String, parameter "asm_name" of String, parameter "ftp_dir" of
+           String, parameter "version" of String, parameter "source" of
+           String, parameter "domain" of String, parameter "refseq_category"
+           of String, parameter "save_date" of String
         """
         return self._client.call_method(
             'ReferenceDataManager.update_loaded_genomes',

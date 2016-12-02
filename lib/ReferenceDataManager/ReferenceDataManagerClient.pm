@@ -124,14 +124,15 @@ ListReferenceGenomesParams is a reference to a hash where the following keys are
 bool is an int
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	file has a value which is a string
 	id has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
 
 </pre>
 
@@ -151,14 +152,15 @@ ListReferenceGenomesParams is a reference to a hash where the following keys are
 bool is an int
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	file has a value which is a string
 	id has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
 
 
 =end text
@@ -245,11 +247,13 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
-	name has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 </pre>
 
@@ -272,11 +276,13 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
-	name has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 
 =end text
@@ -393,6 +399,8 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
 	protein_translation_length has a value which is an int
 	gc_content has a value which is a float
 	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 </pre>
 
@@ -445,6 +453,8 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
 	protein_translation_length has a value which is an int
 	gc_content has a value which is a float
 	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 
 =end text
@@ -526,14 +536,15 @@ LoadGenomesParams is a reference to a hash where the following keys are defined:
 	create_report has a value which is a ReferenceDataManager.bool
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	file has a value which is a string
 	id has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
@@ -541,11 +552,13 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
-	name has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 </pre>
 
@@ -563,14 +576,15 @@ LoadGenomesParams is a reference to a hash where the following keys are defined:
 	create_report has a value which is a ReferenceDataManager.bool
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	file has a value which is a string
 	id has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
@@ -578,11 +592,13 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
-	name has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 
 =end text
@@ -666,11 +682,13 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
-	name has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 bool is an int
 SolrGenomeFeatureData is a reference to a hash where the following keys are defined:
 	genome_feature_id has a value which is a string
@@ -709,6 +727,8 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
 	protein_translation_length has a value which is an int
 	gc_content has a value which is a float
 	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 </pre>
 
@@ -728,11 +748,13 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
-	name has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 bool is an int
 SolrGenomeFeatureData is a reference to a hash where the following keys are defined:
 	genome_feature_id has a value which is a string
@@ -771,6 +793,8 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
 	protein_translation_length has a value which is an int
 	gc_content has a value which is a float
 	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 
 =end text
@@ -1419,11 +1443,13 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
-	name has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 </pre>
 
@@ -1446,11 +1472,13 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
-	name has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 
 =end text
@@ -1692,14 +1720,15 @@ Struct containing data for a single genome output by the list_reference_genomes 
 <pre>
 a reference to a hash where the following keys are defined:
 accession has a value which is a string
-status has a value which is a string
-name has a value which is a string
+version_status has a value which is a string
+asm_name has a value which is a string
 ftp_dir has a value which is a string
 file has a value which is a string
 id has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+refseq_category has a value which is a string
 
 </pre>
 
@@ -1709,14 +1738,15 @@ domain has a value which is a string
 
 a reference to a hash where the following keys are defined:
 accession has a value which is a string
-status has a value which is a string
-name has a value which is a string
+version_status has a value which is a string
+asm_name has a value which is a string
 ftp_dir has a value which is a string
 file has a value which is a string
 id has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+refseq_category has a value which is a string
 
 
 =end text
@@ -1790,11 +1820,13 @@ id has a value which is a string
 workspace_name has a value which is a string
 source_id has a value which is a string
 accession has a value which is a string
-name has a value which is a string
+asm_name has a value which is a string
 ftp_dir has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+refseq_category has a value which is a string
+save_date has a value which is a string
 
 </pre>
 
@@ -1808,11 +1840,13 @@ id has a value which is a string
 workspace_name has a value which is a string
 source_id has a value which is a string
 accession has a value which is a string
-name has a value which is a string
+asm_name has a value which is a string
 ftp_dir has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+refseq_category has a value which is a string
+save_date has a value which is a string
 
 
 =end text
@@ -1874,6 +1908,8 @@ num_contigs has a value which is an int
 protein_translation_length has a value which is an int
 gc_content has a value which is a float
 complete has a value which is a ReferenceDataManager.bool
+refseq_category has a value which is a string
+save_date has a value which is a string
 
 </pre>
 
@@ -1918,6 +1954,8 @@ num_contigs has a value which is an int
 protein_translation_length has a value which is an int
 gc_content has a value which is a float
 complete has a value which is a ReferenceDataManager.bool
+refseq_category has a value which is a string
+save_date has a value which is a string
 
 
 =end text
