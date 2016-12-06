@@ -861,11 +861,11 @@ sub _indexGenomeFeatureData
     my $gnout;
     my $solr_gnftData = [];
     my $gnft_batch = [];    
-    my $g_count = 1;
     my $batchCount = 10000;
 
     #foreach my $wref (@{$wsgnrefs}) { 
-    for( my $gf_i = 11297; $gf_i < @{$wsgnrefs}; $gf_i ++ ) {
+    #for( my $gf_i = 11297; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
+    for( my $gf_i = 0; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
         my $wref = $wsgnrefs->[$gf_i];
         print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $wref->{ref} .  " on " . scalar localtime . "\n";
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
@@ -880,91 +880,91 @@ sub _indexGenomeFeatureData
                     print $@->{status_line}."\n";
                 }
         }
-        print "Done getting the object(s) for " . $wref->{ref} . " on " . scalar localtime . "\n";
-        #print Dumper($gnout);exit 0;
-        #fetch individual data item to assemble the $solr_gnftData
-        $gnout = $gnout -> {data};
-        my $gn_data;
-        my $gn_info; #to hold a value which is a Workspace.object_info
-        my $gn_onterms ={};
+	else {
+            $gnout = $gnout -> {data};
+            print "Done getting genome object info for " . $wref->{ref} . " on " . scalar localtime . "\n";
+            my $gn_data;
+            my $gn_info; #to hold a value which is a Workspace.object_info
+            my $gn_onterms ={};
+            my $gn_features = {};
+            my $gn_tax;
+            my $gn_aliases;
+            my $gn_nm;
+            my $loc_contig;
+            my $loc_begin;
+            my $loc_end;
+            my $loc_strand;
+            my $gn_loc;
+            my $gn_save_date;
+            my $numCDs = 0;
+            my $gn_refseqcat;
 
-        my $gn_features = {};
-        my $gn_tax;           
-        my $gn_aliases;    
-        my $gn_nm;
-        my $loc_contig;
-        my $loc_begin;
-        my $loc_end;
-        my $loc_strand;
-        my $gn_loc;
-        my $gn_save_date;       
-        my $numCDs = 0;
-        my $gn_refseqcat;
-
-        for (my $i=0; $i < @{$gnout}; $i++) {
-            $gn_data = $gnout -> [$i] -> {data};#an UnspecifiedObject
-            $gn_info = $gnout -> [$i] -> {info};
-            $gn_features = $gn_data->{features};
-            $gn_tax = $gn_data->{taxonomy};
-            $gn_tax =~s/ *; */;;/g;
-            $gn_save_date = $gn_info -> [3];
-            $gn_refseqcat = $gn_info -> [2];
-
-            $numCDs  = 0;
-            foreach my $feature (@{$gn_features}) {
-                $numCDs++ if $feature->{type} = 'CDS'; 
-            }
-
-            for (my $ii=0; $ii < @{$gn_features}; $ii++) {
-                if( defined($gn_features->[$ii]->{aliases})) {
-                    $gn_nm = $gn_features->[$ii]->{aliases}[0] unless $gn_features->[$ii]->{aliases}[0]=~/^(NP_|WP_|YP_|GI|GeneID)/i;  
-                    $gn_aliases = join(";", @{$gn_features->[$ii]->{aliases}});
-                    $gn_aliases =~s/ *; */;;/g;
+            #fetch individual data item to assemble the genome_feature info for $solr_gnftData
+            for (my $i=0; $i < @{$gnout}; $i++) {
+                $gn_data = $gnout -> [$i] -> {data};#an UnspecifiedObject
+                $gn_info = $gnout -> [$i] -> {info};
+                $gn_features = $gn_data->{features};
+                $gn_tax = $gn_data->{taxonomy};
+                $gn_tax =~s/ *; */;;/g;
+                $gn_save_date = $gn_info -> [3];
+                $gn_refseqcat = $gn_info -> [2];
+                
+                $numCDs  = 0;
+                foreach my $feature (@{$gn_features}) {
+                    $numCDs++ if $feature->{type} = 'CDS'; 
                 }
-                else {
-                    $gn_nm = undef;
-                    $gn_aliases = undef;
-                }
-                my $gn_funcs = $gn_features->[$ii]->{function}; 
-                $gn_funcs = join(";;", split(/\s*;\s+|\s+[\@\/]\s+/, $gn_funcs));
-
-                my $gn_roles;
-                if( defined($gn_features->[$ii]->{roles}) ) {
-                    $gn_roles = join(";;", $gn_features->[$ii]->{roles});
-                }
-                else {
-                    $gn_roles = undef;
-                }
-                $loc_contig = "";
-                $loc_begin = 0;
-                $loc_end = "";
-                $loc_strand = "";
-                $gn_loc = $gn_features->[$ii]->{location};
-                my $end = 0;
-                 
-                foreach my $contig_loc (@{$gn_loc}) { 
-                    $loc_contig = $loc_contig . ";;" unless $loc_contig eq "";
-                    $loc_contig = $loc_contig . $contig_loc->[0]; 
-                    
-                    $loc_begin = $loc_begin . ";;" unless $loc_begin eq "";
-                    $loc_begin = $loc_begin . $contig_loc->[1]; 
-                             
-                    if( $contig_loc->[2] eq "+") {
-                        $end = $contig_loc->[1] + $contig_loc->[3];
-                    } 
-                    else {
-                        $end = $contig_loc->[1] - $contig_loc->[3];
+                
+                for (my $ii=0; $ii < @{$gn_features}; $ii++) {
+                    if( defined($gn_features->[$ii]->{aliases})) {
+                        $gn_nm = $gn_features->[$ii]->{aliases}[0] unless $gn_features->[$ii]->{aliases}[0]=~/^(NP_|WP_|YP_|GI|GeneID)/i;  
+                        $gn_aliases = join(";", @{$gn_features->[$ii]->{aliases}});
+                        $gn_aliases =~s/ *; */;;/g;
                     }
-                    $loc_end = $loc_end . ";;" unless $loc_end eq "";
-                    $loc_end = $loc_end . $end; 
+                    else {
+                        $gn_nm = undef;
+                        $gn_aliases = undef;
+                    }
+                    
+                    my $gn_funcs = $gn_features->[$ii]->{function}; 
+                    $gn_funcs = join(";;", split(/\s*;\s+|\s+[\@\/]\s+/, $gn_funcs));
+                    
+                    my $gn_roles;
+                    if( defined($gn_features->[$ii]->{roles}) ) {
+                        $gn_roles = join(";;", $gn_features->[$ii]->{roles});
+                    }
+                    else {
+                        $gn_roles = undef;
+                    }
+                    $loc_contig = "";
+                    $loc_begin = 0;
+                    $loc_end = "";
+                    $loc_strand = "";
+                    $gn_loc = $gn_features->[$ii]->{location};
+                    
+                    my $end = 0;
+                    foreach my $contig_loc (@{$gn_loc}) { 
+                        $loc_contig = $loc_contig . ";;" unless $loc_contig eq "";
+                        $loc_contig = $loc_contig . $contig_loc->[0]; 
+                        
+                        $loc_begin = $loc_begin . ";;" unless $loc_begin eq "";
+                        $loc_begin = $loc_begin . $contig_loc->[1]; 
                              
-                    $loc_strand = $loc_strand . ";;" unless $loc_strand eq "";
-                    $loc_strand = $loc_strand . $contig_loc->[2]; 
-                }
-
-                $gn_onterms = $gn_features->[$ii]->{ontology_terms};
-
-                my $current_gnft = {
+                        if( $contig_loc->[2] eq "+") {
+                            $end = $contig_loc->[1] + $contig_loc->[3];
+                        }
+                        else {
+                            $end = $contig_loc->[1] - $contig_loc->[3];
+                        }
+                        $loc_end = $loc_end . ";;" unless $loc_end eq "";
+                        $loc_end = $loc_end . $end; 
+                        
+                        $loc_strand = $loc_strand . ";;" unless $loc_strand eq "";
+                        $loc_strand = $loc_strand . $contig_loc->[2]; 
+                    }
+                    
+                    $gn_onterms = $gn_features->[$ii]->{ontology_terms};
+                    
+                    my $current_gnft = {
                           genome_feature_id => $gn_data->{id} . "/" . $gn_features->[$ii]->{id},
                           genome_id => $gn_data->{id},
                           ws_ref => $wref->{ref}, 
@@ -997,10 +997,28 @@ sub _indexGenomeFeatureData
                           location_begin => $loc_begin,
                           location_end => $loc_end,
                           ontology_namespaces => $gn_features->[$ii]->{ontology_terms}
-                };
-                push @{$solr_gnftData}, $current_gnft;
-                push @{$gnft_batch}, $current_gnft;
-                if(@{$gnft_batch} >= $batchCount) {
+                    };
+                    push @{$solr_gnftData}, $current_gnft;
+                    push @{$gnft_batch}, $current_gnft;
+                      
+                    if(@{$gnft_batch} >= $batchCount) {
+                        eval {
+                              $self->_indexInSolr($solrCore, $gnft_batch);
+                        };
+                        if($@) {
+                              print "Failed to index the genome_feature(s)!\n";
+                              print "ERROR:". Dumper( $@ );
+                              if(defined($@->{status_line})) {
+                                  print $@->{status_line}."\n";
+                              }
+                        }
+                        else {
+                              print "\nIndexed " . @{$gnft_batch} . " genome_feature(s) on " . scalar localtime . "\n";
+                              $gnft_batch = [];
+                        }
+                    }
+                }
+                if(@{$gnft_batch} > 0) {
                     eval {
                         $self->_indexInSolr($solrCore, $gnft_batch);
                     };
@@ -1017,22 +1035,6 @@ sub _indexGenomeFeatureData
                     }
                 }
             }
-            if(@{$gnft_batch} > 0) {
-                eval {
-                    $self->_indexInSolr($solrCore, $gnft_batch);
-                };
-                if($@) {
-                    print "Failed to index the genome_feature(s)!\n";
-                    print "ERROR:". Dumper( $@ );
-                    if(defined($@->{status_line})) {
-                        print $@->{status_line}."\n";
-                    }
-                }
-                else {
-                    print "\nIndexed " . @{$gnft_batch} . " genome_feature(s) on " . scalar localtime . "\n";
-                    $gnft_batch = [];
-                }
-            }
         }
     }
     return $solr_gnftData;
@@ -1044,6 +1046,7 @@ sub _getTaxon
 {
     my ($self, $taxonData, $wsref) = @_; 
 
+    my $t_aliases = join(";", @{$taxonData -> {aliases}});
     my $current_taxon = {
         taxonomy_id => $taxonData -> {taxonomy_id},
         scientific_name => $taxonData -> {scientific_name},
@@ -1052,7 +1055,7 @@ sub _getTaxon
         kingdom => $taxonData -> {kingdom},
         domain => $taxonData -> {domain},
         ws_ref => $wsref,
-        aliases => $taxonData -> {alias},
+        aliases => $t_aliases,
         genetic_code => ($taxonData -> {genetic_code}) ? ($taxonData -> {genetic_code}) : "0",
         parent_taxon_ref => $taxonData -> {parent_taxon_ref},
         embl_code => $taxonData -> {embl_code},
@@ -1551,35 +1554,35 @@ sub list_loaded_genomes
             my $pages = ceil($maxid/$batch_count);
             print "\nMax genome object id=$maxid\n";
         
-            try {
-                #for (my $m = 0; $m < $pages; $m++) {
-                for (my $m = 0; $m < 1; $m++) { 
-                   eval {
+            for (my $m = 0; $m < $pages; $m++) {
+                #for (my $m = 0; $m < 1; $m++) { 
+                eval {
                         $wsoutput = $self->util_ws_client()->list_objects({
                           workspaces => [$wsname],
                           minObjectID => $batch_count * $m,
-                          type => "KBaseGenomes.Genome-8.0",#11539 objects
+                          #type => "KBaseGenomes.Genome-8.0",#11539 objects
                           #type => "KBaseGenomeAnnotations.Assembly-4.1",#17929 objects
                           #type => "KBaseGenomeAnnotations.GenomeAnnotation-3.1",#17925 objects
                           #type => "KBaseGenomes.ContigSet-3.0",#18018 objects
                           maxObjectID => $batch_count * ( $m + 1)
-                        });
-                    };
-                    if($@) {
+                      });
+                 };
+                 if($@) {
                         print "Cannot list objects!\n";
                         print "ERROR:" . $@;#->{message}."\n";
                         if(defined($@->{status_line})) {
                             print "ERROR:" . $@->{status_line}."\n"; 
                         }
-                    }
-                    #print "\nTotal genome object count=" . @{$wsoutput}. "\n";
+                 }
+                 else {
+                    print "\nTotal genome object count=" . @{$wsoutput}. "\n";
                     if( @{$wsoutput} > 0 ) {
                         for (my $j=0; $j < @{$wsoutput}; $j++) {
                             push @{$output}, {
                                 "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
                                 id => $wsoutput->[$j]->[1],
                                 workspace_name => $wsoutput->[$j]->[7],
-                                refseq_category => $wsoutput->[$j]->[2],
+                                type => $wsoutput->[$j]->[2],
                                 source_id => $wsoutput->[$j]->[10]->{"Source ID"},
                                 accession => $wsoutput->[$j]->[1],#0]->{"Source ID"},
                                 asm_name => $wsoutput->[$j]->[1],#0]->{Name},
@@ -1600,15 +1603,7 @@ sub list_loaded_genomes
                         }
                     }
                 }
-            }    
-            catch { 
-                warn "Got an exception from calling get_objects2 or solr connection\n $_";
-            }   
-            finally {
-                if (@_) {
-                        print "The trying to call get_objects2 or solr connection died with:\n" . Dumper( @_) . "\n";
-                }
-            };
+	    }
         }
     }
     if ($params->{create_report}) {
@@ -2004,10 +1999,19 @@ sub load_genomes
                     url => $genome->{url},
                     version => $genome->{version}
                 }
-                });
+              });
             };
             if ($@) {
-                print "**********Received an exception from calling genbank_to_genome to load $genome->{id}:\n" . Dumper($@);
+                print "**********Received an exception from calling genbank_to_genome to load $genome->{id}:\n"; 
+                #print Dumper($@);
+                print "Exception message: " . $@->{"message"} . "\n";
+                print "JSONRPC code: " . $@->{"code"} . "\n";
+                print "Method: " . $@->{"method_name"} . "\n";
+                print "Client-side exception:\n";
+                print $@;
+                print "\nServer-side exception:\n";
+                print $@->{"data"};
+                #die $@;
             }
             else
             {
@@ -2247,7 +2251,6 @@ sub index_genomes_in_solr
     print "\nTotal genomes to be indexed: ". @{$genomes} . "\n";
 
     $output = $self->_indexGenomeFeatureData($solrCore, $genomes);
-    #push(@{$output}, $solr_ret);   
     if (@{$output} < 10) {
             my $curr = @{$output}-1;
             $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
@@ -2394,24 +2397,25 @@ sub list_loaded_taxa
 
     #print "\nFound $maxid taxon objects.\n";
     #print "\nPaging through $pages of $batch_count objects\n";
-    try {
-        for (my $m = 0; $m < $pages; $m++) {
-            #print "\nBatch ". $m . "x$batch_count";# on " . scalar localtime;
-            eval { 
-                    $wsoutput = $self->util_ws_client()->list_objects({
+    #for (my $m = 0; $m < $pages; $m++) {
+    for (my $m = 0; $m < 50; $m++) {
+        #print "\nBatch ". $m . "x$batch_count";# on " . scalar localtime;
+        eval { 
+            $wsoutput = $self->util_ws_client()->list_objects({
                         workspaces => [$wsname],
                         type => "KBaseGenomeAnnotations.Taxon-1.0",
                         minObjectID => $batch_count * $m + 1,
                         maxObjectID => $batch_count * ( $m + 1)
-                    });
-            };
-            if($@) {
+            });
+        };
+        if($@) {
                 print "Cannot list objects!\n";
                 print "ERROR:" . $@;#->{message}."\n";
                 if(defined($@->{status_line})) {
                         print "ERROR:" . $@->{status_line}."\n"; 
                 }
-            }
+        }
+	else {
             if( @{$wsoutput} > 0 ) { 
                 my $wstaxonrefs = [];
                 for (my $j=0; $j < @{$wsoutput}; $j++) {
@@ -2432,29 +2436,22 @@ sub list_loaded_taxa
                         if(defined($@->{status_line})) {
                                 print $@->{status_line}."\n";
                         }
-               }
-               print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
-               $taxonout = $taxonout -> {data};
-               for (my $i=0; $i < @{$taxonout}; $i++) {
-                       my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
-                       push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
-                       if (@{$output} < 10) {
-                               my $curr = @{$output}-1;
-                               $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
-                       } 
-               }
-            }
-         }  
-    }    
-    catch { 
-        warn "Got an exception from calling get_objects2 or solr connection\n $_";
-    }   
-    finally {
-       if (@_) {
-          print "The trying to call get_objects2 or solr connection died with:\n" . Dumper( @_) . "\n";
-       }
-    };
-  
+                }
+		else {
+               		print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
+              		 $taxonout = $taxonout -> {data};
+               		for (my $i=0; $i < @{$taxonout}; $i++) {
+                       		my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
+                       		push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
+                       		if (@{$output} < 10) {
+                               		my $curr = @{$output}-1;
+                               		$msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+                       		} 
+               		}
+            	}
+	    }
+        }  
+    }  
     #END list_loaded_taxa
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");

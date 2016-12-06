@@ -66,7 +66,7 @@ module ReferenceDataManager {
         string version;
         string source;
         string domain;
-        string refseq_category; 
+        string type; 
         string save_date;
     } KBaseReferenceGenomeData;
 
