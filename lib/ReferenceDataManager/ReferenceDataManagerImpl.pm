@@ -1415,7 +1415,7 @@ sub list_reference_genomes
         #NEED SAM TO FILL THIS IN
     } elsif ($params->{ensembl} == 1) {
         my $source = "ensembl";
-        my $division = "fungal";
+        my $division = "fungi";
         #TODO
     }
     if ($params->{create_report}) {
@@ -1957,7 +1957,7 @@ sub load_genomes
     
     for (my $i=0; $i < @{$genomes}; $i++) {
         my $genome = $genomes->[$i];
-        print "******************Genome#: $i ********************\n"; 
+        print "\n******************Genome#: $i ********************"; 
         my $wsname = "";
         if(defined( $genome->{workspace_name}))
         {
@@ -1974,8 +1974,7 @@ sub load_genomes
         elsif($genome->{refseq_category} eq "representative genome") {
            $gn_type = "Representative";
         } 
-        print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }."\n";
-     
+        print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }. " on " . scalar localtime . "\n";
         if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
             my $genomeout;
             my $genutilout;
@@ -2034,8 +2033,9 @@ sub load_genomes
                         genomes => [$genomeout]
                     });
              }
-             print "**********Loading of $genome->{id} succeeded!!\n";
+             print "!!!!!!!!!!!!!--Loading of $genome->{id} succeeded--!!\n";  
            }
+           print "**********************Genome loading process ends on " . scalar localtime . "************************\n"; 
         } elsif ($genome->{source} eq "phytozome") {
             #NEED SAM TO PUT CODE FOR HIS LOADER HERE
             my $genomeout = {
