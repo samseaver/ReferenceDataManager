@@ -1935,7 +1935,7 @@ sub load_genomes
         create_report => 0,
         workspace_name => undef
     });
-    my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
+    my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL }, ('service_version'=>'dev', 'async_version' => 'dev'));#should remove this service=ver parameter when master is done.
     my $genomes;
     $output = [];
     if (defined($params->{data})) {

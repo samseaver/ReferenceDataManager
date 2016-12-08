@@ -62,7 +62,6 @@ module ReferenceDataManager {
         string source_id;
         string accession;
         string asm_name;
-        string ftp_dir;
         string version;
         string source;
         string domain;
@@ -251,23 +250,6 @@ module ReferenceDataManager {
     */
     funcdef list_solr_taxa(ListSolrDocsParams params) returns (list<SolrTaxonData> output) authentication required;
 
-
-    /*
-        Struct containing data for a single taxon output by the list_loaded_taxa function
-    */
-    typedef structure {
-        string ref;
-        string id;
-        string workspace_name;
-        string source_id;
-        string accession;
-        string name;
-        string ftp_dir;
-        string version;
-        string source;
-        string domain;
-    } ReferenceTaxonData;
-
     /*
         Arguments for the load_taxons function
     */
@@ -282,7 +264,7 @@ module ReferenceDataManager {
     /*
         Loads specified taxa into KBase workspace and indexes in SOLR on demand
     */
-    funcdef load_taxons(LoadTaxonsParams params) returns (list<ReferenceTaxonData> output) authentication required;
+    funcdef load_taxons(LoadTaxonsParams params) returns (list<SolrTaxonData> output) authentication required;
     
 
     /*
