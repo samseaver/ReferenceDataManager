@@ -1561,7 +1561,7 @@ sub list_loaded_genomes
                         $wsoutput = $self->util_ws_client()->list_objects({
                           workspaces => [$wsname],
                           minObjectID => $batch_count * $m,
-                          #type => "KBaseGenomes.Genome-8.0",#11539 objects
+                          type => "KBaseGenomes.Genome-12.2",#11539 objects
                           #type => "KBaseGenomeAnnotations.Assembly-4.1",#17929 objects
                           #type => "KBaseGenomeAnnotations.GenomeAnnotation-3.1",#17925 objects
                           #type => "KBaseGenomes.ContigSet-3.0",#18018 objects
@@ -2722,7 +2722,7 @@ sub load_taxons
 
     my $ncbi_taxon_objs = $self->_extract_ncbi_taxons();
 
-    my $Taxon_WS = "Taxon_Test"; #ReferenceTaxons
+    my $Taxon_WS = "ReferenceTaxons";
     my $loaded_taxon_objs = $self->list_loaded_taxa({workspace_name=>$Taxon_WS});
 
     my $taxon_provenance = [{"script"=>$0, "script_ver"=>"0.1", "description"=>"Taxon generated from NCBI taxonomy names and nodes files downloaded on 10/20/2016."}];
