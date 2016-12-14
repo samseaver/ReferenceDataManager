@@ -1397,14 +1397,14 @@ sub list_reference_genomes
             };
             $current_genome->{accession} = $attribs[0];
             $current_genome->{version_status} = $attribs[10];
-            #$current_genome->{asm_name} = $attribs[15];
+            $current_genome->{name} = $attribs[15];
             $current_genome->{ftp_dir} = $attribs[19];
             $current_genome->{file} = $current_genome->{ftp_dir};
             $current_genome->{file}=~s/.*\///;
             ($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
             $current_genome->{refseq_category} = $attribs[4];
             #$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
-            $current_genome->{name} = $current_genome->{id};
+            #$current_genome->{name} = $current_genome->{id};
             push(@{$output},$current_genome);
             if ($count < 10) {
                 $msg .= $current_genome->{accession}.";".$current_genome->{status}.";".$current_genome->{name}.";".$current_genome->{ftp_dir}.";".$current_genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
@@ -1997,7 +1997,7 @@ sub load_genomes
                 metadata => {
                     refid => $genome->{id},
                     accession => $genome->{accession},
-                    refname => $genome->{id},
+                    refname => $genome->{name},
                     url => $gn_url,
                     version => $genome->{version}
                 }
