@@ -1397,13 +1397,14 @@ sub list_reference_genomes
             };
             $current_genome->{accession} = $attribs[0];
             $current_genome->{version_status} = $attribs[10];
-            $current_genome->{asm_name} = $attribs[15];
+            #$current_genome->{asm_name} = $attribs[15];
             $current_genome->{ftp_dir} = $attribs[19];
             $current_genome->{file} = $current_genome->{ftp_dir};
             $current_genome->{file}=~s/.*\///;
             ($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
             $current_genome->{refseq_category} = $attribs[4];
             #$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
+            $current_genome->{name} = $current_genome->{id};
             push(@{$output},$current_genome);
             if ($count < 10) {
                 $msg .= $current_genome->{accession}.";".$current_genome->{status}.";".$current_genome->{name}.";".$current_genome->{ftp_dir}.";".$current_genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
@@ -1954,8 +1955,9 @@ sub load_genomes
     } else {
         $genomes = $params->{genomes};
     }
-    
-    for (my $i=0; $i < @{$genomes}; $i++) {
+
+    for (my $i=5004; $i < 5010; $i++) {
+    #for (my $i=0; $i < @{$genomes}; $i++) {
         my $genome = $genomes->[$i];
         print "\n******************Genome#: $i ********************"; 
         my $wsname = "";
@@ -1978,10 +1980,19 @@ sub load_genomes
         if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
             my $genomeout;
             my $genutilout;
+            my $gn_url = $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz";
+            my $metaD = { 
+                    refid => $genome->{id},
+                    accession => $genome->{accession},
+                    refname => $genome->{id},
+                    url => $gn_url,
+                    version => $genome->{version}
+                };    
+            print Dumper($metaD);
             eval {
                 $genutilout = $loader->genbank_to_genome({
                 file => {
-                    ftp_url => $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz"
+                    ftp_url => $gn_url
                 },
                 genome_name => $genome->{id},
                 workspace_name => $wsname,
@@ -1994,8 +2005,8 @@ sub load_genomes
                 metadata => {
                     refid => $genome->{id},
                     accession => $genome->{accession},
-                    refname => $genome->{name},
-                    url => $genome->{url},
+                    refname => $genome->{id},
+                    url => $gn_url,
                     version => $genome->{version}
                 }
               });

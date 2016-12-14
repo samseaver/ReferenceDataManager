@@ -255,7 +255,7 @@ module ReferenceDataManager {
     */
     typedef structure {
         string data;
-	list<ReferenceTaxonData> taxons;
+	list<KBaseReferenceTaxonData> taxons;
         bool index_in_solr;
 	string workspace_name;
 	bool create_report;
