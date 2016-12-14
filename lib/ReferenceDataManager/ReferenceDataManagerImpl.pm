@@ -1981,14 +1981,6 @@ sub load_genomes
             my $genomeout;
             my $genutilout;
             my $gn_url = $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz";
-            my $metaD = { 
-                    refid => $genome->{id},
-                    accession => $genome->{accession},
-                    refname => $genome->{id},
-                    url => $gn_url,
-                    version => $genome->{version}
-                };    
-            print Dumper($metaD);
             eval {
                 $genutilout = $loader->genbank_to_genome({
                 file => {
