@@ -1397,14 +1397,12 @@ sub list_reference_genomes
             };
             $current_genome->{accession} = $attribs[0];
             $current_genome->{version_status} = $attribs[10];
-            $current_genome->{name} = $attribs[15];
+            $current_genome->{asm_name} = $attribs[15];
             $current_genome->{ftp_dir} = $attribs[19];
             $current_genome->{file} = $current_genome->{ftp_dir};
             $current_genome->{file}=~s/.*\///;
             ($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
             $current_genome->{refseq_category} = $attribs[4];
-            #$current_genome->{dir} = $current_genome->{accession}."_".$current_genome->{name};#May not need this
-            #$current_genome->{name} = $current_genome->{id};
             push(@{$output},$current_genome);
             if ($count < 10) {
                 $msg .= $current_genome->{accession}.";".$current_genome->{status}.";".$current_genome->{name}.";".$current_genome->{ftp_dir}.";".$current_genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
@@ -1586,13 +1584,13 @@ sub list_loaded_genomes
                                 type => $wsoutput->[$j]->[2],
                                 source_id => $wsoutput->[$j]->[10]->{"Source ID"},
                                 accession => $wsoutput->[$j]->[1],#0]->{"Source ID"},
-                                asm_name => $wsoutput->[$j]->[1],#0]->{Name},
+                                name => $wsoutput->[$j]->[1],#0]->{Name},
                                 version => $wsoutput->[$j]->[4],
                                 source => $wsoutput->[$j]->[10]->{Source},
                                 domain => $wsoutput->[$j]->[10]->{Domain},
                                 save_date => $wsoutput->[$j]->[3],
-                                contigs => $wsoutput->[$j]->[10]->{"Number contigs"},
-                                features => $wsoutput->[$j]->[10]->{"Number features"},
+                                contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
+                                feature_count => $wsoutput->[$j]->[10]->{"Number features"},
                                 dna_size => $wsoutput->[$j]->[10]->{"Size"},
                                 gc => $wsoutput->[$j]->[10]->{"GC content"}
                             };
@@ -1937,11 +1935,11 @@ sub load_genomes
         workspace_name => undef
     });
     my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL }, ('service_version'=>'dev', 'async_version' => 'dev'));#should remove this service=ver parameter when master is done.
-    my $genomes;
+    my $ncbigenomes;
     $output = [];
     if (defined($params->{data})) {
         my $array = [split(/;/,$params->{data})];
-        $genomes = [{
+        $ncbigenomes = [{
             accession => $array->[0],
             status => $array->[1],
             name => $array->[2],
@@ -1953,59 +1951,58 @@ sub load_genomes
             domain => $array->[8]
         }];
     } else {
-        $genomes = $params->{genomes};
+        $ncbigenomes = $params->{genomes};
     }
 
-    for (my $i=5004; $i < 5010; $i++) {
-    #for (my $i=0; $i < @{$genomes}; $i++) {
-        my $genome = $genomes->[$i];
+    #for (my $i=5004; $i < 5010; $i++) {
+    for (my $i=0; $i < @{$ncbigenomes}; $i++) {
+        my $ncbigenome = $ncbigenomes->[$i];
         print "\n******************Genome#: $i ********************"; 
         my $wsname = "";
-        if(defined( $genome->{workspace_name}))
+        if(defined( $ncbigenome->{workspace_name}))
         {
-            $wsname = $genome->{workspace_name};
+            $wsname = $ncbigenome->{workspace_name};
         }
-        elsif(defined($genome->{source}))
+        elsif(defined($ncbigenome->{source}))
         {
-            $wsname = $self->util_workspace_names($genome->{source});   
+            $wsname = $self->util_workspace_names($ncbigenome->{source});   
         }
         my $gn_type = "User upload";
-        if( $genome->{refseq_category} eq "reference genome") {
+        if( $ncbigenome->{refseq_category} eq "reference genome") {
            $gn_type = "Reference";
         }
-        elsif($genome->{refseq_category} eq "representative genome") {
+        elsif($ncbigenome->{refseq_category} eq "representative genome") {
            $gn_type = "Representative";
         } 
-        print "\nNow loading ".$genome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }. " on " . scalar localtime . "\n";
-        if ($genome->{source} eq "refseq" || $genome->{source} eq "") {
+        print "\nNow loading ".$ncbigenome->{id}." with loader url=".$ENV{ SDK_CALLBACK_URL }. " on " . scalar localtime . "\n";
+        if ($ncbigenome->{source} eq "refseq" || $ncbigenome->{source} eq "") {
             my $genomeout;
             my $genutilout;
-            my $gn_url = $genome->{ftp_dir}."/".$genome->{file}."_genomic.gbff.gz";
+            my $gn_url = $ncbigenome->{ftp_dir}."/".$ncbigenome->{file}."_genomic.gbff.gz";
             eval {
                 $genutilout = $loader->genbank_to_genome({
                 file => {
                     ftp_url => $gn_url
                 },
-                genome_name => $genome->{id},
+                genome_name => $ncbigenome->{asm_name},
                 workspace_name => $wsname,
-                source => $genome->{source},
+                source => $ncbigenome->{source},
                 taxon_wsname => "ReferenceTaxons",
-                release => $genome->{version},
+                release => $ncbigenome->{version},
                 generate_ids_if_needed => 1,
                 genetic_code => 11,
                 type => $gn_type,
                 metadata => {
-                    refid => $genome->{id},
-                    accession => $genome->{accession},
-                    refname => $genome->{name},
+                    refid => $ncbigenome->{id},
+                    accession => $ncbigenome->{accession},
+                    refname => $ncbigenome->{asm_name},
                     url => $gn_url,
-                    version => $genome->{version}
+                    version => $ncbigenome->{version}
                 }
               });
             };
             if ($@) {
-                print "**********Received an exception from calling genbank_to_genome to load $genome->{id}:\n"; 
-                #print Dumper($@);
+                print "**********Received an exception from calling genbank_to_genome to load $ncbigenome->{id}:\n"; 
                 print "Exception message: " . $@->{"message"} . "\n";
                 print "JSONRPC code: " . $@->{"code"} . "\n";
                 print "Method: " . $@->{"method_name"} . "\n";
@@ -2013,21 +2010,19 @@ sub load_genomes
                 print $@;
                 print "\nServer-side exception:\n";
                 print $@->{"data"};
-                #die $@;
             }
             else
             {
               $genomeout = {
                 "ref" => $genutilout->{genome_ref},
-                id => $genome->{id},
+                id => $ncbigenome->{id},
                 workspace_name => $wsname,
-                source_id => $genome->{id},
-                accession => $genome->{accession},
-                name => $genome->{name},
-                ftp_dir => $genome->{ftp_dir},
-                version => $genome->{version},
-                source => $genome->{source},
-                domain => $genome->{domain}
+                source_id => $ncbigenome->{id},
+                accession => $ncbigenome->{accession},
+                name => $ncbigenome->{asm_name},
+                version => $ncbigenome->{version},
+                source => $ncbigenome->{source},
+                domain => $ncbigenome->{domain}
              };
              push(@{$output},$genomeout);
             
@@ -2036,22 +2031,22 @@ sub load_genomes
                         genomes => [$genomeout]
                     });
              }
-             print "!!!!!!!!!!!!!--Loading of $genome->{id} succeeded--!!\n";  
+             print "!!!!!!!!!!!!!--Loading of $ncbigenome->{id} succeeded--!!\n";  
            }
            print "**********************Genome loading process ends on " . scalar localtime . "************************\n"; 
-        } elsif ($genome->{source} eq "phytozome") {
+        } elsif ($ncbigenome->{source} eq "phytozome") {
             #NEED SAM TO PUT CODE FOR HIS LOADER HERE
             my $genomeout = {
-                "ref" => $wsname."/".$genome->{id},
-                id => $genome->{id},
+                "ref" => $wsname."/".$ncbigenome->{id},
+                id => $ncbigenome->{id},
                 workspace_name => $wsname,
-                source_id => $genome->{id},
-                accession => $genome->{accession},
-                name => $genome->{name},
-                ftp_dir => $genome->{ftp_dir},
-                version => $genome->{version},
-                source => $genome->{source},
-                domain => $genome->{domain}
+                source_id => $ncbigenome->{id},
+                accession => $ncbigenome->{accession},
+                name => $ncbigenome->{name},
+                ftp_dir => $ncbigenome->{ftp_dir},
+                version => $ncbigenome->{version},
+                source => $ncbigenome->{source},
+                domain => $ncbigenome->{domain}
             };
             push(@{$output},$genomeout);
         }

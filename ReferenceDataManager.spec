@@ -55,24 +55,42 @@ module ReferenceDataManager {
     /*
         Struct containing data for a single genome output by the list_loaded_genomes function
     */
+
     typedef structure {
         string ref;
         string id;
         string workspace_name;
         string source_id;
         string accession;
-        string asm_name;
+        string name;
         string version;
         string source;
         string domain;
-        string type; 
+        string type;
         string save_date;
+        int contig_count;
+        int feature_count;
+        int dna_size;
+        double gc;
+    } KBaseLoadedReferenceGenomeData;
+
+
+    typedef structure {
+        string ref;
+        string id;
+        string workspace_name;
+        string source_id;
+        string accession;
+        string name;
+        string version;
+        string source;
+        string domain;
     } KBaseReferenceGenomeData;
 
     /*
         Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
     */
-    funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseReferenceGenomeData> output);
+    funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseLoadedReferenceGenomeData> output);
   
 
     /*
