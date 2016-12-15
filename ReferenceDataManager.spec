@@ -71,26 +71,13 @@ module ReferenceDataManager {
         int contig_count;
         int feature_count;
         int dna_size;
-        double gc;
-    } KBaseLoadedReferenceGenomeData;
-
-
-    typedef structure {
-        string ref;
-        string id;
-        string workspace_name;
-        string source_id;
-        string accession;
-        string name;
-        string version;
-        string source;
-        string domain;
-    } KBaseReferenceGenomeData;
+        float gc;
+    } LoadedReferenceGenomeData;
 
     /*
         Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
     */
-    funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<KBaseLoadedReferenceGenomeData> output);
+    funcdef list_loaded_genomes(ListLoadedGenomesParams params) returns (list<LoadedReferenceGenomeData> output);
   
 
     /*
@@ -167,6 +154,22 @@ module ReferenceDataManager {
         bool create_report;
     } LoadGenomesParams;
     
+    /*  
+        Structure of a single KBase genome in the list returned by the load_genomes function
+            
+    */  
+    typedef structure {
+        string ref;
+        string id;
+        string workspace_name;
+        string source_id;
+        string accession;
+        string name;
+        string version;
+        string source;
+        string domain;
+    } KBaseReferenceGenomeData;
+
     /*
         Loads specified genomes into KBase workspace and indexes in SOLR on demand
     */
