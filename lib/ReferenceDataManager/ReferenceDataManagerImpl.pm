@@ -4,8 +4,8 @@ use Bio::KBase::Exceptions;
 # Use Semantic Versioning (2.0.0-rc.1)
 # http://semver.org 
 our $VERSION = '0.0.1';
-our $GIT_URL = 'https://github.com/kbaseapps/ReferenceDataManager.git';
-our $GIT_COMMIT_HASH = '622d36efff704437f617da473a4603727ef48255';
+our $GIT_URL = 'https://qzzhang@github.com/kbaseapps/ReferenceDataManager.git';
+our $GIT_COMMIT_HASH = '83989af1a885a3a06c493f375fe8cbfd99a5b41d';
 
 =head1 NAME
 
@@ -1302,14 +1302,15 @@ ListReferenceGenomesParams is a reference to a hash where the following keys are
 bool is an int
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	file has a value which is a string
 	id has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
 
 </pre>
 
@@ -1329,14 +1330,15 @@ ListReferenceGenomesParams is a reference to a hash where the following keys are
 bool is an int
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	file has a value which is a string
 	id has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
 
 
 =end text
@@ -1380,7 +1382,7 @@ sub list_reference_genomes
     $output = [];
     if ($params->{refseq} == 1) {
         my $source = "refseq";#Could also be "genbank"
-        my $division = "bacteria";#Could also be "archaea" or "plant"
+        my $division = "fungi";#"bacteria";#Could also be "archaea" or "plant"
         my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
         my $assemblies = [`wget -q -O - $assembly_summary_url`];
         my $count = 0;
@@ -1451,7 +1453,7 @@ sub list_reference_genomes
 
 <pre>
 $params is a ReferenceDataManager.ListLoadedGenomesParams
-$output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
+$output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceGenomeData
 ListLoadedGenomesParams is a reference to a hash where the following keys are defined:
 	ensembl has a value which is a ReferenceDataManager.bool
 	refseq has a value which is a ReferenceDataManager.bool
@@ -1459,17 +1461,22 @@ ListLoadedGenomesParams is a reference to a hash where the following keys are de
 	workspace_name has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
-KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
+LoadedReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
-	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	type has a value which is a string
+	save_date has a value which is a string
+	contig_count has a value which is an int
+	feature_count has a value which is an int
+	dna_size has a value which is an int
+	gc has a value which is a float
 
 </pre>
 
@@ -1478,7 +1485,7 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 =begin text
 
 $params is a ReferenceDataManager.ListLoadedGenomesParams
-$output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
+$output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceGenomeData
 ListLoadedGenomesParams is a reference to a hash where the following keys are defined:
 	ensembl has a value which is a ReferenceDataManager.bool
 	refseq has a value which is a ReferenceDataManager.bool
@@ -1486,17 +1493,22 @@ ListLoadedGenomesParams is a reference to a hash where the following keys are de
 	workspace_name has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
-KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
+LoadedReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
 	id has a value which is a string
 	workspace_name has a value which is a string
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
-	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	type has a value which is a string
+	save_date has a value which is a string
+	contig_count has a value which is an int
+	feature_count has a value which is an int
+	dna_size has a value which is an int
+	gc has a value which is a float
 
 
 =end text
@@ -1563,7 +1575,8 @@ sub list_loaded_genomes
                           #type => "KBaseGenomeAnnotations.Assembly-4.1",#17929 objects
                           #type => "KBaseGenomeAnnotations.GenomeAnnotation-3.1",#17925 objects
                           #type => "KBaseGenomes.ContigSet-3.0",#18018 objects
-                          maxObjectID => $batch_count * ( $m + 1)
+                          maxObjectID => $batch_count * ( $m + 1),
+                          includeMetadata => 1
                       });
                  };
                  if($@) {
@@ -1684,6 +1697,8 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
 	protein_translation_length has a value which is an int
 	gc_content has a value which is a float
 	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 </pre>
 
@@ -1736,6 +1751,8 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
 	protein_translation_length has a value which is an int
 	gc_content has a value which is a float
 	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 
 =end text
@@ -1839,14 +1856,15 @@ LoadGenomesParams is a reference to a hash where the following keys are defined:
 	create_report has a value which is a ReferenceDataManager.bool
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	file has a value which is a string
 	id has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
@@ -1855,7 +1873,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
-	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
@@ -1876,14 +1893,15 @@ LoadGenomesParams is a reference to a hash where the following keys are defined:
 	create_report has a value which is a ReferenceDataManager.bool
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
 	accession has a value which is a string
-	status has a value which is a string
-	name has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
 	ftp_dir has a value which is a string
 	file has a value which is a string
 	id has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
+	refseq_category has a value which is a string
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
 	ref has a value which is a string
@@ -1892,7 +1910,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
-	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
@@ -2098,7 +2115,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
-	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
@@ -2140,6 +2156,8 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
 	protein_translation_length has a value which is an int
 	gc_content has a value which is a float
 	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 </pre>
 
@@ -2160,7 +2178,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
-	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
@@ -2202,6 +2219,8 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
 	protein_translation_length has a value which is an int
 	gc_content has a value which is a float
 	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
 
 
 =end text
@@ -2630,25 +2649,53 @@ sub list_solr_taxa
 
 <pre>
 $params is a ReferenceDataManager.LoadTaxonsParams
-$output is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+$output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
 LoadTaxonsParams is a reference to a hash where the following keys are defined:
 	data has a value which is a string
-	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
 	index_in_solr has a value which is a ReferenceDataManager.bool
 	workspace_name has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
-ReferenceTaxonData is a reference to a hash where the following keys are defined:
-	ref has a value which is a string
-	id has a value which is a string
-	workspace_name has a value which is a string
-	source_id has a value which is a string
-	accession has a value which is a string
-	name has a value which is a string
-	ftp_dir has a value which is a string
-	version has a value which is a string
-	source has a value which is a string
+KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
 	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
 bool is an int
+SolrTaxonData is a reference to a hash where the following keys are defined:
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	ws_ref has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
 
 </pre>
 
@@ -2657,25 +2704,53 @@ bool is an int
 =begin text
 
 $params is a ReferenceDataManager.LoadTaxonsParams
-$output is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+$output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
 LoadTaxonsParams is a reference to a hash where the following keys are defined:
 	data has a value which is a string
-	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
 	index_in_solr has a value which is a ReferenceDataManager.bool
 	workspace_name has a value which is a string
 	create_report has a value which is a ReferenceDataManager.bool
-ReferenceTaxonData is a reference to a hash where the following keys are defined:
-	ref has a value which is a string
-	id has a value which is a string
-	workspace_name has a value which is a string
-	source_id has a value which is a string
-	accession has a value which is a string
-	name has a value which is a string
-	ftp_dir has a value which is a string
-	version has a value which is a string
-	source has a value which is a string
+KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
 	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
 bool is an int
+SolrTaxonData is a reference to a hash where the following keys are defined:
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	ws_ref has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
 
 
 =end text
@@ -3008,7 +3083,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
-	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
@@ -3035,7 +3109,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
 	source_id has a value which is a string
 	accession has a value which is a string
 	name has a value which is a string
-	ftp_dir has a value which is a string
 	version has a value which is a string
 	source has a value which is a string
 	domain has a value which is a string
@@ -3272,14 +3345,15 @@ Struct containing data for a single genome output by the list_reference_genomes 
 <pre>
 a reference to a hash where the following keys are defined:
 accession has a value which is a string
-status has a value which is a string
-name has a value which is a string
+version_status has a value which is a string
+asm_name has a value which is a string
 ftp_dir has a value which is a string
 file has a value which is a string
 id has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+refseq_category has a value which is a string
 
 </pre>
 
@@ -3289,14 +3363,15 @@ domain has a value which is a string
 
 a reference to a hash where the following keys are defined:
 accession has a value which is a string
-status has a value which is a string
-name has a value which is a string
+version_status has a value which is a string
+asm_name has a value which is a string
 ftp_dir has a value which is a string
 file has a value which is a string
 id has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+refseq_category has a value which is a string
 
 
 =end text
@@ -3348,7 +3423,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 
 
-=head2 KBaseReferenceGenomeData
+=head2 LoadedReferenceGenomeData
 
 =over 4
 
@@ -3371,10 +3446,15 @@ workspace_name has a value which is a string
 source_id has a value which is a string
 accession has a value which is a string
 name has a value which is a string
-ftp_dir has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+type has a value which is a string
+save_date has a value which is a string
+contig_count has a value which is an int
+feature_count has a value which is an int
+dna_size has a value which is an int
+gc has a value which is a float
 
 </pre>
 
@@ -3389,10 +3469,15 @@ workspace_name has a value which is a string
 source_id has a value which is a string
 accession has a value which is a string
 name has a value which is a string
-ftp_dir has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+type has a value which is a string
+save_date has a value which is a string
+contig_count has a value which is an int
+feature_count has a value which is an int
+dna_size has a value which is an int
+gc has a value which is a float
 
 
 =end text
@@ -3454,6 +3539,8 @@ num_contigs has a value which is an int
 protein_translation_length has a value which is an int
 gc_content has a value which is a float
 complete has a value which is a ReferenceDataManager.bool
+refseq_category has a value which is a string
+save_date has a value which is a string
 
 </pre>
 
@@ -3498,6 +3585,8 @@ num_contigs has a value which is an int
 protein_translation_length has a value which is an int
 gc_content has a value which is a float
 complete has a value which is a ReferenceDataManager.bool
+refseq_category has a value which is a string
+save_date has a value which is a string
 
 
 =end text
@@ -3582,6 +3671,57 @@ genomes has a value which is a reference to a list where each element is a Refer
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
+=end text
+
+=back
+
+
+
+=head2 KBaseReferenceGenomeData
+
+=over 4
+
+
+
+=item Description
+
+Structure of a single KBase genome in the list returned by the load_genomes function
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+ref has a value which is a string
+id has a value which is a string
+workspace_name has a value which is a string
+source_id has a value which is a string
+accession has a value which is a string
+name has a value which is a string
+version has a value which is a string
+source has a value which is a string
+domain has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+ref has a value which is a string
+id has a value which is a string
+workspace_name has a value which is a string
+source_id has a value which is a string
+accession has a value which is a string
+name has a value which is a string
+version has a value which is a string
+source has a value which is a string
+domain has a value which is a string
 
 
 =end text
@@ -3843,59 +3983,6 @@ comments has a value which is a string
 
 
 
-=head2 ReferenceTaxonData
-
-=over 4
-
-
-
-=item Description
-
-Struct containing data for a single taxon output by the list_loaded_taxa function
-
-
-=item Definition
-
-=begin html
-
-<pre>
-a reference to a hash where the following keys are defined:
-ref has a value which is a string
-id has a value which is a string
-workspace_name has a value which is a string
-source_id has a value which is a string
-accession has a value which is a string
-name has a value which is a string
-ftp_dir has a value which is a string
-version has a value which is a string
-source has a value which is a string
-domain has a value which is a string
-
-</pre>
-
-=end html
-
-=begin text
-
-a reference to a hash where the following keys are defined:
-ref has a value which is a string
-id has a value which is a string
-workspace_name has a value which is a string
-source_id has a value which is a string
-accession has a value which is a string
-name has a value which is a string
-ftp_dir has a value which is a string
-version has a value which is a string
-source has a value which is a string
-domain has a value which is a string
-
-
-=end text
-
-=back
-
-
-
 =head2 LoadTaxonsParams
 
 =over 4
@@ -3914,7 +4001,7 @@ Arguments for the load_taxons function
 <pre>
 a reference to a hash where the following keys are defined:
 data has a value which is a string
-taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
@@ -3927,7 +4014,7 @@ create_report has a value which is a ReferenceDataManager.bool
 
 a reference to a hash where the following keys are defined:
 data has a value which is a string
-taxons has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceTaxonData
+taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
