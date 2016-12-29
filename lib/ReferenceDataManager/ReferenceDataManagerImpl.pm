@@ -1952,6 +1952,7 @@ sub load_genomes
         workspace_name => undef
     });
     my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL }, ('service_version'=>'dev', 'async_version' => 'dev'));#should remove this service=ver parameter when master is done.
+    #my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
     my $ncbigenomes;
     $output = [];
     if (defined($params->{data})) {
