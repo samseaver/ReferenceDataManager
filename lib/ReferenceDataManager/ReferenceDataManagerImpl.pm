@@ -486,6 +486,7 @@ sub _addXML2Solr
     
     my $ds = $self->_rawDsToSolrDs($params);
     my $doc = $self->_toXML($ds, 'add');
+    #print Dumper($doc);
     my $commit = $self->{_AUTOCOMMIT} ? 'true' : 'false';
     my $url = "$self->{_SOLR_URL}/$solrCore/update?commit=" . $commit;
     my $response = $self->_sendRequest($url, 'POST', undef, $self->{_CT_XML}, $doc);
@@ -864,8 +865,8 @@ sub _indexGenomeFeatureData
     my $batchCount = 10000;
 
     #foreach my $wref (@{$wsgnrefs}) { 
-    #for( my $gf_i = 11297; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
-    for( my $gf_i = 0; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
+    for( my $gf_i = 2548; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
+    #for( my $gf_i = 0; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
         my $wref = $wsgnrefs->[$gf_i];
         print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $wref->{ref} .  " on " . scalar localtime . "\n";
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
@@ -883,7 +884,7 @@ sub _indexGenomeFeatureData
 	else {
             $gnout = $gnout -> {data};
             print "Done getting genome object info for " . $wref->{ref} . " on " . scalar localtime . "\n";
-            my $gn_data;
+            my $gn_data; #a reference to a list where each element is a Workspace.ObjectData
             my $gn_info; #to hold a value which is a Workspace.object_info
             my $gn_onterms ={};
             my $gn_features = {};
@@ -907,8 +908,6 @@ sub _indexGenomeFeatureData
                 $gn_tax = $gn_data->{taxonomy};
                 $gn_tax =~s/ *; */;;/g;
                 $gn_save_date = $gn_info -> [3];
-                $gn_refseqcat = $gn_info -> [2];
-                
                 $numCDs  = 0;
                 foreach my $feature (@{$gn_features}) {
                     $numCDs++ if $feature->{type} = 'CDS'; 
@@ -980,7 +979,7 @@ sub _indexGenomeFeatureData
                           taxonomy => $gn_tax,
                           workspace_name => $gn_info -> [7],
                           num_cds => $numCDs,
-                          refseq_category => $gn_refseqcat,
+                          refseq_category => $gn_data->{type},
                           save_date => $gn_save_date,
                           #feature data
                           feature_type => $gn_features->[$ii]->{type},
@@ -1000,7 +999,7 @@ sub _indexGenomeFeatureData
                     };
                     push @{$solr_gnftData}, $current_gnft;
                     push @{$gnft_batch}, $current_gnft;
-                      
+     print Dumper($current_gnft);exit 0;                 
                     if(@{$gnft_batch} >= $batchCount) {
                         eval {
                               $self->_indexInSolr($solrCore, $gnft_batch);
@@ -1382,7 +1381,7 @@ sub list_reference_genomes
     $output = [];
     if ($params->{refseq} == 1) {
         my $source = "refseq";#Could also be "genbank"
-        my $division = "fungi";#"bacteria";#Could also be "archaea" or "plant"
+        my $division = "bacteria";#Could also be "archaea" or "plant" or "fungi"
         my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
         my $assemblies = [`wget -q -O - $assembly_summary_url`];
         my $count = 0;
@@ -1570,8 +1569,8 @@ sub list_loaded_genomes
                 eval {
                         $wsoutput = $self->util_ws_client()->list_objects({
                           workspaces => [$wsname],
-                          minObjectID => $batch_count * $m,
-                          type => "KBaseGenomes.Genome-12.2",#11539 objects
+                          minObjectID => $batch_count * $m + 1,
+                          type => "KBaseGenomes.Genome-12.3",#11539 objects for '12.2'
                           #type => "KBaseGenomeAnnotations.Assembly-4.1",#17929 objects
                           #type => "KBaseGenomeAnnotations.GenomeAnnotation-3.1",#17925 objects
                           #type => "KBaseGenomes.ContigSet-3.0",#18018 objects
@@ -1952,6 +1951,7 @@ sub load_genomes
         workspace_name => undef
     });
     my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL }, ('service_version'=>'dev', 'async_version' => 'dev'));#should remove this service=ver parameter when master is done.
+    #my $loader = new GenomeFileUtil::GenomeFileUtilClient($ENV{ SDK_CALLBACK_URL });
     my $ncbigenomes;
     $output = [];
     if (defined($params->{data})) {
@@ -1971,8 +1971,9 @@ sub load_genomes
         $ncbigenomes = $params->{genomes};
     }
 
-    #for (my $i=5004; $i < 5010; $i++) {
-    for (my $i=0; $i < @{$ncbigenomes}; $i++) {
+    #for (my $i=1284; $i < @{$ncbigenomes}; $i++) {
+    for (my $i=1555; $i <= 1732; $i++) {#1357-1732 for re-running the "ServerError" genomes into ReferenceDataManager2 workspace, another batch is 4874-4879
+        #for (my $i=0; $i < @{$ncbigenomes}; $i++) {
         my $ncbigenome = $ncbigenomes->[$i];
         print "\n******************Genome#: $i ********************"; 
         my $wsname = "";
@@ -2001,7 +2002,7 @@ sub load_genomes
                 file => {
                     ftp_url => $gn_url
                 },
-                genome_name => $ncbigenome->{asm_name},
+                genome_name => $ncbigenome->{accession},#{asm_name},
                 workspace_name => $wsname,
                 source => $ncbigenome->{source},
                 taxon_wsname => "ReferenceTaxons",
@@ -2009,10 +2010,9 @@ sub load_genomes
                 generate_ids_if_needed => 1,
                 genetic_code => 11,
                 type => $gn_type,
-                metadata => {
-                    refid => $ncbigenome->{id},
+                metadata => { refid => $ncbigenome->{id},
                     accession => $ncbigenome->{accession},
-                    refname => $ncbigenome->{asm_name},
+                    refname => $ncbigenome->{accession},#{asm_name},
                     url => $gn_url,
                     version => $ncbigenome->{version}
                 }
