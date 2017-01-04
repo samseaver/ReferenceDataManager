@@ -1591,12 +1591,12 @@ sub list_loaded_genomes
                         for (my $j=0; $j < @{$wsoutput}; $j++) {
                             push @{$output}, {
                                 "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-                                id => $wsoutput->[$j]->[1],
+                                id => $wsoutput->[$j]->[0],
                                 workspace_name => $wsoutput->[$j]->[7],
                                 type => $wsoutput->[$j]->[2],
                                 source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-                                accession => $wsoutput->[$j]->[1],#0]->{"Source ID"},
-                                name => $wsoutput->[$j]->[1],#0]->{Name},
+                                accession => $wsoutput->[$j]->[1],
+                                name => $wsoutput->[$j]->[1],
                                 version => $wsoutput->[$j]->[4],
                                 source => $wsoutput->[$j]->[10]->{Source},
                                 domain => $wsoutput->[$j]->[10]->{Domain},
@@ -1971,9 +1971,7 @@ sub load_genomes
         $ncbigenomes = $params->{genomes};
     }
 
-    #for (my $i=1284; $i < @{$ncbigenomes}; $i++) {
-    for (my $i=1555; $i <= 1732; $i++) {#1357-1732 for re-running the "ServerError" genomes into ReferenceDataManager2 workspace, another batch is 4874-4879
-        #for (my $i=0; $i < @{$ncbigenomes}; $i++) {
+        for (my $i=0; $i < @{$ncbigenomes}; $i++) {
         my $ncbigenome = $ncbigenomes->[$i];
         print "\n******************Genome#: $i ********************"; 
         my $wsname = "";
