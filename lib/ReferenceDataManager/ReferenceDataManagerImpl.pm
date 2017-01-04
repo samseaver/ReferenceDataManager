@@ -999,7 +999,7 @@ sub _indexGenomeFeatureData
                     };
                     push @{$solr_gnftData}, $current_gnft;
                     push @{$gnft_batch}, $current_gnft;
-     print Dumper($current_gnft);exit 0;                 
+
                     if(@{$gnft_batch} >= $batchCount) {
                         eval {
                               $self->_indexInSolr($solrCore, $gnft_batch);
