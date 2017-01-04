@@ -1603,7 +1603,7 @@ sub list_loaded_genomes
                                 save_date => $wsoutput->[$j]->[3],
                                 contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
                                 feature_count => $wsoutput->[$j]->[10]->{"Number features"},
-                                size => $wsoutput->[$j]->[9],
+                                size_bytes => $wsoutput->[$j]->[9],
 				ftp_url => $wsoutput->[$j]->[10]->{"url"}, 
                                 gc => $wsoutput->[$j]->[10]->{"GC content"}
                             };
