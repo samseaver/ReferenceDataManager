@@ -70,7 +70,8 @@ module ReferenceDataManager {
         string save_date;
         int contig_count;
         int feature_count;
-        int dna_size;
+        int size;
+	string ftp_url;
         float gc;
     } LoadedReferenceGenomeData;
 
