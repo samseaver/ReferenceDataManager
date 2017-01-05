@@ -1972,7 +1972,9 @@ sub load_genomes
         $ncbigenomes = $params->{genomes};
     }
 
-        for (my $i=0; $i < @{$ncbigenomes}; $i++) {
+    #for (my $i=1284; $i < @{$ncbigenomes}; $i++) {
+    for (my $i=1555; $i <= 1732; $i++) {#1357-1732 for re-running the "ServerError" genomes into ReferenceDataManager2 workspace, another batch is 4874-4879
+        #for (my $i=0; $i < @{$ncbigenomes}; $i++) {
         my $ncbigenome = $ncbigenomes->[$i];
         print "\n******************Genome#: $i ********************"; 
         my $wsname = "";
