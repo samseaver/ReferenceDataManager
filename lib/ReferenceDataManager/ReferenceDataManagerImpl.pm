@@ -206,6 +206,7 @@ sub _listTaxaInSolr {
     return $self->_searchSolr($solrCore, $params, $query, "json", $grp);    
 }
 
+
 #
 # method name: _buildQueryString
 # Internal Method: to build the query string for SOLR according to the passed parameters
@@ -259,8 +260,53 @@ sub _buildQueryString {
             if (defined $skipEscape->{$key}) {
                 $qStr .= "+$key:\"" . $searchQuery->{$key} ."\" $DEFAULT_FIELD_CONNECTOR ";
             } else {
-                $qStr .= "+$key:\"" . URI::Escape::uri_escape($searchQuery->{$key}) .
-                        "\" $DEFAULT_FIELD_CONNECTOR ";
+                $qStr .= "+$key:\"" . URI::Escape::uri_escape($searchQuery->{$key}) . "\" $DEFAULT_FIELD_CONNECTOR ";  
+            }
+        }
+        # Remove last occurance of ' AND '
+        $qStr =~ s/ AND $//g;
+    }
+    my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
+    my $retStr = $paramFields . $qStr . $solrGroup;
+    print "Query string:\n$retStr\n";
+    return $retStr;
+}
+#
+# method name: _buildQueryString_wildcard---This is a modified version of the above function, all because the stupid SOLR 4.*
+# handles the wildcard search string in a weird way:when the '*' is at either end of the search string, it returns 0 docs
+# if the search string is within double quotes. On the other hand, when a search string has whitespace(s), it has to be inside
+# double quotes otherwise SOLR will treat it as new field(s).
+# So this method builds the search string WITHOUT the double quotes ONLY for the use case when '*' will be at the ends of the string.
+# The rest is the same as the above method.
+#
+sub _buildQueryString_wildcard {
+    my ($self, $searchQuery, $searchParams, $groupOption, $skipEscape) = @_;
+    $skipEscape = {} unless $skipEscape;
+    
+    my $DEFAULT_FIELD_CONNECTOR = "AND";
+
+    if (! $searchQuery) {
+        $self->{is_error} = 1;
+        $self->{errmsg} = "Query parameters not specified";
+        return undef;
+    }
+    
+    # Build the display parameter part 
+    my $paramFields = "";
+    foreach my $key (keys %$searchParams) {
+        $paramFields .= "$key=". URI::Escape::uri_escape($searchParams->{$key}) . "&";
+    }
+    
+    # Build the solr query part
+    my $qStr = "q=";
+    if (defined $searchQuery->{q}) {
+        $qStr .= URI::Escape::uri_escape($searchQuery->{q});
+    } else {
+        foreach my $key (keys %$searchQuery) {
+            if (defined $skipEscape->{$key}) {
+                $qStr .= "+$key:" . $searchQuery->{$key} ." $DEFAULT_FIELD_CONNECTOR ";
+            } else {
+                $qStr .= "+$key:" . URI::Escape::uri_escape($searchQuery->{$key}) . " $DEFAULT_FIELD_CONNECTOR ";  
             }
         }
         # Remove last occurance of ' AND '
@@ -328,6 +374,50 @@ sub _searchSolr {
         my @solr_records = @{$solr_response->{response}->{grouped}->{$groupOption}->{groups}};
         print "\n\nFound unique $groupOption groups of:" . scalar @solr_records . "\n";
         print @solr_records[0]->{doclist}->{numFound} ."\n";
+    }
+    
+    return $solr_response;
+}
+#
+# method name: _searchSolr_wildcard---This is a modified version of the above function, all because the stupid SOLR 4.*
+# handles the wildcard search string in a weird way:when the '*' is at either end of the search string, it returns 0 docs
+# if the search string is within double quotes. On the other hand, when a search string has whitespace(s), it has to be inside
+# double quotes otherwise SOLR will treat it as new field(s).
+# So this method will call the method that builds the search string WITHOUT the double quotes ONLY for the use case when '*' will be 
+# at the ends of the string.
+# The rest is the same as the above method.
+#
+sub _searchSolr_wildcard {
+    my ($self, $searchCore, $searchParams, $searchQuery, $resultFormat, $groupOption, $skipEscape) = @_;
+    $skipEscape = {} unless $skipEscape;
+
+    if (!$self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
+    
+    # If output format is not passed set it to XML
+    $resultFormat = "xml" unless $resultFormat;
+    my $queryString = $self->_buildQueryString_wildcard($searchQuery, $searchParams, $groupOption, $skipEscape);
+    my $solrCore = "/$searchCore"; 
+    my $solrQuery = $self->{_SOLR_URL}.$solrCore."/select?".$queryString;
+    print "Search string:\n$solrQuery\n";
+    
+    my $solr_response = $self->_sendRequest("$solrQuery", "GET");
+    #print "\nRaw response: \n" . $solr_response->{response} . "\n";
+    
+    my $responseCode = $self->_parseResponse($solr_response, $resultFormat);
+        if ($responseCode) {
+            if ($resultFormat eq "json") {
+                my $out = JSON::from_json($solr_response->{response});
+                $solr_response->{response}= $out;
+            }
+    }
+    if($groupOption){
+        my @solr_records = @{$solr_response->{response}->{grouped}->{$groupOption}->{groups}};
+        if( scalar @solr_records > 0 ) {
+            print "\n\nFound unique $groupOption groups of:" . scalar @solr_records . "\n";
+            print @solr_records[0]->{doclist}->{numFound} ."\n";
+        }
     }
     
     return $solr_response;
@@ -799,22 +889,38 @@ sub _error
 }
 
 #
-# Internal Method: to check if a given genome by name is present in SOLR.  Returns a string stating the status
+# Internal Method: to check if a given genome status against genomes in SOLR.  Returns a string stating the status
+#
+# params :
+# $current_genome is a genome object whose KBase status is to be checked.
+# $solr_core is the name of the SOLR core
+#
+# returns : a string
 #
 sub _checkGenomeStatus 
 {
-    my ($self, $current_genome, $solr_genomes) = @_;
+    my ($self, $current_genome, $solr_core) = @_;
     #print "\nChecking status for genome:\n " . Dumper($current_genome) . "\n";
 
     my $status = "";
-    if (( ref($solr_genomes) eq 'ARRAY' && @{ $solr_genomes } == 0 ) || !defined($solr_genomes) )
-    {
+    my $groupOption = "genome_id";
+    my $params = {
+        fl => $groupOption,
+        wt => "json"
+    };
+    my $query = { genome_id => $current_genome->{id} . "*" };
+    my $solr_response = $self->_searchSolr_wildcard($solr_core, $params, $query, "json", $groupOption);
+    my $solr_records = $solr_response->{response}->{grouped}->{$groupOption}->{groups};
+        #if ( $self->_exists($solr_core, {genome_id=>$current_genome->{id}."*"}) == 0 )
+        #$status = "New genome";
+    if( @{ $solr_records } == 0 ) {
         $status = "New genome";
     }
-    elsif ( ref($solr_genomes) eq 'ARRAY' )
-    {
-        for (my $i = 0; $i < @{ $solr_genomes }; $i++ ) {
-            my $record = $solr_genomes->[$i];
+    else {         
+        print "\n\nFound unique $groupOption groups of:" . scalar @{$solr_records} . "\n";
+        for (my $i = 0; $i < @{ $solr_records }; $i++ ) {
+            my $record = $solr_records->[$i];
+            print $record->{doclist}->{numFound} ."\n";
             my $genome_id = $record->{genome_id};
 
             if ($genome_id eq $current_genome->{accession}){
@@ -829,19 +935,15 @@ sub _checkGenomeStatus
         }
         if( $status eq "" )
         {
-            $status = "New genome";#"Existing genome: status unknown";
+            $status = "New genome";#or "Existing genome: status unknown";
         }
     }
-
-    if( $status eq "" )
-    {
-        $status = "Existing genome: status unknown";
-    }
-    #print "\nStatus:$status\n";
+    print "\nStatus:$status\n";
     return $status;
 }
 
-#Internal method, to fetch genome records for a given set of ws_ref's
+#
+#Internal method, to fetch genome records for a given set of ws_ref's and index the genome_feature combo in SOLR.
 #First call get_objects2() to get the genome object one at a time.
 #Then plow through the genome object data to assemble the data items for a Solr genome_feature object.
 #Finally send the data document to Solr for indexing.
@@ -865,7 +967,7 @@ sub _indexGenomeFeatureData
     my $batchCount = 10000;
 
     #foreach my $wref (@{$wsgnrefs}) { 
-    for( my $gf_i = 2548; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
+    for( my $gf_i = 2800; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
     #for( my $gf_i = 0; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
         my $wref = $wsgnrefs->[$gf_i];
         print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $wref->{ref} .  " on " . scalar localtime . "\n";
@@ -1603,7 +1705,8 @@ sub list_loaded_genomes
                                 save_date => $wsoutput->[$j]->[3],
                                 contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
                                 feature_count => $wsoutput->[$j]->[10]->{"Number features"},
-                                dna_size => $wsoutput->[$j]->[10]->{"Size"},
+                                size_bytes => $wsoutput->[$j]->[9],
+                                ftp_url => $wsoutput->[$j]->[10]->{"url"}, 
                                 gc => $wsoutput->[$j]->[10]->{"GC content"}
                             };
                         
@@ -2041,13 +2144,13 @@ sub load_genomes
                 source => $ncbigenome->{source},
                 domain => $ncbigenome->{domain}
              };
-             push(@{$output},$genomeout);
             
              if ($params->{index_in_solr} == 1) {
                     $self->index_genomes_in_solr({
                         genomes => [$genomeout]
                     });
              }
+             push(@{$output},$genomeout);
              print "!!!!!!!!!!!!!--Loading of $ncbigenome->{id} succeeded--!!\n";  
            }
            print "**********************Genome loading process ends on " . scalar localtime . "************************\n"; 
@@ -3160,39 +3263,37 @@ sub update_loaded_genomes
     my $genomes_in_solr;
     my $ref_genomes;
     my $loaded_genomes;
-    
-        $genomes_in_solr = $self->_listGenomesInSolr("QZtest", "*");    
-        $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}}); 
-        $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});    
-   
-        $genomes_in_solr = $genomes_in_solr->{response}->{response}->{docs};  
-    
-        for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
-            my $genome = $ref_genomes->[$i];
-    
-            #check if the genome is already present in the database by querying SOLR
-            my $gnstatus = $self->_checkGenomeStatus( $genome, $genomes_in_solr);
+    my $gn_solr_core = "GenomeFeatures_prod";
 
-            if ($gnstatus=~/(new|updated)/i){
-                $count ++;
-                push(@{$output},$genome);
-            
-                if ($count < 10) {
-                    $msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
-                }
-            }else{
-                # Current version already in KBase, check for annotation update
-            }
-        }
-        $self->load_genomes( {genomes => $output, index_in_solr => 1} );
+    $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}}); 
+    $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});    
     
-        if ($params->{create_report}) {
+    for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
+        my $genome = $ref_genomes->[$i];
+    
+        #check if the genome is already present in the database by querying SOLR
+        my $gnstatus = $self->_checkGenomeStatus( $genome, $gn_solr_core );
+        if ($gnstatus=~/(new|updated)/i){
+            $count ++;
+            push(@{$output},$genome);
+            
+            if ($count < 10) {
+                $msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
+            }
+        }else{
+                # Current version already in KBase, check for annotation update
+        }
+    }
+        
+    $self->load_genomes( {genomes => $output, index_in_solr => 1} );
+    
+    if ($params->{create_report}) {
             $self->util_create_report({
                 message => "Updated ".@{$output}." genomes!",
                 workspace => $params->{workspace}
             });
-            $output = [$params->{workspace}."/update_loaded_genomes"];
-        }
+        $output = [$params->{workspace}."/update_loaded_genomes"];
+    }
 
     #END update_loaded_genomes
     my @_bad_returns;
