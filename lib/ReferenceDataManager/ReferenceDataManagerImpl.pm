@@ -997,7 +997,53 @@ sub _error
     my ($self) = @_;
     return $self->{error};
 }
+#
+# Internal Method: to check if a given genome status against genomes in SOLR.  Returns a string stating the status
+#
+# params :
+# $current_genome is a genome object whose KBase status is to be checked.
+# $solr_core is the name of the SOLR core
+#
+# returns : a string
+#    
+sub _checkTaxonStatus
+{
+    my ($self, $current_taxon, $solr_core) = @_;
+    print "\nChecking status for taxon:\n " . Dumper($current_taxon) . "\n";
 
+    my $status = "";
+    my $groupOption = "taxonomy_id";
+    my $params = {
+        fl => $groupOption,
+        wt => "json"
+    };
+    my $query = { taxonomy_id => $current_taxon->{tax_id} };
+    my $solr_response = $self->_searchSolr($solr_core, $params, $query, "json", $groupOption);
+    my $solr_records = $solr_response->{response}->{grouped}->{$groupOption}->{groups};
+    
+    if( @{$solr_records} == 0 ) {
+        $status = "Taxon not found";
+    }
+    else {
+        print "\n\nFound unique $groupOption groups of:" . scalar @{$solr_records} . "\n";
+        for (my $i = 0; $i < @{$solr_records}; $i++ ) {
+            my $record = $solr_records->[$i];
+            print $record->{doclist}->{numFound} ."\n";
+            my $tax_id = $record->{taxonomy_id};
+
+            if ($tax_id eq $current_taxon->{tax_id} && $record->{doclist}->{domain} ne "Unknown"){
+                $status = "Taxon in KBase";
+                last;
+            }
+            else{
+                $status = "Unknown domain";
+                last;
+            }
+        }
+    }
+    print "\nStatus:$status\n";
+    return $status;
+}
 #
 # Internal Method: to check if a given genome status against genomes in SOLR.  Returns a string stating the status
 #
@@ -1597,6 +1643,7 @@ sub list_reference_genomes
             $current_genome->{file}=~s/.*\///;
             ($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
             $current_genome->{refseq_category} = $attribs[4];
+            $current_genome->{tax_id} = $attribs[5];
             push(@{$output},$current_genome);
             if ($count < 10) {
                 $msg .= $current_genome->{accession}.";".$current_genome->{status}.";".$current_genome->{name}.";".$current_genome->{ftp_dir}.";".$current_genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
@@ -2151,7 +2198,7 @@ sub load_genomes
                 taxon_wsname => "ReferenceTaxons",
                 release => $ncbigenome->{version},
                 generate_ids_if_needed => 1,
-                genetic_code => 11,
+                #genetic_code => 11,
                 type => $gn_type,
                 metadata => { refid => $ncbigenome->{id},
                     accession => $ncbigenome->{accession},
@@ -3201,6 +3248,7 @@ sub update_loaded_genomes
     my $ref_genomes;
     my $loaded_refseq_genomes;
     my $gn_solr_core = "GenomeFeatures_prod";
+    my $tx_solr_core = "taxonomy_prod";
 
     $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
     $loaded_refseq_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
@@ -3209,8 +3257,12 @@ sub update_loaded_genomes
         my $gnm = $ref_genomes->[$i];
 
         #check if the genome is already present in the database by querying SOLR
-        my $gnstatus = $self->_checkGenomeStatus( $gnm, $gn_solr_core );
-        if ($gnstatus=~/(new|updated)/i){
+        my $gn_status = $self->_checkGenomeStatus( $gnm, $gn_solr_core );
+        
+        #check if the taxon of the genome (named in KBase as $gnm->{tax_id} . "_taxon") is loaded in a KBase workspace
+        my $ws_taxon_status = $self->_checkTaxonStatus($gnm->{tax_id}, $tx_solr_core);
+
+        if ($gn_status=~/(new|updated)/i && $ws_taxon_status=~/in KBase/i){
             $count ++;
             push(@{$output},$gnm);
 
