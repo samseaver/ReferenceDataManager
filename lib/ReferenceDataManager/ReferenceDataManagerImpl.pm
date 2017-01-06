@@ -1000,19 +1000,11 @@ sub _error
 
 #
 # Internal Method: to check if a given genome status against genomes in SOLR.  Returns a string stating the status
-<<<<<<< HEAD
 #
 # params :
 # $current_genome is a genome object whose KBase status is to be checked.
 # $solr_core is the name of the SOLR core
 #
-=======
-#
-# params :
-# $current_genome is a genome object whose KBase status is to be checked.
-# $solr_core is the name of the SOLR core
-#
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 # returns : a string
 #    
 sub _checkGenomeStatus 
@@ -1523,10 +1515,6 @@ ReferenceGenomeData is a reference to a hash where the following keys are define
         source has a value which is a string
         domain has a value which is a string
         refseq_category has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -1551,11 +1539,6 @@ ReferenceGenomeData is a reference to a hash where the following keys are define
         source has a value which is a string
         domain has a value which is a string
         refseq_category has a value which is a string
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Lists genomes present in selected reference databases (ensembl, phytozome, refseq)
@@ -1681,10 +1664,6 @@ LoadedReferenceGenomeData is a reference to a hash where the following keys are 
         feature_count has a value which is an int
         dna_size has a value which is an int
         gc has a value which is a float
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -1713,11 +1692,6 @@ LoadedReferenceGenomeData is a reference to a hash where the following keys are 
         feature_count has a value which is an int
         dna_size has a value which is an int
         gc has a value which is a float
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
@@ -1896,10 +1870,6 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
         complete has a value which is a ReferenceDataManager.bool
         refseq_category has a value which is a string
         save_date has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -1950,11 +1920,6 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
         complete has a value which is a ReferenceDataManager.bool
         refseq_category has a value which is a string
         save_date has a value which is a string
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Lists genomes indexed in SOLR
@@ -2065,10 +2030,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
         version has a value which is a string
         source has a value which is a string
         domain has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -2102,11 +2063,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
         version has a value which is a string
         source has a value which is a string
         domain has a value which is a string
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Loads specified genomes into KBase workspace and indexes in SOLR on demand
@@ -2186,11 +2142,7 @@ sub load_genomes
             my $gn_url = $ncbigenome->{ftp_dir}."/".$ncbigenome->{file}."_genomic.gbff.gz";
             eval {
                 $genutilout = $loader->genbank_to_genome({
-<<<<<<< HEAD
-                                file => {
-=======
-		                file => {
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
+		file => {
                     ftp_url => $gn_url
                 },
                 genome_name => $ncbigenome->{accession},#{asm_name},
@@ -2244,11 +2196,7 @@ sub load_genomes
            print "**********************Genome loading process ends on " . scalar localtime . "************************\n";
         } elsif ($ncbigenome->{source} eq "phytozome") {
             #NEED SAM TO PUT CODE FOR HIS LOADER HERE
-<<<<<<< HEAD
-                        my $genomeout = {
-=======
-	                my $genomeout = {
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
+	        my $genomeout = {
                 "ref" => $wsname."/".$ncbigenome->{id},
                 id => $ncbigenome->{id},
                 workspace_name => $wsname,
@@ -2348,10 +2296,6 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
         complete has a value which is a ReferenceDataManager.bool
         refseq_category has a value which is a string
         save_date has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -2411,11 +2355,6 @@ SolrGenomeFeatureData is a reference to a hash where the following keys are defi
         complete has a value which is a ReferenceDataManager.bool
         refseq_category has a value which is a string
         save_date has a value which is a string
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Index specified genomes in SOLR from KBase workspace
@@ -2507,10 +2446,6 @@ KBaseReferenceTaxonData is a reference to a hash where the following keys are de
         hidden_subtree_flag has a value which is an int
         division_id has a value which is an int
         comments has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -2542,11 +2477,6 @@ KBaseReferenceTaxonData is a reference to a hash where the following keys are de
         hidden_subtree_flag has a value which is an int
         division_id has a value which is an int
         comments has a value which is a string
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Lists taxa loaded into KBase for a given workspace
@@ -2567,12 +2497,7 @@ sub list_loaded_taxa
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
-                                                                                               
-<<<<<<< HEAD
-                                                                                                   my($output);
-=======
-											           my($output);
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
+    my($output);
     #BEGIN list_loaded_taxa
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
@@ -2701,10 +2626,6 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
         hidden_subtree_flag has a value which is an int
         division_id has a value which is an int
         comments has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -2736,11 +2657,6 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
         hidden_subtree_flag has a value which is an int
         division_id has a value which is an int
         comments has a value which is a string
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Lists taxa indexed in SOLR
@@ -2867,10 +2783,6 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
         hidden_subtree_flag has a value which is an int
         division_id has a value which is an int
         comments has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -2922,11 +2834,6 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
         hidden_subtree_flag has a value which is an int
         division_id has a value which is an int
         comments has a value which is a string
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Loads specified taxa into KBase workspace and indexes in SOLR on demand
@@ -2942,12 +2849,8 @@ sub load_taxons
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
         my $msg = "Invalid arguments passed to load_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-<<<<<<< HEAD
                 Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-=======
-	        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
-                                                               method_name => 'load_taxons');
+                method_name => 'load_taxons');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -3053,10 +2956,6 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
         hidden_subtree_flag has a value which is an int
         division_id has a value which is an int
         comments has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -3109,11 +3008,6 @@ SolrTaxonData is a reference to a hash where the following keys are defined:
         hidden_subtree_flag has a value which is an int
         division_id has a value which is an int
         comments has a value which is a string
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Index specified genomes in SOLR from KBase workspace
@@ -3245,10 +3139,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
         version has a value which is a string
         source has a value which is a string
         domain has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 </pre>
 =end html
 =begin text
@@ -3271,10 +3161,6 @@ KBaseReferenceGenomeData is a reference to a hash where the following keys are d
         version has a value which is a string
         source has a value which is a string
         domain has a value which is a string
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =end text
 =item Description
 Updates the loaded genomes in KBase for the specified source databases
@@ -3388,10 +3274,6 @@ sub status {
 }
 
 =head1 TYPES
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =head2 bool
 =over 4
 =item Description
@@ -3468,10 +3350,6 @@ refseq_category has a value which is a string
 =back
 =head2 ListLoadedGenomesParams
 =over 4
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
 =item Description
 Arguments for the list_loaded_genomes function
 =item Definition
@@ -3705,11 +3583,6 @@ version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
 =end text
-<<<<<<< HEAD
-=======
-
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
-                                                                                                                                                                                                   3764,1        90%
 =back
 =head2 IndexGenomesInSolrParams
 =over 4
@@ -3942,12 +3815,3 @@ create_report has a value which is a ReferenceDataManager.bool
 
 1;
 
-<<<<<<< HEAD
-
-=======
-                                                                                                                                                                                                                                                                                                           2882,5        69%
-
-
-                                                                                         
-											 
->>>>>>> 5d58fb3e496dbd8169adf53fb2087f34bc75e5e2
