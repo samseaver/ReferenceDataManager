@@ -1021,14 +1021,13 @@ sub _checkGenomeStatus
     my $query = { genome_id => $current_genome->{id} . "*" };
     my $solr_response = $self->_searchSolr_wildcard($solr_core, $params, $query, "json", $groupOption);
     my $solr_records = $solr_response->{response}->{grouped}->{$groupOption}->{groups};
-        #if ( $self->_exists($solr_core, {genome_id=>$current_genome->{id}."*"}) == 0 )
-        #$status = "New genome";
-    if( @{ $solr_records } == 0 ) {
+    
+    if( @{$solr_records} == 0 ) {
         $status = "New genome";
     }
     else {
         print "\n\nFound unique $groupOption groups of:" . scalar @{$solr_records} . "\n";
-        for (my $i = 0; $i < @{ $solr_records }; $i++ ) {
+        for (my $i = 0; $i < @{$solr_records}; $i++ ) {
             my $record = $solr_records->[$i];
             print $record->{doclist}->{numFound} ."\n";
             my $genome_id = $record->{genome_id};
@@ -3199,25 +3198,24 @@ sub update_loaded_genomes
     $output = [];
 
     my $count = 0;
-    my $genomes_in_solr;
     my $ref_genomes;
-    my $loaded_genomes;
+    my $loaded_refseq_genomes;
     my $gn_solr_core = "GenomeFeatures_prod";
 
     $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
-    $loaded_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
+    $loaded_refseq_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
 
-    for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {
-        my $genome = $ref_genomes->[$i];
+    for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {#after testing, remove the '&& $i < 2' portion!!!
+        my $gnm = $ref_genomes->[$i];
 
         #check if the genome is already present in the database by querying SOLR
-        my $gnstatus = $self->_checkGenomeStatus( $genome, $gn_solr_core );
+        my $gnstatus = $self->_checkGenomeStatus( $gnm, $gn_solr_core );
         if ($gnstatus=~/(new|updated)/i){
             $count ++;
-            push(@{$output},$genome);
+            push(@{$output},$gnm);
 
             if ($count < 10) {
-                $msg .= $genome->{accession}.";".$genome->{status}.";".$genome->{name}.";".$genome->{ftp_dir}.";".$genome->{file}.";".$genome->{id}.";".$genome->{version}.";".$genome->{source}.";".$genome->{domain}."\n";
+                $msg .= $gnm->{accession}.";".$gnm->{status}.";".$gnm->{name}.";".$gnm->{ftp_dir}.";".$gnm->{file}.";".$gnm->{id}.";".$gnm->{version}.";".$gnm->{source}.";".$gnm->{domain}."\n";
             }
         }else{
                 # Current version already in KBase, check for annotation update
@@ -3227,7 +3225,7 @@ sub update_loaded_genomes
     $self->load_genomes( {genomes => $output, index_in_solr => 1} );
 
     if ($params->{create_report}) {
-            $self->util_create_report({
+        $self->util_create_report({
                 message => "Updated ".@{$output}." genomes!",
                 workspace => $params->{workspace}
             });
