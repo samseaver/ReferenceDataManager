@@ -1062,28 +1062,28 @@ sub _checkGenomeStatus
 #
 sub _indexGenomeFeatureData 
 {
-    my ($self, $solrCore, $gnData) = @_;
-    my $wsgnrefs = [];
+    my ($self, $solrCore, $ws_gnData) = @_;
+    my $ws_gnrefs = [];
 
-    foreach my $gn (@{$gnData}) {
-        push @{$wsgnrefs}, {
-            "ref" => $gn->{ref}
+    foreach my $ws_gn (@{$ws_gnData}) {
+        push @{$ws_gnrefs}, {
+            "ref" => $ws_gn->{ref}
         };
     }
 
-    my $gnout;
+    my $ws_gnout;
     my $solr_gnftData = [];
     my $gnft_batch = [];
     my $batchCount = 10000;
 
-    #foreach my $wref (@{$wsgnrefs}) { 
-    for( my $gf_i = 2800; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
-    #for( my $gf_i = 0; $gf_i < @{$wsgnrefs}; $gf_i++ ) {
-        my $wref = $wsgnrefs->[$gf_i];
-        print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $wref->{ref} .  " on " . scalar localtime . "\n";
+    #foreach my $ws_ref (@{$ws_gnrefs}) { 
+    for( my $gf_i = 2800; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
+    #for( my $gf_i = 0; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
+        my $ws_ref = $ws_gnrefs->[$gf_i];
+        print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $ws_ref->{ref} .  " on " . scalar localtime . "\n";
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
-                $gnout = $self->util_ws_client()->get_objects2({
-                        objects => [$wref]
+                $ws_gnout = $self->util_ws_client()->get_objects2({
+                        objects => [$ws_ref]
                 }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
         };
         if($@) {
@@ -1094,66 +1094,66 @@ sub _indexGenomeFeatureData
                 }
         }
         else {
-            $gnout = $gnout -> {data};
-            print "Done getting genome object info for " . $wref->{ref} . " on " . scalar localtime . "\n";
-            my $gn_data; #a reference to a list where each element is a Workspace.ObjectData
-            my $gn_info; #to hold a value which is a Workspace.object_info
-            my $gn_onterms ={};
-            my $gn_features = {};
-            my $gn_tax;
-            my $gn_aliases;
-            my $gn_nm;
+            $ws_gnout = $ws_gnout -> {data};
+            print "Done getting genome object info for " . $ws_ref->{ref} . " on " . scalar localtime . "\n";
+            my $ws_gn_data; #a reference to a list where each element is a Workspace.ObjectData
+            my $ws_gn_info; #to hold a value which is a Workspace.object_info
+            my $ws_gn_onterms ={};
+            my $ws_gn_features = {};
+            my $ws_gn_tax;
+            my $ws_gn_aliases;
+            my $ws_gn_nm;
             my $loc_contig;
             my $loc_begin;
             my $loc_end;
             my $loc_strand;
-            my $gn_loc;
-            my $gn_save_date;
+            my $ws_gn_loc;
+            my $ws_gn_save_date;
             my $numCDs = 0;
-            my $gn_refseqcat;
+            my $ws_gn_refseqcat;
 
             #fetch individual data item to assemble the genome_feature info for $solr_gnftData
-            for (my $i=0; $i < @{$gnout}; $i++) {
-                $gn_data = $gnout -> [$i] -> {data};#an UnspecifiedObject
-                $gn_info = $gnout -> [$i] -> {info};
-                $gn_features = $gn_data->{features};
-                $gn_tax = $gn_data->{taxonomy};
-                $gn_tax =~s/ *; */;;/g;
-                $gn_save_date = $gn_info -> [3];
+            for (my $i=0; $i < @{$ws_gnout}; $i++) {
+                $ws_gn_data = $ws_gnout -> [$i] -> {data};#an UnspecifiedObject
+                $ws_gn_info = $ws_gnout -> [$i] -> {info};
+                $ws_gn_features = $ws_gn_data->{features};
+                $ws_gn_tax = $ws_gn_data->{taxonomy};
+                $ws_gn_tax =~s/ *; */;;/g;
+                $ws_gn_save_date = $ws_gn_info -> [3];
                 $numCDs  = 0;
-                foreach my $feature (@{$gn_features}) {
+                foreach my $feature (@{$ws_gn_features}) {
                     $numCDs++ if $feature->{type} = 'CDS';
                 }
 
-                for (my $ii=0; $ii < @{$gn_features}; $ii++) {
-                    if( defined($gn_features->[$ii]->{aliases})) {
-                        $gn_nm = $gn_features->[$ii]->{aliases}[0] unless $gn_features->[$ii]->{aliases}[0]=~/^(NP_|WP_|YP_|GI|GeneID)/i;
-                        $gn_aliases = join(";", @{$gn_features->[$ii]->{aliases}});
-                        $gn_aliases =~s/ *; */;;/g;
+                for (my $ii=0; $ii < @{$ws_gn_features}; $ii++) {
+                    if( defined($ws_gn_features->[$ii]->{aliases})) {
+                        $ws_gn_nm = $ws_gn_features->[$ii]->{aliases}[0] unless $ws_gn_features->[$ii]->{aliases}[0]=~/^(NP_|WP_|YP_|GI|GeneID)/i;
+                        $ws_gn_aliases = join(";", @{$ws_gn_features->[$ii]->{aliases}});
+                        $ws_gn_aliases =~s/ *; */;;/g;
                     }
                     else {
-                        $gn_nm = undef;
-                        $gn_aliases = undef;
+                        $ws_gn_nm = undef;
+                        $ws_gn_aliases = undef;
                     }
 
-                    my $gn_funcs = $gn_features->[$ii]->{function};
-                    $gn_funcs = join(";;", split(/\s*;\s+|\s+[\@\/]\s+/, $gn_funcs));
+                    my $ws_gn_funcs = $ws_gn_features->[$ii]->{function};
+                    $ws_gn_funcs = join(";;", split(/\s*;\s+|\s+[\@\/]\s+/, $ws_gn_funcs));
 
-                    my $gn_roles;
-                    if( defined($gn_features->[$ii]->{roles}) ) {
-                        $gn_roles = join(";;", $gn_features->[$ii]->{roles});
+                    my $ws_gn_roles;
+                    if( defined($ws_gn_features->[$ii]->{roles}) ) {
+                        $ws_gn_roles = join(";;", $ws_gn_features->[$ii]->{roles});
                     }
                     else {
-                        $gn_roles = undef;
+                        $ws_gn_roles = undef;
                     }
                     $loc_contig = "";
                     $loc_begin = 0;
                     $loc_end = "";
                     $loc_strand = "";
-                    $gn_loc = $gn_features->[$ii]->{location};
+                    $ws_gn_loc = $ws_gn_features->[$ii]->{location};
 
                     my $end = 0;
-                    foreach my $contig_loc (@{$gn_loc}) {
+                    foreach my $contig_loc (@{$ws_gn_loc}) {
                         $loc_contig = $loc_contig . ";;" unless $loc_contig eq "";
                         $loc_contig = $loc_contig . $contig_loc->[0];
 
@@ -1173,44 +1173,45 @@ sub _indexGenomeFeatureData
                         $loc_strand = $loc_strand . $contig_loc->[2];
                     }
 
-                    $gn_onterms = $gn_features->[$ii]->{ontology_terms};
+                    $ws_gn_onterms = $ws_gn_features->[$ii]->{ontology_terms};
 
-                    my $current_gnft = {
-                          genome_feature_id => $gn_data->{id} . "/" . $gn_features->[$ii]->{id},
-                          genome_id => $gn_data->{id},
-                          ws_ref => $wref->{ref},
-                          genome_source => $gn_data -> {source},
-                          genetic_code => $gn_data -> {genetic_code},
-                          domain => $gn_data -> {domain},
-                          scientific_name => $gn_data -> {scientific_name},
-                          genome_dna_size => $gn_data -> {dna_size},
-                          num_contigs => $gn_data -> {num_contigs},
-                          assembly_ref => $gn_data -> {assembly_ref},
-                          gc_content => $gn_data -> {gc_content},
-                          complete => $gn_data -> {complete},
-                          taxonomy => $gn_tax,
-                          workspace_name => $gn_info -> [7],
+                    my $ws_gnft = {
+                          genome_feature_id => $ws_gn_data->{id} . "/" . $ws_gn_features->[$ii]->{id},
+                          genome_id => $ws_gn_data->{id},
+                          ws_ref => $ws_ref->{ref},
+                          genome_source => $ws_gn_data -> {source},
+                          genetic_code => $ws_gn_data -> {genetic_code},
+                          domain => $ws_gn_data -> {domain},
+                          scientific_name => $ws_gn_data -> {scientific_name},
+                          genome_dna_size => $ws_gn_data -> {dna_size},
+                          num_contigs => $ws_gn_data -> {num_contigs},
+                          assembly_ref => $ws_gn_data -> {assembly_ref},
+                          gc_content => $ws_gn_data -> {gc_content},
+                          complete => $ws_gn_data -> {complete},
+                          #gnmd5checksum => $ws_gn_info -> {chsum},
+                          taxonomy => $ws_gn_tax,
+                          workspace_name => $ws_gn_info -> [7],
                           num_cds => $numCDs,
-                          refseq_category => $gn_data->{type},
-                          save_date => $gn_save_date,
+                          refseq_category => $ws_gn_data->{type},
+                          save_date => $ws_gn_save_date,
                           #feature data
-                          feature_type => $gn_features->[$ii]->{type},
-                          feature_id => $gn_features->[$ii]->{id},
-                          functions => $gn_funcs,
-                          roles => $gn_roles,
-                          md5 => $gn_features->[$ii]->{md5},
-                          gene_name => $gn_nm,
-                          protein_translation_length => ($gn_features->[$ii]->{protein_translation_length}) != "" ? $gn_features->[$ii]->{protein_translation_length} : 0,
-                          dna_sequence_length => ($gn_features->[$ii]->{dna_sequence_length}) != "" ? $gn_features->[$ii]->{dna_sequence_length} : 0,
-                          aliases => $gn_aliases,
+                          feature_type => $ws_gn_features->[$ii]->{type},
+                          feature_id => $ws_gn_features->[$ii]->{id},
+                          functions => $ws_gn_funcs,
+                          roles => $ws_gn_roles,
+                          md5 => $ws_gn_features->[$ii]->{md5},
+                          gene_name => $ws_gn_nm,
+                          protein_translation_length => ($ws_gn_features->[$ii]->{protein_translation_length}) != "" ? $ws_gn_features->[$ii]->{protein_translation_length} : 0,
+                          dna_sequence_length => ($ws_gn_features->[$ii]->{dna_sequence_length}) != "" ? $ws_gn_features->[$ii]->{dna_sequence_length} : 0,
+                          aliases => $ws_gn_aliases,
                           location_contig => $loc_contig,
                           location_strand => $loc_strand,
                           location_begin => $loc_begin,
                           location_end => $loc_end,
-                          ontology_namespaces => $gn_features->[$ii]->{ontology_terms}
+                          ontology_namespaces => $ws_gn_features->[$ii]->{ontology_terms}
                     };
-                    push @{$solr_gnftData}, $current_gnft;
-                    push @{$gnft_batch}, $current_gnft;
+                    push @{$solr_gnftData}, $ws_gnft;
+                    push @{$gnft_batch}, $ws_gnft;
 
                     if(@{$gnft_batch} >= $batchCount) {
                         eval {
