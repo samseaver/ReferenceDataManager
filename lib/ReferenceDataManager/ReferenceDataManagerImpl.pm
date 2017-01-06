@@ -377,7 +377,7 @@ sub _buildQueryString {
     }
     my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
     my $retStr = $paramFields . $qStr . $solrGroup;
-    print "Query string:\n$retStr\n";
+    #print "Query string:\n$retStr\n";
     return $retStr;
 }
 #
@@ -423,7 +423,7 @@ sub _buildQueryString_wildcard {
     }
     my $solrGroup = $groupOption ? "&group=true&group.field=$groupOption" : "";
     my $retStr = $paramFields . $qStr . $solrGroup;
-    print "Query string:\n$retStr\n";
+    #print "Query string:\n$retStr\n";
     return $retStr;
 }
 
@@ -467,7 +467,7 @@ sub _searchSolr {
     my $solrCore = "/$searchCore"; 
     #my $sort = "&sort=genome_id asc";
     my $solrQuery = $self->{_SOLR_URL}.$solrCore."/select?".$queryString;
-    print "Search string:\n$solrQuery\n";
+    #print "Search string:\n$solrQuery\n";
     
     my $solr_response = $self->_sendRequest("$solrQuery", "GET");
     #print "\nRaw response: \n" . $solr_response->{response} . "\n";
@@ -509,7 +509,7 @@ sub _searchSolr_wildcard {
     my $queryString = $self->_buildQueryString_wildcard($searchQuery, $searchParams, $groupOption, $skipEscape);
     my $solrCore = "/$searchCore"; 
     my $solrQuery = $self->{_SOLR_URL}.$solrCore."/select?".$queryString;
-    print "Search string:\n$solrQuery\n";
+    #print "Search string:\n$solrQuery\n";
     
     my $solr_response = $self->_sendRequest("$solrQuery", "GET");
     #print "\nRaw response: \n" . $solr_response->{response} . "\n";
@@ -998,7 +998,7 @@ sub _error
     return $self->{error};
 }
 #
-# Internal Method: to check if a given genome status against genomes in SOLR.  Returns a string stating the status
+# Internal Method: to check if a given genome has been indexed by KBase in SOLR.  Returns a string stating the status
 #
 # params :
 # $current_genome is a genome object whose KBase status is to be checked.
@@ -1008,30 +1008,28 @@ sub _error
 #    
 sub _checkTaxonStatus
 {
-    my ($self, $current_taxon, $solr_core) = @_;
-    print "\nChecking status for taxon:\n " . Dumper($current_taxon) . "\n";
+    my ($self, $current_genome, $solr_core) = @_;
+    #print "\nChecking taxon status for genome:\n " . Dumper($current_genome) . "\n";
 
     my $status = "";
-    my $groupOption = "taxonomy_id";
     my $params = {
-        fl => $groupOption,
+        fl => "taxonomy_id,domain",
         wt => "json"
     };
-    my $query = { taxonomy_id => $current_taxon->{tax_id} };
-    my $solr_response = $self->_searchSolr($solr_core, $params, $query, "json", $groupOption);
-    my $solr_records = $solr_response->{response}->{grouped}->{$groupOption}->{groups};
+    my $query = { taxonomy_id => $current_genome->{tax_id} };
+    my $solr_response = $self->_searchSolr($solr_core, $params, $query, "json");
+    my $solr_records = $solr_response->{response}->{response}->{docs};#->{grouped}->{$groupOption}->{groups};
     
     if( @{$solr_records} == 0 ) {
         $status = "Taxon not found";
     }
     else {
-        print "\n\nFound unique $groupOption groups of:" . scalar @{$solr_records} . "\n";
+        #print "\n\nFound " . scalar @{$solr_records} . " taxon/taxa\n";
         for (my $i = 0; $i < @{$solr_records}; $i++ ) {
             my $record = $solr_records->[$i];
-            print $record->{doclist}->{numFound} ."\n";
-            my $tax_id = $record->{taxonomy_id};
+            #print $solr_response->{response}->{response}->{numFound} ."\n";
 
-            if ($tax_id eq $current_taxon->{tax_id} && $record->{doclist}->{domain} ne "Unknown"){
+            if ($record->{taxonomy_id} eq $current_genome->{tax_id} && $record->{domain} ne "Unknown"){
                 $status = "Taxon in KBase";
                 last;
             }
@@ -2161,8 +2159,8 @@ sub load_genomes
         $ncbigenomes = $params->{genomes};
     }
 
-    #for (my $i=1284; $i < @{$ncbigenomes}; $i++) {
-    for (my $i=1555; $i <= 1732; $i++) {#1357-1732 for re-running the "ServerError" genomes into ReferenceDataManager2 workspace, another batch is 4874-4879
+    for (my $i=7078; $i < @{$ncbigenomes}; $i++) {
+        #for (my $i=1357; $i <= 1732; $i++) {#1357-1732 for re-running the "ServerError" genomes into ReferenceDataManager2 workspace, another batch is 4874-4879
         #for (my $i=0; $i < @{$ncbigenomes}; $i++) {
         my $ncbigenome = $ncbigenomes->[$i];
         print "\n******************Genome#: $i ********************";
