@@ -34,6 +34,7 @@ module ReferenceDataManager {
         string source;
         string domain;
         string refseq_category;
+        string tax_id;
     } ReferenceGenomeData;
 
     /*
