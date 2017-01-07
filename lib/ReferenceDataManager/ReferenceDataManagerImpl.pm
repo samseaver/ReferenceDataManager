@@ -1118,8 +1118,8 @@ sub _indexGenomeFeatureData
     my $batchCount = 10000;
 
     #foreach my $ws_ref (@{$ws_gnrefs}) { 
-    for( my $gf_i = 2800; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
-    #for( my $gf_i = 0; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
+    #for( my $gf_i = 2800; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
+    for( my $gf_i = 0; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
         my $ws_ref = $ws_gnrefs->[$gf_i];
         print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $ws_ref->{ref} .  " on " . scalar localtime . "\n";
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
