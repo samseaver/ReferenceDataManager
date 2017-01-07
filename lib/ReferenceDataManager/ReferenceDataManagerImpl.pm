@@ -1018,12 +1018,11 @@ sub _checkTaxonStatus
     };
     my $query = { taxonomy_id => $current_genome->{tax_id} };
     my $solr_response = $self->_searchSolr($solr_core, $params, $query, "json");
-    my $solr_records = $solr_response->{response}->{response}->{docs};#->{grouped}->{$groupOption}->{groups};
-    
-    if( @{$solr_records} == 0 ) {
+    if( $solr_response->{response}->{response}->{numFound} == 0 ) {
         $status = "Taxon not found";
     }
     else {
+        my $solr_records = $solr_response->{response}->{response}->{docs};
         #print "\n\nFound " . scalar @{$solr_records} . " taxon/taxa\n";
         for (my $i = 0; $i < @{$solr_records}; $i++ ) {
             my $record = $solr_records->[$i];
@@ -1039,7 +1038,7 @@ sub _checkTaxonStatus
             }
         }
     }
-    print "\nStatus:$status\n";
+    #print "\nStatus:$status\n";
     return $status;
 }
 #
@@ -1064,12 +1063,11 @@ sub _checkGenomeStatus
     };
     my $query = { genome_id => $current_genome->{id} . "*" };
     my $solr_response = $self->_searchSolr_wildcard($solr_core, $params, $query, "json", $groupOption);
-    my $solr_records = $solr_response->{response}->{grouped}->{$groupOption}->{groups};
-    
-    if( @{$solr_records} == 0 ) {
+    if( $solr_response->{response}->{grouped}->{$groupOption}->{matches} == 0 ) {
         $status = "New genome";
     }
     else {
+        my $solr_records = $solr_response->{response}->{grouped}->{$groupOption}->{groups};
         print "\n\nFound unique $groupOption groups of:" . scalar @{$solr_records} . "\n";
         for (my $i = 0; $i < @{$solr_records}; $i++ ) {
             my $record = $solr_records->[$i];
@@ -1091,7 +1089,7 @@ sub _checkGenomeStatus
             $status = "New genome";#or "Existing genome: status unknown";
         }
     }
-    print "\nStatus:$status\n";
+    #print "\nStatus:$status\n";
     return $status;
 }
 
@@ -3244,23 +3242,22 @@ sub update_loaded_genomes
 
     my $count = 0;
     my $ref_genomes;
-    my $loaded_refseq_genomes;
     my $gn_solr_core = "GenomeFeatures_prod";
-    my $tx_solr_core = "taxonomy_prod";
+    my $tx_solr_core = "taxonomy_ci";
 
     $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
-    $loaded_refseq_genomes = $self->list_loaded_genomes({refseq => $params->{refseq}});
 
-    for (my $i=0; $i < @{ $ref_genomes } && $i < 2; $i++) {#after testing, remove the '&& $i < 2' portion!!!
+    for (my $i=0; $i < @{ $ref_genomes }; $i++) {
         my $gnm = $ref_genomes->[$i];
 
         #check if the genome is already present in the database by querying SOLR
         my $gn_status = $self->_checkGenomeStatus( $gnm, $gn_solr_core );
         
         #check if the taxon of the genome (named in KBase as $gnm->{tax_id} . "_taxon") is loaded in a KBase workspace
-        my $ws_taxon_status = $self->_checkTaxonStatus($gnm->{tax_id}, $tx_solr_core);
+        my $ws_taxon_status = $self->_checkTaxonStatus($gnm, $tx_solr_core);
 
         if ($gn_status=~/(new|updated)/i && $ws_taxon_status=~/in KBase/i){
+            $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
             $count ++;
             push(@{$output},$gnm);
 
@@ -3272,7 +3269,7 @@ sub update_loaded_genomes
         }
     }
 
-    $self->load_genomes( {genomes => $output, index_in_solr => 1} );
+    #$self->load_genomes( {genomes => $output, index_in_solr => 1} );
 
     if ($params->{create_report}) {
         $self->util_create_report({
