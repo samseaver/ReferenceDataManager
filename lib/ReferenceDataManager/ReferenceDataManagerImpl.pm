@@ -1029,7 +1029,7 @@ sub _checkTaxonStatus
             #print $solr_response->{response}->{response}->{numFound} ."\n";
 
             if ($record->{taxonomy_id} eq $current_genome->{tax_id} && $record->{domain} ne "Unknown"){
-                $status = "Taxon in KBase";
+                $status = "Taxon inKBase";
                 last;
             }
             else{
@@ -1118,7 +1118,6 @@ sub _indexGenomeFeatureData
     my $batchCount = 10000;
 
     #foreach my $ws_ref (@{$ws_gnrefs}) { 
-    #for( my $gf_i = 2800; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
     for( my $gf_i = 0; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
         my $ws_ref = $ws_gnrefs->[$gf_i];
         print "\nStart to fetch the object(s) for "  . $gf_i . ". " . $ws_ref->{ref} .  " on " . scalar localtime . "\n";
@@ -3252,18 +3251,17 @@ sub update_loaded_genomes
 
         #check if the genome is already present in the database by querying SOLR
         my $gn_status = $self->_checkGenomeStatus( $gnm, $gn_solr_core );
-        
-        #check if the taxon of the genome (named in KBase as $gnm->{tax_id} . "_taxon") is loaded in a KBase workspace
-        my $ws_taxon_status = $self->_checkTaxonStatus($gnm, $tx_solr_core);
-
-        if ($gn_status=~/(new|updated)/i && $ws_taxon_status=~/in KBase/i){
-            $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
-            $count ++;
-            push(@{$output},$gnm);
-
-            if ($count < 10) {
-                $msg .= $gnm->{accession}.";".$gnm->{status}.";".$gnm->{name}.";".$gnm->{ftp_dir}.";".$gnm->{file}.";".$gnm->{id}.";".$gnm->{version}.";".$gnm->{source}.";".$gnm->{domain}."\n";
-            }
+       
+        if ($gn_status=~/(new|updated)/i) { 
+                #check if the taxon of the genome (named in KBase as $gnm->{tax_id} . "_taxon") is loaded in a KBase workspace
+                if( ($self->_checkTaxonStatus($gnm, $tx_solr_core))=~/inKBase/i ){
+                    $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
+                    $count ++;
+                    push(@{$output},$gnm);
+                    if ($count < 10) {
+                        $msg .= $gnm->{accession}.";".$gnm->{status}.";".$gnm->{name}.";".$gnm->{ftp_dir}.";".$gnm->{file}.";".$gnm->{id}.";".$gnm->{version}.";".$gnm->{source}.";".$gnm->{domain}."\n";
+                    }
+                }
         }else{
                 # Current version already in KBase, check for annotation update
         }
