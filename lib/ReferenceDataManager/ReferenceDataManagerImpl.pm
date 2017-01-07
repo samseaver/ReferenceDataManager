@@ -1124,7 +1124,7 @@ sub _indexGenomeFeatureData
         eval {#return a reference to a list where each element is a Workspace.ObjectData with a key named 'data'
                 $ws_gnout = $self->util_ws_client()->get_objects2({
                         objects => [$ws_ref]
-                }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
+                }); 
         };
         if($@) {
                 print "Cannot get object information!\n";
@@ -1134,10 +1134,10 @@ sub _indexGenomeFeatureData
                 }
         }
         else {
-            $ws_gnout = $ws_gnout -> {data};
+            $ws_gnout = $ws_gnout -> {data};#a reference to a list where each element is a Workspace.ObjectData
             print "Done getting genome object info for " . $ws_ref->{ref} . " on " . scalar localtime . "\n";
-            my $ws_gn_data; #a reference to a list where each element is a Workspace.ObjectData
-            my $ws_gn_info; #to hold a value which is a Workspace.object_info
+            my $ws_gn_data;#to hold a value which is a Workspace.objectData
+            my $ws_gn_info;#to hold a value which is a Workspace.object_info
             my $ws_gn_onterms ={};
             my $ws_gn_features = {};
             my $ws_gn_tax;
@@ -1155,7 +1155,7 @@ sub _indexGenomeFeatureData
             #fetch individual data item to assemble the genome_feature info for $solr_gnftData
             for (my $i=0; $i < @{$ws_gnout}; $i++) {
                 $ws_gn_data = $ws_gnout -> [$i] -> {data};#an UnspecifiedObject
-                $ws_gn_info = $ws_gnout -> [$i] -> {info};
+                $ws_gn_info = $ws_gnout -> [$i] -> {info};#is a reference to a list containing 11 items
                 $ws_gn_features = $ws_gn_data->{features};
                 $ws_gn_tax = $ws_gn_data->{taxonomy};
                 $ws_gn_tax =~s/ *; */;;/g;
@@ -1783,9 +1783,8 @@ sub list_loaded_genomes
             print "\nMax genome object id=$maxid\n";
 
             for (my $m = 0; $m < $pages; $m++) {
-                #for (my $m = 0; $m < 1; $m++) { 
                 eval {
-                        $wsoutput = $self->util_ws_client()->list_objects({
+                    $wsoutput = $self->util_ws_client()->list_objects({
                           workspaces => [$wsname],
                           minObjectID => $batch_count * $m + 1,
                           type => "KBaseGenomes.Genome-12.3",#11539 objects for '12.2'
@@ -2157,6 +2156,7 @@ sub load_genomes
     }
 
     for (my $i=7078; $i < @{$ncbigenomes}; $i++) {
+    #for (my $i=6600; $i < 6604; $i++) {
         #for (my $i=1357; $i <= 1732; $i++) {#1357-1732 for re-running the "ServerError" genomes into ReferenceDataManager2 workspace, another batch is 4874-4879
         #for (my $i=0; $i < @{$ncbigenomes}; $i++) {
         my $ncbigenome = $ncbigenomes->[$i];
