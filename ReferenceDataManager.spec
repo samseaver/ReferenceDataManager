@@ -15,7 +15,6 @@ module ReferenceDataManager {
 	string source;
         string domain;
         bool updated_only;
-	bool updated_only;
         string workspace_name;
 	bool create_report; 
    } ListReferenceGenomesParams;

@@ -532,7 +532,7 @@ sub _searchSolr_wildcard {
     return $solr_response;
 }
 
-                                                                                                                                                                                                                    
+#
 # method name: _deleteRecords
 # Internal Method: to delete record(s) in SOLR that matches the given id(s) in the query
 # parameters:
@@ -1219,15 +1219,15 @@ sub _indexGenomeFeatureData
                           genome_feature_id => $ws_gn_data->{id} . "/" . $ws_gn_features->[$ii]->{id},
                           genome_id => $ws_gn_data->{id},
                           ws_ref => $ws_ref->{ref},
-                          genome_source => $ws_gn_data -> {source},
-                          genetic_code => $ws_gn_data -> {genetic_code},
-                          domain => $ws_gn_data -> {domain},
-                          scientific_name => $ws_gn_data -> {scientific_name},
-                          genome_dna_size => $ws_gn_info->[10] -> {Size},
-                          num_contigs => $ws_gn_data -> {num_contigs},
-                          assembly_ref => $ws_gn_data -> {assembly_ref},
-                          gc_content => $ws_gn_info->[10] -> {"GC content"},
-                          complete => $ws_gn_data -> {complete},
+                          genome_source => $ws_gn_data->{source},
+                          genetic_code => $ws_gn_data->{genetic_code},
+                          domain => $ws_gn_data->{domain},
+                          scientific_name => $ws_gn_data->{scientific_name},
+                          genome_dna_size => $ws_gn_info->[10]->{Size},
+                          num_contigs => $ws_gn_data->{num_contigs},
+                          assembly_ref => $ws_gn_data->{assembly_ref},
+                          gc_content => $ws_gn_info->[10]->{"GC content"},
+                          complete => $ws_gn_data->{complete},
                           #gnmd5checksum => $ws_gn_info -> {chsum},
                           taxonomy => $ws_gn_tax,
                           workspace_name => $ws_gn_info -> [7],
@@ -1358,20 +1358,20 @@ sub _indexInSolr
 #
 sub _list_ncbi_refseq 
 {
-    my ($self, $source, $domain, $update_only) = @_;
+    my ($self, $source, $division, $update_only) = @_;
        
     $source = "refseq" unless $source;
-    $domain = "bacteria" unless $domain; 
+    $division = "bacteria" unless $division; 
     $update_only = 0 unless $update_only;
 
     my $output = [];
     my $msg = "";
     my $count = 0;
     
-    my @domains = split /,/, $domain;
-    foreach my $division (@domains){
+    my @divisions = split /,/, $division;
+    foreach my $dvsn (@divisions){
         $count = 0;
-        my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
+        my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$dvsn."/assembly_summary.txt";
         my $assemblies = [`wget -q -O - $assembly_summary_url`];
     
         foreach my $entry (@{$assemblies}) {
@@ -1383,7 +1383,7 @@ sub _list_ncbi_refseq
             my @attribs = split /\t/, $entry;
             my $current_genome = {
                 source => $source,
-                domain => $division
+                domain => $dvsn
             };
             $current_genome->{accession} = $attribs[0];
             $current_genome->{version_status} = $attribs[10];
@@ -1409,7 +1409,7 @@ sub _list_ncbi_refseq
                 $msg .= $current_genome->{accession}.";".$current_genome->{status}.";".$current_genome->{name}.";".$current_genome->{ftp_dir}.";".$current_genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
             }
         }
-        print Dumper($output->[@{$output} - 1]);
+        #print Dumper($output->[@{$output} - 1]);
     }
     return({msg => $msg, ref_genomes => $output});
 }
@@ -2193,10 +2193,9 @@ sub load_genomes
         $ncbigenomes = $params->{genomes};
     }
 
-    for (my $i=7078; $i < @{$ncbigenomes}; $i++) {
-    #for (my $i=6600; $i < 6604; $i++) {
+    #for (my $i=7117; $i < @{$ncbigenomes}; $i++) {
         #for (my $i=1357; $i <= 1732; $i++) {#1357-1732 for re-running the "ServerError" genomes into ReferenceDataManager2 workspace, another batch is 4874-4879
-        #for (my $i=0; $i < @{$ncbigenomes}; $i++) {
+    for (my $i=0; $i < @{$ncbigenomes}; $i++) {
         my $ncbigenome = $ncbigenomes->[$i];
         print "\n******************Genome#: $i ********************";
         my $wsname = "";
