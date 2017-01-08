@@ -1230,7 +1230,7 @@ sub _indexGenomeFeatureData
                           complete => $ws_gn_data->{complete},
                           #gnmd5checksum => $ws_gn_info -> {chsum},
                           taxonomy => $ws_gn_tax,
-                          workspace_name => $ws_gn_info -> [7],
+                          workspace_name => $ws_gn_info->[7],
                           num_cds => $numCDs,
                           refseq_category => $ws_gn_data->{type},
                           save_date => $ws_gn_save_date,
