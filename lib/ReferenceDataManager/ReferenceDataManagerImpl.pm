@@ -1677,30 +1677,28 @@ sub list_reference_genomes
     #BEGIN list_reference_genomes
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
-        ensembl => 0,#todo
-        phytozome => 0,#todo
-        refseq => 1,
         source => "refseq",
         domain => "bacteria",
         create_report => 0,
-        update_only => 0,#todo: 1
+        update_only => 0,
         workspace_name => undef
-    });
+    });  
     my $msg = "";
     $output = [];
-    my $source = $params->{source};
-    my $domain = $params->{domain};    
-    print $source . "---" . $domain . "\n";
-    $output = $self -> _list_ncbi_refseq($source, $domain, $params->{update_only});
     
+    print $params->{source} . "---" . $params->{domain} . "\n";
+    my $list_items = $self->_list_ncbi_refseq($params->{source}, $params->{domain}, $params->{update_only});
+    $output = $list_items->{ref_genomes};
+    $msg = $list_items->{msg};
+
     if ($params->{create_report}) {
         print $msg."\n";
         $self->util_create_report({
             message => $msg,
             workspace => $params->{workspace}
-        });
+        });  
         $output = [$params->{workspace}."/list_reference_genomes"];
-    }
+    }    
     #END list_reference_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
