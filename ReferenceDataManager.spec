@@ -16,7 +16,9 @@ module ReferenceDataManager {
         bool refseq;
         bool phytozome;
         bool updated_only;
-	string workspace_name;
+	string source;
+        string domain;
+        string workspace_name;
 	bool create_report; 
    } ListReferenceGenomesParams;
 

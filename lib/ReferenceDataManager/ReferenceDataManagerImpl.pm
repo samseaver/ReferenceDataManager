@@ -394,7 +394,7 @@ sub _buildQueryString_wildcard {
     
     my $DEFAULT_FIELD_CONNECTOR = "AND";
 
-    if (! $searchQuery) {
+    if (!$searchQuery) {
         $self->{is_error} = 1;
         $self->{errmsg} = "Query parameters not specified";
         return undef;
@@ -1342,7 +1342,80 @@ sub _indexInSolr
     }
 }
 
-#################### End methods for accessing SOLR #######################
+#################### End subs for accessing SOLR #######################
+
+#################### Start subs for accessing NCBI ########################
+
+#
+# Internal method: _list_ncbi_refseq
+# params:
+#   input:
+#       $source: "refseq" | "genbank" {default => "refseq"}
+#       $domain: "bacteria" | "archaea" | "plant" | "fungi" | multivalued, comma-seperated, {default => "bacteria"}
+#       $update_only: 0 | 1 {default => 0}
+#   output:
+#       a list of ncbi genomes
+#
+sub _list_ncbi_refseq 
+{
+    my ($self, $source, $domain, $update_only) = @_;
+       
+    $source = "refseq" unless $source;
+    $domain = "bacteria" unless $domain; 
+    $update_only = 0 unless $update_only;
+
+    my $output = [];
+    my $msg = "";
+    my $count = 0;
+    
+    my @domains = split /,/, $domain;
+    foreach my $division (@domains){
+        $count = 0;
+        my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
+        my $assemblies = [`wget -q -O - $assembly_summary_url`];
+    
+        foreach my $entry (@{$assemblies}) {
+            $count++;
+            chomp $entry;
+            if ($entry=~/^#/) { #header
+                next;
+            }
+            my @attribs = split /\t/, $entry;
+            my $current_genome = {
+                source => $source,
+                domain => $division
+            };
+            $current_genome->{accession} = $attribs[0];
+            $current_genome->{version_status} = $attribs[10];
+            $current_genome->{asm_name} = $attribs[15];
+            $current_genome->{ftp_dir} = $attribs[19];
+            $current_genome->{file} = $current_genome->{ftp_dir};
+            $current_genome->{file}=~s/.*\///;
+            ($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
+            $current_genome->{refseq_category} = $attribs[4];
+            $current_genome->{tax_id} = $attribs[5];
+        
+            if( $update_only == 1 ) {
+                my $gn_solr_core = "GenomeFeatures_prod";
+                if( ($self->_checkGenomeStatus( $current_genome, $gn_solr_core ))=~/(new|updated)/i ) {
+                    push(@{$output},$current_genome);
+                }
+            }
+            else {
+                push(@{$output},$current_genome);
+            }
+
+            if ($count < 10) {
+                $msg .= $current_genome->{accession}.";".$current_genome->{status}.";".$current_genome->{name}.";".$current_genome->{ftp_dir}.";".$current_genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
+            }
+        }
+        print Dumper($output->[@{$output} - 1]);
+    }
+    return($output);
+}
+
+#################### End subs for accessing NCBI ########################
+
 
 sub _extract_ncbi_taxons {
     my $self=shift;
@@ -1606,53 +1679,20 @@ sub list_reference_genomes
     $params = $self->util_args($params,[],{
         ensembl => 0,#todo
         phytozome => 0,#todo
-        refseq => 0,
+        refseq => 1,
+        source => "refseq",
+        domain => "bacteria",
         create_report => 0,
-        update_only => 1,#todo
+        update_only => 0,#todo: 1
         workspace_name => undef
     });
     my $msg = "";
     $output = [];
-    if ($params->{refseq} == 1) {
-        my $source = "refseq";#Could also be "genbank"
-        my $division = "bacteria";#Could also be "archaea" or "plant" or "fungi"
-        my $assembly_summary_url = "ftp://ftp.ncbi.nlm.nih.gov/genomes/".$source."/".$division."/assembly_summary.txt";
-        my $assemblies = [`wget -q -O - $assembly_summary_url`];
-        my $count = 0;
-        foreach my $entry (@{$assemblies}) {
-            $count++;
-            chomp $entry;
-            if ($entry=~/^#/) { #header
-                next;
-            }
-            my @attribs = split /\t/, $entry;
-            my $current_genome = {
-                source => $source,
-                domain => $division
-            };
-            $current_genome->{accession} = $attribs[0];
-            $current_genome->{version_status} = $attribs[10];
-            $current_genome->{asm_name} = $attribs[15];
-            $current_genome->{ftp_dir} = $attribs[19];
-            $current_genome->{file} = $current_genome->{ftp_dir};
-            $current_genome->{file}=~s/.*\///;
-            ($current_genome->{id}, $current_genome->{version}) = $current_genome->{accession}=~/(.*)\.(\d+)$/;
-            $current_genome->{refseq_category} = $attribs[4];
-            $current_genome->{tax_id} = $attribs[5];
-            push(@{$output},$current_genome);
-            if ($count < 10) {
-                $msg .= $current_genome->{accession}.";".$current_genome->{status}.";".$current_genome->{name}.";".$current_genome->{ftp_dir}.";".$current_genome->{file}.";".$current_genome->{id}.";".$current_genome->{version}.";".$current_genome->{source}.";".$current_genome->{domain}."\n";
-            }
-        }
-    } elsif ($params->{phytozome} == 1) {
-        my $source = "phytozome";
-        my $division = "plant";
-        #NEED SAM TO FILL THIS IN
-    } elsif ($params->{ensembl} == 1) {
-        my $source = "ensembl";
-        my $division = "fungi";
-        #TODO
-    }
+    my $source = $params->{source};
+    my $domain = $params->{domain};    
+    print $source . "---" . $domain . "\n";
+    $output = $self -> _list_ncbi_refseq($source, $domain, $params->{update_only});
+    
     if ($params->{create_report}) {
         print $msg."\n";
         $self->util_create_report({
