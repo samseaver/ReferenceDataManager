@@ -12,12 +12,9 @@ module ReferenceDataManager {
         Arguments for the list_reference_genomes function
     */
     typedef structure {
-        bool ensembl;
-        bool refseq;
-        bool phytozome;
-        bool updated_only;
 	string source;
         string domain;
+        bool updated_only;
         string workspace_name;
 	bool create_report; 
    } ListReferenceGenomesParams;
