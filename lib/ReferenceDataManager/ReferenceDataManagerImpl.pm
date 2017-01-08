@@ -1291,8 +1291,8 @@ sub _indexGenomeFeatureData
     }
     return $solr_gnftData;
 }
-
-#internal method, for fetching one taxon record to be indexed in solr                                                                                                                                                
+#
+#internal method, for fetching one taxon record to be indexed in solr
 #
 sub _getTaxon 
 {
@@ -1682,7 +1682,7 @@ sub list_reference_genomes
         create_report => 0,
         update_only => 0,
         workspace_name => undef
-    });
+    });  
     my $msg = "";
     $output = [];
     
@@ -1696,9 +1696,9 @@ sub list_reference_genomes
         $self->util_create_report({
             message => $msg,
             workspace => $params->{workspace}
-        });
+        });  
         $output = [$params->{workspace}."/list_reference_genomes"];
-    }
+    }    
     #END list_reference_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
