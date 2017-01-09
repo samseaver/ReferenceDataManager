@@ -3267,7 +3267,7 @@ sub update_loaded_genomes
     }
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
-        refseq => 1,
+        source => "refseq",
         update_only => 0,
         create_report => 0,
         workspace_name => undef
@@ -3281,7 +3281,7 @@ sub update_loaded_genomes
     my $gn_solr_core = "GenomeFeatures_prod";
     my $tx_solr_core = "taxonomy_ci";
 
-    $ref_genomes = $self->list_reference_genomes({refseq => $params->{refseq}, update_only => $params->{update_only}});
+    $ref_genomes = $self->list_reference_genomes({source => $params->{source}, update_only => $params->{update_only}});
 
     for (my $i=0; $i < @{ $ref_genomes }; $i++) {
         my $gnm = $ref_genomes->[$i];
