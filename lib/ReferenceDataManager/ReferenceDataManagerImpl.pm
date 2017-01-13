@@ -38,6 +38,7 @@ sub util_initialize_call {
 
     my $config_file = $ENV{ KB_DEPLOYMENT_CONFIG };
     my $cfg = Config::IniFiles->new(-file=>$config_file);
+    $self->{data} = $cfg->val('ReferenceDataManager','data');
     $self->{scratch} = $cfg->val('ReferenceDataManager','scratch');
     $self->{workspace_url} = $cfg->val('ReferenceDataManager','workspace-url');#$config->{"workspace-url"}; 
     die "no workspace-url defined" unless $self->{workspace_url};   $self->util_timestamp(DateTime->now()->datetime());
@@ -1417,21 +1418,28 @@ sub _list_ncbi_refseq
 #################### End subs for accessing NCBI ########################
 
 
-sub _extract_ncbi_taxons {
+sub _extract_ncbi_taxa {
     my $self=shift;
     my $ids_to_extract = shift;
-    my $taxon_file_path=$self->{'scratch'}."/taxon_dump/";
-    mkdir($taxon_file_path);
-    chdir($taxon_file_path);
-    system("curl -o taxdump.tar.gz ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz");
-    system("tar -zxf taxdump.tar.gz");
+    my $taxon_file_path=$self->{'data'}."/taxon_dump/";
+    if(!-d $taxon_file_path || !-f $taxon_file_path."names.dmp"){
+	mkdir($taxon_file_path);
+	chdir($taxon_file_path);
+	system("curl -o taxdump.tar.gz ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz");
+	system("tar -zxf taxdump.tar.gz");
+    }
 
     open(my $fh, "< ${taxon_file_path}nodes.dmp");
     my $taxon_objects={};
     while(<$fh>){
         chomp;
         my @temp=split(/\s*\|\s*/,$_,-1);
-        next if defined($ids_to_extract) && !exists($ids_to_extract->{$temp[0]});
+
+	#Bad, because the lineage needs to be formed from all taxa before ignoring any
+	#The extract case is OK if you're testing a whole branch
+	next if defined($args->{extract}) && !exists($args->{extract}{$temp[1]});
+	#next if defined($args->{ignore}) && exists($args->{ignore}{$temp[0]});
+
         my $object = {'taxonomy_id'=>$temp[0]+0,
                       'parent_taxon_id'=>$temp[1]+0,
                       'rank'=>$temp[2],
@@ -1455,50 +1463,68 @@ sub _extract_ncbi_taxons {
     close($fh);
 
     open(my $fh, "< ${taxon_file_path}names.dmp");
+    my %Duplicate_Names=();
     while(<$fh>){
-        chomp;
-        my @temp=split(/\s*\|\s*/,$_,-1);
-        if(exists($taxon_objects->{$temp[0]})){
-            if($temp[3] eq "scientific name"){
-                $taxon_objects->{$temp[0]}{"scientific_name"}=$temp[1];
-            }else{
-                push(@{$taxon_objects->{$temp[0]}{"aliases"}},$temp[1]);
-            }
-        }
+	chomp;
+	my @temp=split(/\s*\|\s*/,$_,-1);
+	if(exists($taxon_objects->{$temp[0]})){
+	    if($temp[3] eq "scientific name"){
+		$taxon_objects->{$temp[0]}{"scientific_name"}=$temp[1];
+		$taxon_objects->{$temp[0]}{"unique_variant"}=$temp[2];
+		$Duplicate_Names{$temp[1]}{$temp[0]}=1;
+	    }else{
+		push(@{$taxon_objects->{$temp[0]}{"aliases"}},$temp[1]);
+	    }
+	}
     }
     close($fh);
 
     #Iterate through to make lineage, need to determine "level" of each object so to sort properly before loading
     my %taxon_level=();
     foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %$taxon_objects ){
-        $obj->{"scientific_lineage"} = _make_lineage($obj->{"taxonomy_id"},$taxon_objects);
+	$obj->{"scientific_lineage"} = _make_lineage($obj->{"taxonomy_id"},$taxon_objects);
 
-        #Determine Domain
-        foreach my $domain ("Eukaryota","Bacteria","Viruses","Archaea"){
-            if($obj->{"scientific_lineage"} =~ /${domain}/){
-                $obj->{"domain"}=$domain;
-                last;
-            }
-        }
+	#Determine Domain
+	foreach my $domain ("Eukaryota","Bacteria","Viruses","Archaea"){
+	    if($obj->{"scientific_lineage"} =~ /${domain}/){
+		$obj->{"domain"}=$domain;
+		last;
+	    }
+	}
 
-        #Determine Kingdom
-        foreach my $kingdom ("Fungi","Viridiplantae","Metazoa"){
-            if($obj->{"domain"} eq "Eukaryota" && $obj->{"scientific_lineage"} =~ /${kingdom}/){
-                $obj->{"kingdom"}=$kingdom;
-                last;
-            }
-        }
-
-        my $level = scalar( split(/;\s/,$obj->{"scientific_lineage"}) );
-        $taxon_level{$level}{$obj->{"taxonomy_id"}}=1;
+	#Determine Kingdom
+	foreach my $kingdom ("Fungi","Viridiplantae","Metazoa"){
+	    if($obj->{"domain"} eq "Eukaryota" && $obj->{"scientific_lineage"} =~ /${kingdom}/){
+		$obj->{"kingdom"}=$kingdom;
+		last;
+	    }
+	}
+	
+	my $level = scalar( split(/;\s/,$obj->{"scientific_lineage"}) );
+	$taxon_level{$level}{$obj->{"taxonomy_id"}}=1;
     }
 
     my $taxon_objs=[];
     foreach my $level ( sort { $a <=> $b } keys %taxon_level ){
-        foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %{$taxon_level{$level}} ){
-            delete $obj->{"parent_taxon_id"} if $obj->{"taxonomy_id"} == 1;
-            push(@$taxon_objs,$obj);
-        }
+	foreach my $obj ( map { $taxon_objects->{$_} } sort { $a <=> $b } keys %{$taxon_level{$level}} ){
+	    delete $obj->{"parent_taxon_id"} if $obj->{"taxonomy_id"} == 1;
+	    push(@$taxon_objs,$obj);
+	}
+    }
+
+    foreach my $obj (@$taxon_objs){
+	#Here we checked whether, in the instance of a clash, a taxon did not have a unique variant
+	#We find that in the few cases this happens (~50), only one member of the clash didn't have unique variant
+	#if(scalar(keys %{$Duplicate_Names{$obj->{'scientific_name'}}})>1 && $obj->{'unique_variant'} =~ /^\s*$/){
+	    #print Dumper($obj),"\n";
+	    #print $obj->{'scientific_name'},"\n";
+	#}
+
+	#If a scientific name belongs to more than one taxon, and if the unique variant is available
+	if(scalar(keys %{$Duplicate_Names{$obj->{'scientific_name'}}})>1 && $obj->{'unique_variant'} !~ /^\s*$/){
+	    $obj->{'scientific_name'}=$obj->{'unique_variant'};
+	}
+	delete($obj->{'unique_variant'});
     }
     return $taxon_objs;
 }
@@ -1508,60 +1534,53 @@ sub _make_lineage {
     return "" if $taxon_id == 1;
     my @lineages=();
     if(exists($taxon_objects->{$taxon_id}) && exists($taxon_objects->{$taxon_id}{"parent_taxon_id"})){
-        my $parent_taxon_id=$taxon_objects->{$taxon_id}{"parent_taxon_id"};
-        while($parent_taxon_id > 1){
-            if(exists($taxon_objects->{$parent_taxon_id}{"scientific_name"}) && $taxon_objects->{$parent_taxon_id}{"scientific_name"} ne ""){
-                unshift(@lineages,$taxon_objects->{$parent_taxon_id}{"scientific_name"});
-            }
-            if(exists($taxon_objects->{$parent_taxon_id}{"parent_taxon_id"})){
-                $parent_taxon_id=$taxon_objects->{$parent_taxon_id}{"parent_taxon_id"};
-            }else{
-                $parent_taxon_id = 0;
-            }
-        }
+	my $parent_taxon_id=$taxon_objects->{$taxon_id}{"parent_taxon_id"};
+	while($parent_taxon_id > 1){
+	    if(exists($taxon_objects->{$parent_taxon_id}{"scientific_name"}) && $taxon_objects->{$parent_taxon_id}{"scientific_name"} ne ""){
+		unshift(@lineages,$taxon_objects->{$parent_taxon_id}{"scientific_name"});
+	    }
+	    if(exists($taxon_objects->{$parent_taxon_id}{"parent_taxon_id"})){
+		$parent_taxon_id=$taxon_objects->{$parent_taxon_id}{"parent_taxon_id"};
+	    }else{
+		$parent_taxon_id = 0;
+	    }
+	}
     }
     return join("; ",@lineages);
 }
 
-
 sub _check_taxon {
     my $self=shift;
-    my ($taxon,$taxon_list) = @_;
-    my %taxon_hash = map { $_->{'taxonomy_id'} => $_ } @$taxon_list;
+    my ($new_taxon,$current_taxon)=@_;
 
     my @Mismatches=();
-    if(!exists($taxon_hash{$taxon->{'taxonomy_id'}})){
-        push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." not found");
-    }else{
-        my @Fields_to_Check = ('parent_taxon_ref','rank','domain','scientific_name','scientific_lineage');
-        my $current_taxon = $taxon_hash{$taxon->{'taxonomy_id'}};
-        foreach my $field (@Fields_to_Check){
-            if($field eq 'parent_taxon_ref'){
-                my $parent_taxon = undef;
-                $parent_taxon = $current_taxon->{'parent_taxon_ref'} if exists $current_taxon->{'parent_taxon_ref'};
-                if(defined($parent_taxon)){
-                    if(!defined($taxon->{'parent_taxon_id'})){
-                        push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." does not contain parent taxon, but current taxon does");
-                    }else{
-                        $parent_taxon = $self->{_wsclient}->get_objects2({objects=>[{"ref" => $parent_taxon}],ignoreErrors=>1})->{data};
-                        if(scalar(@$parent_taxon)){
-                            $parent_taxon=$parent_taxon->[0]{data};
-                        }else{
-                            push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." and current taxon contain parent taxon, but cannot retrieve current parent taxon");
-                        }
-                        if($parent_taxon->{'taxonomy_id'} != $taxon->{'parent_taxon_id'}){
-                            push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." parent taxon id does not match current parent taxon id");
-                        }
-                    }
-                }elsif(defined($taxon->{'parent_taxon_id'})){
-                    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." does contains parent taxon, but current taxon does not");
-                }
-            }else{
-                if($current_taxon->{$field} ne $taxon->{$field}){
-                    push(@Mismatches,"Taxon ".$taxon->{'taxonomy_id'}." field $field does not match current value");
-                }
-            }
-        }
+    my @Fields_to_Check = ('parent_taxon_ref','rank','domain','scientific_name','scientific_lineage');
+    foreach my $field (@Fields_to_Check){
+	if($field eq 'parent_taxon_ref'){
+	    my $parent_taxon = undef;
+	    $parent_taxon = $current_taxon->{'parent_taxon_ref'} if exists $current_taxon->{'parent_taxon_ref'};
+	    if(defined($parent_taxon)){
+		if(!defined($new_taxon->{'parent_taxon_id'})){
+		    push(@Mismatches,"Taxon ".$new_taxon->{'taxonomy_id'}." does not contain parent taxon, but current taxon does");
+		}else{
+		    $parent_taxon = $self->{_wsclient}->get_objects2({objects=>[{"ref" => $parent_taxon}],ignoreErrors=>1})->{data};
+		    if(scalar(@$parent_taxon)){
+			$parent_taxon=$parent_taxon->[0]{data};
+		    }else{
+			push(@Mismatches,"Taxon ".$new_taxon->{'taxonomy_id'}." and current taxon contain parent taxon, but cannot retrieve current parent taxon");
+		    }
+		    if($parent_taxon->{'taxonomy_id'} != $new_taxon->{'parent_taxon_id'}){
+			push(@Mismatches,"Taxon ".$new_taxon->{'taxonomy_id'}." parent taxon id does not match current parent taxon id");
+		    }
+		}
+	    }elsif(defined($new_taxon->{'parent_taxon_id'})){
+		push(@Mismatches,"Taxon ".$new_taxon->{'taxonomy_id'}." does contains parent taxon, but current taxon does not");
+	    }
+	}else{
+	    if($current_taxon->{$field} ne $new_taxon->{$field}){
+		push(@Mismatches,"Taxon ".$new_taxon->{'taxonomy_id'}." field $field (".$new_taxon->{$field}.") does not match current value ".$current_taxon->{$field});
+	    }
+	}
     }
     return \@Mismatches;
 }
@@ -2590,72 +2609,93 @@ sub list_loaded_taxa
     my $wsinfo;
     my $wsoutput;
     my $taxonout;
-    if(defined($self->util_ws_client())){
-        $wsinfo = $self->util_ws_client()->get_workspace_info({
-            workspace => $wsname
-        });
+    my ($minid,$maxid)=(0,0);
+    $minid = $params->{minid} if exists($params->{minid});
+    if(!exists($params->{maxid})){
+        my $wsinfo = $self->util_ws_client()->get_workspace_info({workspace => $wsname});
+	$maxid = $wsinfo->[4];
+    }else{
+	$maxid=$params->{maxid};
     }
 
-    my $batch_count = 1000;
-    my $maxid = $wsinfo->[4];
+    return [] if $maxid < $minid;
+
+    my $batch_count = 10000;
+    $batch_count=$params->{batch} if exists($params->{batch});
     my $pages = ceil($maxid/$batch_count);
+    my $first_page = floor($minid/$batch_count);
+    print "I: Starting at Page $first_page\n";
+    print "I: Fetching ".($maxid-($minid-1))." taxon objects.\n";
+    print "I: Paging through $pages of $batch_count objects\n";
+        for (my $m = $first_page; $m <= $pages; $m++) {
 
-    #print "\nFound $maxid taxon objects.\n";
-    #print "\nPaging through $pages of $batch_count objects\n";
-    #for (my $m = 0; $m < $pages; $m++) {
-    for (my $m = 0; $m < 50; $m++) {
-        #print "\nBatch ". $m . "x$batch_count";# on " . scalar localtime;
-        eval {
-            $wsoutput = $self->util_ws_client()->list_objects({
-                        workspaces => [$wsname],
-                        type => "KBaseGenomeAnnotations.Taxon-1.0",
-                        minObjectID => $batch_count * $m + 1,
-                        maxObjectID => $batch_count * ( $m + 1)
-            });
-        };
-        if($@) {
-                print "Cannot list objects!\n";
-                print "ERROR:" . $@;#->{message}."\n";
-                if(defined($@->{status_line})) {
-                        print "ERROR:" . $@->{status_line}."\n";
-                }
-        }
-        else {
-            if( @{$wsoutput} > 0 ) {
-                my $wstaxonrefs = [];
-                for (my $j=0; $j < @{$wsoutput}; $j++) {
-                        push(@{$wstaxonrefs},{
-                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4]
-                        });
-                }
+	my ($minObjID,$maxObjID)=(( $batch_count * $m ) + 1,$batch_count * ( $m + 1));
 
-                print "\nStart to fetch the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime;
-                eval {
-                        $taxonout = $self->util_ws_client()->get_objects2({
-                                objects => $wstaxonrefs
-                        }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
-                };
-                if($@) {
-                        print "Cannot get object information!\n";
-                        print "ERROR:".$@;
-                        if(defined($@->{status_line})) {
-                                print $@->{status_line}."\n";
-                        }
-                }
-                else {
-                        print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
-                         $taxonout = $taxonout -> {data};
-                        for (my $i=0; $i < @{$taxonout}; $i++) {
-                                my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
-                                push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
-                                if (@{$output} < 10) {
-                                        my $curr = @{$output}-1;
-                                        $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
-                                }
-                        }
-                }
-            }
-        }
+	#set limit based on whats been done before
+	$minObjID=$minid if $minid >$minObjID;
+
+	last if $minObjID > $maxid;
+
+	print ("I: Batch ". $m . "x$batch_count on " . scalar(localtime)."\n");
+	print ("I: minObjectID: $minObjID\n");
+	print ("I: maxObjectID: $maxObjID\n");
+
+	$wsoutput = [];
+	my $try_count=5;
+	while(scalar(@$wsoutput)==0 && $try_count != 0){
+	    $try_count--;
+	    try {
+		$wsoutput = $self->util_ws_client()->list_objects({workspaces => [$wsname],
+								   type => "KBaseGenomeAnnotations.Taxon-1.0",
+								   minObjectID => $minObjID,
+								   maxObjectID => $maxObjID});
+	    }catch{
+		print "ERROR on iteraction $try_count for Batch $batch_count: Cannot list objects: $_ at ".scalar(localtime)."\n";
+	    };
+	    sleep(3) if scalar(@$wsoutput)==0;
+	}
+	if(exists($params->{ignore})){
+	    $wsoutput = [ grep { !exists($params->{ignore}{$_->[0]}) } @$wsoutput ];
+	}
+	next if scalar(@$wsoutput)==0;
+
+	my $wstaxonrefs = [];
+	for (my $j=0; $j < @{$wsoutput}; $j++) {
+	    push(@{$wstaxonrefs},{"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4]});
+	}
+	$taxonout = [];
+	my $try_count=5;
+	while(scalar(@$taxonout)==0 && $try_count != 0){
+	    $try_count--;
+	    try {
+		print "\nStart to fetch the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime; 
+ 		$taxonout = $self->util_ws_client()->get_objects2({objects => $wstaxonrefs})->{data}; 
+		print "\nDone getting the objects at the batch size of: " . @{$taxonout} . " on " . scalar localtime . "\n\n";
+	    }catch{
+		print "ERROR on iteraction $try_count for Batch $batch_count: Cannot get objects: $_ at ".scalar(localtime)."\n";
+	    };
+	    sleep(3) if scalar(@$taxonout)==0;
+	}
+	
+	my $taxon_ret = [];
+	for (my $i=0; $i < @{$taxonout}; $i++) {
+	    my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
+	    push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
+	    if (@{$output} < 10) {
+		my $curr = @{$output}-1;
+		$msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+	    } 
+              
+#	    push(@{$taxon_ret}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
+	}
+#	$self->index_taxa_in_solr({ 
+#	    taxa => $taxon_ret,
+#	    solr_core => "taxonomy_ci",
+#	    create_report => 0});
+
+	if(exists($params->{batch}) && scalar(@$output) >= $params->{batch}){
+	    last;
+	}
     }
     #END list_loaded_taxa
     my @_bad_returns;
