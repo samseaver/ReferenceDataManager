@@ -1116,7 +1116,6 @@ sub _indexGenomeFeatureData
     my $solr_gnftData = [];
     my $gnft_batch = [];
     my $batchCount = 10000;
-
     #foreach my $ws_ref (@{$ws_gnrefs}) { 
     for( my $gf_i = 0; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
         my $ws_ref = $ws_gnrefs->[$gf_i];
@@ -1230,6 +1229,7 @@ sub _indexGenomeFeatureData
                           complete => $ws_gn_data->{complete},
                           #gnmd5checksum => $ws_gn_info -> {chsum},
                           taxonomy => $ws_gn_tax,
+                          taxonomy_ref => $ws_gn_data->{taxon_ref},
                           workspace_name => $ws_gn_info->[7],
                           num_cds => $numCDs,
                           refseq_category => $ws_gn_data->{type},
@@ -1252,7 +1252,6 @@ sub _indexGenomeFeatureData
                     };
                     push @{$solr_gnftData}, $ws_gnft;
                     push @{$gnft_batch}, $ws_gnft;
-
                     if(@{$gnft_batch} >= $batchCount) {
                         eval {
                               $self->_indexInSolr($solrCore, $gnft_batch);
@@ -1298,7 +1297,7 @@ sub _getTaxon
 {
     my ($self, $taxonData, $wsref) = @_;
 
-    my $t_aliases = join(";", @{$taxonData -> {aliases}});
+    my $t_aliases = defined($taxonData -> {aliases}) ? join(";", @{$taxonData -> {aliases}}) : "";
     my $current_taxon = {
         taxonomy_id => $taxonData -> {taxonomy_id},
         scientific_name => $taxonData -> {scientific_name},
@@ -1809,6 +1808,9 @@ sub list_loaded_genomes
     for (my $i=0; $i < @{$sources}; $i++) {
         if ($params->{$sources->[$i]} == 1) {
             my $wsname = $self->util_workspace_names($sources->[$i]);
+            if($i == 1 || $i == 2 ) {#phytozome genomes are loaded into the same workspace as the other RefSeq genomes starting mid-Jan., 2017
+                $wsname = $self->util_workspace_names($sources->[2]);
+            }
             my $wsinfo;
             my $wsoutput;
             if(defined($self->util_ws_client())){
@@ -1844,6 +1846,8 @@ sub list_loaded_genomes
                     print "\nTotal genome object count=" . @{$wsoutput}. "\n";
                     if( @{$wsoutput} > 0 ) {
                         for (my $j=0; $j < @{$wsoutput}; $j++) {
+                            if( $i == 1 ) {#phytozome
+                            if( $wsoutput->[$j]->[10]->{Source} =~ /phytozome*/) {#check the source to include phytozome genomes only
                             push @{$output}, {
                                 "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
                                 id => $wsoutput->[$j]->[0],
@@ -1862,7 +1866,53 @@ sub list_loaded_genomes
                                 ftp_url => $wsoutput->[$j]->[10]->{"url"},
                                 gc => $wsoutput->[$j]->[10]->{"GC content"}
                             };
-
+                            }
+                            }
+                            elsif( $i == 2 ) {#refseq other genomes
+                            if( $wsoutput->[$j]->[10]->{Source} !~ /phytozome*/) {#check the source to exclude phytozome genomes
+                            push @{$output}, {
+                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
+                                id => $wsoutput->[$j]->[0],
+                                workspace_name => $wsoutput->[$j]->[7],
+                                type => $wsoutput->[$j]->[2],
+                                source_id => $wsoutput->[$j]->[10]->{"Source ID"},
+                                accession => $wsoutput->[$j]->[1],
+                                name => $wsoutput->[$j]->[1],
+                                version => $wsoutput->[$j]->[4],
+                                source => $wsoutput->[$j]->[10]->{Source},
+                                domain => $wsoutput->[$j]->[10]->{Domain},
+                                save_date => $wsoutput->[$j]->[3],
+                                contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
+                                feature_count => $wsoutput->[$j]->[10]->{"Number features"},
+                                size_bytes => $wsoutput->[$j]->[9],
+                                ftp_url => $wsoutput->[$j]->[10]->{"url"},
+                                gc => $wsoutput->[$j]->[10]->{"GC content"}
+                            };
+                            }
+                            }
+                            elsif( $i == 0 ) {#ensembl genomes
+                            if( $wsoutput->[$j]->[10]->{Source} ne "" ) {#TODO
+                            push @{$output}, {
+                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
+                                id => $wsoutput->[$j]->[0],
+                                workspace_name => $wsoutput->[$j]->[7],
+                                type => $wsoutput->[$j]->[2],
+                                source_id => $wsoutput->[$j]->[10]->{"Source ID"},
+                                accession => $wsoutput->[$j]->[1],
+                                name => $wsoutput->[$j]->[1],
+                                version => $wsoutput->[$j]->[4],
+                                source => $wsoutput->[$j]->[10]->{Source},
+                                domain => $wsoutput->[$j]->[10]->{Domain},
+                                save_date => $wsoutput->[$j]->[3],
+                                contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
+                                feature_count => $wsoutput->[$j]->[10]->{"Number features"},
+                                size_bytes => $wsoutput->[$j]->[9],
+                                ftp_url => $wsoutput->[$j]->[10]->{"url"},
+                                gc => $wsoutput->[$j]->[10]->{"GC content"}
+                            };
+                            }
+                            }
+                            }
                             if (@{$output} < 10) {
                                 my $curr = @{$output}-1;
                                 $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
@@ -2021,6 +2071,9 @@ sub list_solr_genomes
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_solr_genomes
+    if (! $self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
         solr_core => "genomes",
@@ -2463,7 +2516,7 @@ sub index_genomes_in_solr
     $params = $self->util_args($params,[],{
         genomes => {},
         create_report => 0,
-        solr_core => "QZtest"
+        solr_core => "GenomeFeatures_prod"
     });
 
     my $msg = "";
@@ -2596,21 +2649,22 @@ sub list_loaded_taxa
         });
     }
 
-    my $batch_count = 1000;
+    my $batch_count = 5000;
     my $maxid = $wsinfo->[4];
     my $pages = ceil($maxid/$batch_count);
 
     #print "\nFound $maxid taxon objects.\n";
     #print "\nPaging through $pages of $batch_count objects\n";
-    #for (my $m = 0; $m < $pages; $m++) {
-    for (my $m = 0; $m < 50; $m++) {
-        #print "\nBatch ". $m . "x$batch_count";# on " . scalar localtime;
+    for (my $m =149; $m < $pages; $m++) {
+        #for (my $m = 21; $m < 26; $m++) {
+        print "\nPage ". $m . "x$batch_count batch on " . scalar localtime;
         eval {
             $wsoutput = $self->util_ws_client()->list_objects({
                         workspaces => [$wsname],
                         type => "KBaseGenomeAnnotations.Taxon-1.0",
                         minObjectID => $batch_count * $m + 1,
-                        maxObjectID => $batch_count * ( $m + 1)
+                        maxObjectID => $batch_count * ( $m + 1),
+                        includeMetadata => 1
             });
         };
         if($@) {
@@ -2644,16 +2698,25 @@ sub list_loaded_taxa
                 }
                 else {
                         print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
-                         $taxonout = $taxonout -> {data};
+                        my $solr_taxa = [];
+                        my $curr_taxon; 
+                        $taxonout = $taxonout -> {data};
                         for (my $i=0; $i < @{$taxonout}; $i++) {
                                 my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
-                                push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
+                        if( $taxonData->{domain} ne "Unknown" ) {
+                                $curr_taxon = {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}};
+                                push(@{$output}, $curr_taxon);
+                                push(@{$solr_taxa}, $curr_taxon);
+                                #push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
                                 if (@{$output} < 10) {
                                         my $curr = @{$output}-1;
                                         $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
                                 }
+                        }#if( $taxonData->{domain} ne "Unknown" )
                         }
-                }
+                        #indexing in SOLR for every $batchCount of taxa
+                        $self->index_taxa_in_solr({taxa=>$solr_taxa, solr_core => "taxonomy_ci"});
+                    }
             }
         }
     }
@@ -2758,6 +2821,9 @@ sub list_solr_taxa
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_solr_taxa
+    if (! $self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
         solr_core => "taxonomy_ci",
@@ -3125,7 +3191,7 @@ sub index_taxa_in_solr
     my $solrCore = $params->{solr_core};
     my $solrBatch = [];
     my $solrBatchCount = 10000;
-    #print "\nTotal taxa to be indexed: ". @{$taxa} . "\n";
+    print "\nTotal taxa to be indexed: ". @{$taxa} . "\n";
 
     for (my $i = 0; $i < @{$taxa}; $i++) {
         my $taxonData = $taxa -> [$i] -> {taxon};#an UnspecifiedObject
@@ -3284,6 +3350,7 @@ sub update_loaded_genomes
     $ref_genomes = $self->list_reference_genomes({source => $params->{source}, update_only => $params->{update_only}});
 
     for (my $i=0; $i < @{ $ref_genomes }; $i++) {
+        print "\n***************Ref genome #". $i. "****************\n";
         my $gnm = $ref_genomes->[$i];
 
         #check if the genome is already present in the database by querying SOLR
@@ -3292,8 +3359,9 @@ sub update_loaded_genomes
         if ($gn_status=~/(new|updated)/i) { 
                 #check if the taxon of the genome (named in KBase as $gnm->{tax_id} . "_taxon") is loaded in a KBase workspace
                 if( ($self->_checkTaxonStatus($gnm, $tx_solr_core))=~/inKBase/i ){
-                    $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
                     $count ++;
+                    print "A new genome with taxon in KBase found, total=" . $count;
+                    $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
                     push(@{$output},$gnm);
                     if ($count < 10) {
                         $msg .= $gnm->{accession}.";".$gnm->{status}.";".$gnm->{name}.";".$gnm->{ftp_dir}.";".$gnm->{file}.";".$gnm->{id}.";".$gnm->{version}.";".$gnm->{source}.";".$gnm->{domain}."\n";
