@@ -1094,6 +1094,37 @@ sub _checkGenomeStatus
 }
 
 #
+#Internal method, to fetch the information about a genome records from a given genome reference
+#Input: a reference to a Workspace.object_info (which is a reference to a list containing 11 items)
+#Output: a reference to a hash of the type of ReferenceDataManager.LoadedReferenceGenomeData
+#
+sub _getGenomeInfo 
+{
+    my ($self, $ws_objinfo) = @_;
+    my $gn_info = [];
+
+    $gn_info = {
+        "ref" => $ws_objinfo->[6]."/".$ws_objinfo->[0]."/".$ws_objinfo->[4],
+        id => $ws_objinfo->[0],
+        workspace_name => $ws_objinfo->[7],
+        type => $ws_objinfo->[2],
+        source_id => $ws_objinfo->[10]->{"Source ID"},
+        accession => $ws_objinfo->[1],
+        name => $ws_objinfo->[1],
+        version => $ws_objinfo->[4],
+        source => $ws_objinfo->[10]->{Source},
+        domain => $ws_objinfo->[10]->{Domain},
+        save_date => $ws_objinfo->[3],
+        contig_count => $ws_objinfo->[10]->{"Number contigs"},
+        feature_count => $ws_objinfo->[10]->{"Number features"},
+        size_bytes => $ws_objinfo->[9],
+        ftp_url => $ws_objinfo->[10]->{"url"},
+        gc => $ws_objinfo->[10]->{"GC content"}
+    };
+    return $gn_info;
+}
+
+#
 #Internal method, to fetch genome records for a given set of ws_ref's and index the genome_feature combo in SOLR.
 #First call get_objects2() to get the genome object one at a time.
 #Then plow through the genome object data to assemble the data items for a Solr genome_feature object.
@@ -1804,13 +1835,19 @@ sub list_loaded_genomes
     my $msg = "";
     my $output = [];
     my $batch_count = 1000;
+    my $obj_type = "KBaseGenomes.Genome-12.3";#could be "KBaseGenomes.Genome-12.2","KBaseSearch.Genome-5.0","KBaseGenomeAnnotations.Assembly-4.1","KBaseGenomeAnnotations.GenomeAnnotation-3.1","KBaseGenomes.ContigSet-3.0",etc.  
     my $sources = ["ensembl","phytozome","refseq"];
     for (my $i=0; $i < @{$sources}; $i++) {
         if ($params->{$sources->[$i]} == 1) {
-            my $wsname = $self->util_workspace_names($sources->[$i]);
-            if($i == 1 || $i == 2 ) {#phytozome genomes are loaded into the same workspace as the other RefSeq genomes starting mid-Jan., 2017
+            my $wsname;
+            if($i == 1 || $i == 2 ) {
+                #print "Phytozome genomes are loaded into the same workspace as the other RefSeq genomes starting mid-Jan., 2017.\n";
                 $wsname = $self->util_workspace_names($sources->[2]);
             }
+            else {
+                $wsname = $self->util_workspace_names($sources->[$i]);
+            }
+            
             my $wsinfo;
             my $wsoutput;
             if(defined($self->util_ws_client())){
@@ -1827,10 +1864,7 @@ sub list_loaded_genomes
                     $wsoutput = $self->util_ws_client()->list_objects({
                           workspaces => [$wsname],
                           minObjectID => $batch_count * $m + 1,
-                          type => "KBaseGenomes.Genome-12.3",#11539 objects for '12.2'
-                          #type => "KBaseGenomeAnnotations.Assembly-4.1",#17929 objects
-                          #type => "KBaseGenomeAnnotations.GenomeAnnotation-3.1",#17925 objects
-                          #type => "KBaseGenomes.ContigSet-3.0",#18018 objects
+                          type => $obj_type,
                           maxObjectID => $batch_count * ( $m + 1),
                           includeMetadata => 1
                       });
@@ -1844,75 +1878,28 @@ sub list_loaded_genomes
                  }
                  else {
                     print "\nTotal genome object count=" . @{$wsoutput}. "\n";
+                    my $ws_objinfo;
+                    my $obj_src;
                     if( @{$wsoutput} > 0 ) {
                         for (my $j=0; $j < @{$wsoutput}; $j++) {
-                            if( $i == 1 ) {#phytozome
-                            if( $wsoutput->[$j]->[10]->{Source} =~ /phytozome*/) {#check the source to include phytozome genomes only
-                            push @{$output}, {
-                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-                                id => $wsoutput->[$j]->[0],
-                                workspace_name => $wsoutput->[$j]->[7],
-                                type => $wsoutput->[$j]->[2],
-                                source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-                                accession => $wsoutput->[$j]->[1],
-                                name => $wsoutput->[$j]->[1],
-                                version => $wsoutput->[$j]->[4],
-                                source => $wsoutput->[$j]->[10]->{Source},
-                                domain => $wsoutput->[$j]->[10]->{Domain},
-                                save_date => $wsoutput->[$j]->[3],
-                                contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
-                                feature_count => $wsoutput->[$j]->[10]->{"Number features"},
-                                size_bytes => $wsoutput->[$j]->[9],
-                                ftp_url => $wsoutput->[$j]->[10]->{"url"},
-                                gc => $wsoutput->[$j]->[10]->{"GC content"}
-                            };
+                            $ws_objinfo = $wsoutput->[$j];
+                            $obj_src = $ws_objinfo->[10]->{Source};
+                            if( $obj_src && $i == 1 ) {#phytozome
+                                if( $obj_src =~ /phytozome*/) {#check the source to include phytozome genomes only
+                                        push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                }
                             }
+                            elsif( $obj_src && $i == 2 ) {#refseq genomes (exclude 'plant')
+                                if( $obj_src =~ /refseq*/) {#check the source to exclude phytozome genomes
+                                        push @{$output}, $self->_getGenomeInfo($ws_objinfo); 
+                                }
                             }
-                            elsif( $i == 2 ) {#refseq other genomes
-                            if( $wsoutput->[$j]->[10]->{Source} !~ /phytozome*/) {#check the source to exclude phytozome genomes
-                            push @{$output}, {
-                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-                                id => $wsoutput->[$j]->[0],
-                                workspace_name => $wsoutput->[$j]->[7],
-                                type => $wsoutput->[$j]->[2],
-                                source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-                                accession => $wsoutput->[$j]->[1],
-                                name => $wsoutput->[$j]->[1],
-                                version => $wsoutput->[$j]->[4],
-                                source => $wsoutput->[$j]->[10]->{Source},
-                                domain => $wsoutput->[$j]->[10]->{Domain},
-                                save_date => $wsoutput->[$j]->[3],
-                                contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
-                                feature_count => $wsoutput->[$j]->[10]->{"Number features"},
-                                size_bytes => $wsoutput->[$j]->[9],
-                                ftp_url => $wsoutput->[$j]->[10]->{"url"},
-                                gc => $wsoutput->[$j]->[10]->{"GC content"}
-                            };
+                            elsif( $obj_src && $i == 0 ) {#ensembl genomes #TODO
+                                if( $obj_src !~ /phytozome*/ && $obj_src !~ /refseq*/ ) {
+                                        push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                }
                             }
-                            }
-                            elsif( $i == 0 ) {#ensembl genomes
-                            if( $wsoutput->[$j]->[10]->{Source} ne "" ) {#TODO
-                            push @{$output}, {
-                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-                                id => $wsoutput->[$j]->[0],
-                                workspace_name => $wsoutput->[$j]->[7],
-                                type => $wsoutput->[$j]->[2],
-                                source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-                                accession => $wsoutput->[$j]->[1],
-                                name => $wsoutput->[$j]->[1],
-                                version => $wsoutput->[$j]->[4],
-                                source => $wsoutput->[$j]->[10]->{Source},
-                                domain => $wsoutput->[$j]->[10]->{Domain},
-                                save_date => $wsoutput->[$j]->[3],
-                                contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
-                                feature_count => $wsoutput->[$j]->[10]->{"Number features"},
-                                size_bytes => $wsoutput->[$j]->[9],
-                                ftp_url => $wsoutput->[$j]->[10]->{"url"},
-                                gc => $wsoutput->[$j]->[10]->{"GC content"}
-                            };
-                            }
-                            }
-                            }
+                            
                             if (@{$output} < 10) {
                                 my $curr = @{$output}-1;
                                 $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
@@ -2715,7 +2702,7 @@ sub list_loaded_taxa
                         }#if( $taxonData->{domain} ne "Unknown" )
                         }
                         #indexing in SOLR for every $batchCount of taxa
-                        $self->index_taxa_in_solr({taxa=>$solr_taxa, solr_core => "taxonomy_ci"});
+                        #$self->index_taxa_in_solr({taxa=>$solr_taxa, solr_core => "taxonomy_ci"});
                     }
             }
         }
@@ -3343,11 +3330,10 @@ sub update_loaded_genomes
     $output = [];
 
     my $count = 0;
-    my $ref_genomes;
     my $gn_solr_core = "GenomeFeatures_prod";
     my $tx_solr_core = "taxonomy_ci";
-
-    $ref_genomes = $self->list_reference_genomes({source => $params->{source}, update_only => $params->{update_only}});
+    
+    my $ref_genomes = $self->list_reference_genomes({source => $params->{source}, update_only => $params->{update_only}});
 
     for (my $i=0; $i < @{ $ref_genomes }; $i++) {
         print "\n***************Ref genome #". $i. "****************\n";
