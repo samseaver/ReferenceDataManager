@@ -1,6 +1,6 @@
 {
   "ver" : "1.0.0",
-  "name" : "Load a list of genomes into KBase workspace and indexes in SOLR on demand",
+  "name" : "Index genomes in SOLR",
   "authors" : [ "chenry", "qzhang" ],
   "contact" : "help@kbase.us",
   "visble" : true,
@@ -10,14 +10,24 @@
     "output" : "kbaseReportView"
   },
   "parameters" : [ {
-    "default_values" : [""],
-    "advanced" : false,
-    "id" : "data",
-    "allow_multiple" : false,
-    "optional" : false,
+    "id" : "genomes",
+    "optional":false,
+    "advanced":false,
+    "allow_multiple":false,
+    "default_values":["1"],
     "field_type" : "text",
-    "text_options" : {
-      "valid_ws_types" : []
+    "text_options":{
+	"valid_ws_types" : []
+    }
+  }, {
+    "id" : "solr_core",
+    "optional":false,
+    "advanced":false,
+    "allow_multiple":false,
+    "default_values":["1"],
+    "field_type" : "text",
+    "text_options":{
+	"valid_ws_types" : []
     }
   }],
   "job_id_output_field": "docker",
@@ -25,23 +35,19 @@
     "service-mapping" : {
       "url" : "",
       "name" : "ReferenceDataManager",
-      "method" : "load_genomes",
+      "method" : "index_genomes_in_solr",
       "input_mapping" : [
         {
-          "input_parameter": "data",
-          "target_property": "data"
-        },
-        {
-          "constant_value" : "1",
-          "target_property": "index_in_solr"
+          "input_parameter": "genomes",
+          "target_property": "genomes"
         },
         {
           "constant_value" : "1",
           "target_property": "create_report"
         },
         {
-          "narrative_system_variable": "workspace",
-          "target_property": "workspace_name"
+          "input_parameter": "solr_core", 
+          "target_property": "solrDB_name" 
         }
       ],
       "output_mapping" : [

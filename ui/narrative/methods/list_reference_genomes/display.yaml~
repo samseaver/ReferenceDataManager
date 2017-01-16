@@ -31,23 +31,31 @@ suggestions :
 # Configure the display and description of the parameters
 #
 parameters :
-    source :
+    refseq :
         ui-name : |
-            Name of genome source
+            List RefSeq genomes
         short-hint : |
-            List genomes available from this source
+            List genomes available in RefSeq
         long-hint  : |
-            List genomes available from this source
+            List genomes available in RefSeq
 
 
-    domain :
+    phytozome :
         ui-name : |
-            Division of genomes
+            List Phytozome genomes
         short-hint : |
-            List genomes of this division available in given source
+            List genomes available in RefSeq
         long-hint  : |
-            List genomes of this division available in given source
+            List genomes available in RefSeq
             
+    ensembl :
+        ui-name : |
+            List Ensembl genomes
+        short-hint : |
+            List genomes available in Ensembl
+        long-hint  : |
+            List genomes available in Ensembl
+                
     updated_only :
         ui-name : |
             Updated genomes only

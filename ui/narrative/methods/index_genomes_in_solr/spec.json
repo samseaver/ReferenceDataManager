@@ -19,6 +19,16 @@
     "text_options":{
 	"valid_ws_types" : []
     }
+  }, {
+    "id" : "solr_core",
+    "optional":false,
+    "advanced":false,
+    "allow_multiple":false,
+    "default_values":["1"],
+    "field_type" : "text",
+    "text_options":{
+	"valid_ws_types" : []
+    }
   }],
   "job_id_output_field": "docker",
   "behavior" : {
@@ -36,8 +46,8 @@
           "target_property": "create_report"
         },
         {
-          "narrative_system_variable": "workspace",
-          "target_property": "workspace_name"
+          "input_parameter": "solr_core", 
+          "target_property": "solr_core" 
         }
       ],
       "output_mapping" : [

@@ -33,10 +33,6 @@
         },
         {
           "constant_value" : "1",
-          "target_property": "index_in_solr"
-        },
-        {
-          "constant_value" : "1",
           "target_property": "create_report"
         },
         {
