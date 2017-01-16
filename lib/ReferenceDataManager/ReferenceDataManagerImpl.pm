@@ -1886,17 +1886,19 @@ sub list_loaded_genomes
                             $obj_src = $ws_objinfo->[10]->{Source};
                             if( $obj_src && $i == 1 ) {#phytozome
                                 if( $obj_src =~ /phytozome*/) {#check the source to include phytozome genomes only
-                                        push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo);
                                 }
                             }
                             elsif( $obj_src && $i == 2 ) {#refseq genomes (exclude 'plant')
                                 if( $obj_src =~ /refseq*/) {#check the source to exclude phytozome genomes
-                                        push @{$output}, $self->_getGenomeInfo($ws_objinfo); 
+                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo); 
                                 }
                             }
                             elsif( $obj_src && $i == 0 ) {#ensembl genomes #TODO
                                 if( $obj_src !~ /phytozome*/ && $obj_src !~ /refseq*/ ) {
-                                        push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                    if( $ws_objinfo->[10]->{Domain} !~ /Plant/ && $ws_objinfo->[10]->{Domain} !~ /Bacteria/ ) {    
+                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                }
                                 }
                             }
                             
