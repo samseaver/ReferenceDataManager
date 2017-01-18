@@ -1417,10 +1417,9 @@ sub _list_ncbi_refseq
 
 #################### End subs for accessing NCBI ########################
 
-
 sub _extract_ncbi_taxa {
     my $self=shift;
-    my $ids_to_extract = shift;
+    my $args = shift;
     my $taxon_file_path=$self->{'data'}."/taxon_dump/";
     if(!-d $taxon_file_path || !-f $taxon_file_path."names.dmp"){
 	mkdir($taxon_file_path);
