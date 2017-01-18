@@ -12,6 +12,7 @@ RUN cpanm -i Config::IniFiles
 
 COPY ./ /kb/module
 RUN mkdir -p /kb/module/work
+RUN chmod -R 777 /kb/module
 
 WORKDIR /kb/module
 
