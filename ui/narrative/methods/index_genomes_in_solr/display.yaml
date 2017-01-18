@@ -37,5 +37,12 @@ parameters :
         long-hint  : |
             Genome data
 
+    solr_core :
+        ui-name : |
+            solrDB_name
+        short-hint : |
+            Name of the solr core
+        long-hint  : |
+            Name of the solr core
 description : |
     <p>Lists genomes for index in Solr</p>

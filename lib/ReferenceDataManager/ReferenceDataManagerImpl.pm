@@ -5,12 +5,16 @@ use Bio::KBase::Exceptions;
 # http://semver.org 
 our $VERSION = '0.0.1';
 our $GIT_URL = 'https://qzzhang@github.com/kbaseapps/ReferenceDataManager.git';
-our $GIT_COMMIT_HASH = '83989af1a885a3a06c493f375fe8cbfd99a5b41d';
+our $GIT_COMMIT_HASH = '0646cb4b5a3b08faaf8dccb8a3baefaa5786ab51';
 
 =head1 NAME
+
 ReferenceDataManager
+
 =head1 DESCRIPTION
+
 A KBase module: ReferenceDataManager
+
 =cut
 
 #BEGIN_HEADER
@@ -1095,6 +1099,37 @@ sub _checkGenomeStatus
 }
 
 #
+#Internal method, to fetch the information about a genome records from a given genome reference
+#Input: a reference to a Workspace.object_info (which is a reference to a list containing 11 items)
+#Output: a reference to a hash of the type of ReferenceDataManager.LoadedReferenceGenomeData
+#
+sub _getGenomeInfo 
+{
+    my ($self, $ws_objinfo) = @_;
+    my $gn_info = [];
+
+    $gn_info = {
+        "ref" => $ws_objinfo->[6]."/".$ws_objinfo->[0]."/".$ws_objinfo->[4],
+        id => $ws_objinfo->[0],
+        workspace_name => $ws_objinfo->[7],
+        type => $ws_objinfo->[2],
+        source_id => $ws_objinfo->[10]->{"Source ID"},
+        accession => $ws_objinfo->[1],
+        name => $ws_objinfo->[1],
+        version => $ws_objinfo->[4],
+        source => $ws_objinfo->[10]->{Source},
+        domain => $ws_objinfo->[10]->{Domain},
+        save_date => $ws_objinfo->[3],
+        contig_count => $ws_objinfo->[10]->{"Number contigs"},
+        feature_count => $ws_objinfo->[10]->{"Number features"},
+        size_bytes => $ws_objinfo->[9],
+        ftp_url => $ws_objinfo->[10]->{"url"},
+        gc => $ws_objinfo->[10]->{"GC content"}
+    };
+    return $gn_info;
+}
+
+#
 #Internal method, to fetch genome records for a given set of ws_ref's and index the genome_feature combo in SOLR.
 #First call get_objects2() to get the genome object one at a time.
 #Then plow through the genome object data to assemble the data items for a Solr genome_feature object.
@@ -1117,7 +1152,6 @@ sub _indexGenomeFeatureData
     my $solr_gnftData = [];
     my $gnft_batch = [];
     my $batchCount = 10000;
-
     #foreach my $ws_ref (@{$ws_gnrefs}) { 
     for( my $gf_i = 0; $gf_i < @{$ws_gnrefs}; $gf_i++ ) {
         my $ws_ref = $ws_gnrefs->[$gf_i];
@@ -1231,6 +1265,7 @@ sub _indexGenomeFeatureData
                           complete => $ws_gn_data->{complete},
                           #gnmd5checksum => $ws_gn_info -> {chsum},
                           taxonomy => $ws_gn_tax,
+                          taxonomy_ref => $ws_gn_data->{taxon_ref},
                           workspace_name => $ws_gn_info->[7],
                           num_cds => $numCDs,
                           refseq_category => $ws_gn_data->{type},
@@ -1253,7 +1288,6 @@ sub _indexGenomeFeatureData
                     };
                     push @{$solr_gnftData}, $ws_gnft;
                     push @{$gnft_batch}, $ws_gnft;
-
                     if(@{$gnft_batch} >= $batchCount) {
                         eval {
                               $self->_indexInSolr($solrCore, $gnft_batch);
@@ -1299,7 +1333,7 @@ sub _getTaxon
 {
     my ($self, $taxonData, $wsref) = @_;
 
-    my $t_aliases = join(";", @{$taxonData -> {aliases}});
+    my $t_aliases = defined($taxonData -> {aliases}) ? join(";", @{$taxonData -> {aliases}}) : "";
     my $current_taxon = {
         taxonomy_id => $taxonData -> {taxonomy_id},
         scientific_name => $taxonData -> {scientific_name},
@@ -1614,67 +1648,85 @@ sub new
 
     if ($self->can('_init_instance'))
     {
-        $self->_init_instance();
+	$self->_init_instance();
     }
     return $self;
 }
 
 =head1 METHODS
+
+
+
 =head2 list_reference_genomes
+
   $output = $obj->list_reference_genomes($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.ListReferenceGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
 ListReferenceGenomesParams is a reference to a hash where the following keys are defined:
-        ensembl has a value which is a ReferenceDataManager.bool
-        refseq has a value which is a ReferenceDataManager.bool
-        phytozome has a value which is a ReferenceDataManager.bool
-        updated_only has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	source has a value which is a string
+	domain has a value which is a string
+	updated_only has a value which is a ReferenceDataManager.bool
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
-        accession has a value which is a string
-        version_status has a value which is a string
-        asm_name has a value which is a string
-        ftp_dir has a value which is a string
-        file has a value which is a string
-        id has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
-        refseq_category has a value which is a string
+	accession has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
+	ftp_dir has a value which is a string
+	file has a value which is a string
+	id has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+	refseq_category has a value which is a string
+	tax_id has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.ListReferenceGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
 ListReferenceGenomesParams is a reference to a hash where the following keys are defined:
-        ensembl has a value which is a ReferenceDataManager.bool
-        refseq has a value which is a ReferenceDataManager.bool
-        phytozome has a value which is a ReferenceDataManager.bool
-        updated_only has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	source has a value which is a string
+	domain has a value which is a string
+	updated_only has a value which is a ReferenceDataManager.bool
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
-        accession has a value which is a string
-        version_status has a value which is a string
-        asm_name has a value which is a string
-        ftp_dir has a value which is a string
-        file has a value which is a string
-        id has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
-        refseq_category has a value which is a string
+	accession has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
+	ftp_dir has a value which is a string
+	file has a value which is a string
+	id has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+	refseq_category has a value which is a string
+	tax_id has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Lists genomes present in selected reference databases (ensembl, phytozome, refseq)
+
 =back
+
 =cut
 
 sub list_reference_genomes
@@ -1685,9 +1737,9 @@ sub list_reference_genomes
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to list_reference_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_reference_genomes');
+	my $msg = "Invalid arguments passed to list_reference_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_reference_genomes');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -1698,8 +1750,7 @@ sub list_reference_genomes
         source => "refseq",
         domain => "bacteria",
         create_report => 0,
-        update_only => 0,
-        workspace_name => undef
+        update_only => 0
     });  
     my $msg = "";
     $output = [];
@@ -1721,9 +1772,9 @@ sub list_reference_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to list_reference_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_reference_genomes');
+	my $msg = "Invalid returns passed to list_reference_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_reference_genomes');
     }
     return($output);
 }
@@ -1732,68 +1783,87 @@ sub list_reference_genomes
 
 
 =head2 list_loaded_genomes
+
   $output = $obj->list_loaded_genomes($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.ListLoadedGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceGenomeData
 ListLoadedGenomesParams is a reference to a hash where the following keys are defined:
-        ensembl has a value which is a ReferenceDataManager.bool
-        refseq has a value which is a ReferenceDataManager.bool
-        phytozome has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	ensembl has a value which is a ReferenceDataManager.bool
+	refseq has a value which is a ReferenceDataManager.bool
+	phytozome has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 LoadedReferenceGenomeData is a reference to a hash where the following keys are defined:
-        ref has a value which is a string
-        id has a value which is a string
-        workspace_name has a value which is a string
-        source_id has a value which is a string
-        accession has a value which is a string
-        name has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
-        type has a value which is a string
-        save_date has a value which is a string
-        contig_count has a value which is an int
-        feature_count has a value which is an int
-        dna_size has a value which is an int
-        gc has a value which is a float
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+	type has a value which is a string
+	save_date has a value which is a string
+	contig_count has a value which is an int
+	feature_count has a value which is an int
+	size_bytes has a value which is an int
+	ftp_url has a value which is a string
+	gc has a value which is a float
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.ListLoadedGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceGenomeData
 ListLoadedGenomesParams is a reference to a hash where the following keys are defined:
-        ensembl has a value which is a ReferenceDataManager.bool
-        refseq has a value which is a ReferenceDataManager.bool
-        phytozome has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	ensembl has a value which is a ReferenceDataManager.bool
+	refseq has a value which is a ReferenceDataManager.bool
+	phytozome has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 LoadedReferenceGenomeData is a reference to a hash where the following keys are defined:
-        ref has a value which is a string
-        id has a value which is a string
-        workspace_name has a value which is a string
-        source_id has a value which is a string
-        accession has a value which is a string
-        name has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
-        type has a value which is a string
-        save_date has a value which is a string
-        contig_count has a value which is an int
-        feature_count has a value which is an int
-        dna_size has a value which is an int
-        gc has a value which is a float
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+	type has a value which is a string
+	save_date has a value which is a string
+	contig_count has a value which is an int
+	feature_count has a value which is an int
+	size_bytes has a value which is an int
+	ftp_url has a value which is a string
+	gc has a value which is a float
+
+
 =end text
+
+
+
 =item Description
+
 Lists genomes loaded into KBase from selected reference sources (ensembl, phytozome, refseq)
+
 =back
+
 =cut
 
 sub list_loaded_genomes
@@ -1804,9 +1874,9 @@ sub list_loaded_genomes
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to list_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_loaded_genomes');
+	my $msg = "Invalid arguments passed to list_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_loaded_genomes');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -1823,10 +1893,19 @@ sub list_loaded_genomes
     my $msg = "";
     my $output = [];
     my $batch_count = 1000;
+    my $obj_type = "KBaseGenomes.Genome-12.3";#could be "KBaseGenomes.Genome-12.2","KBaseSearch.Genome-5.0","KBaseGenomeAnnotations.Assembly-4.1","KBaseGenomeAnnotations.GenomeAnnotation-3.1","KBaseGenomes.ContigSet-3.0",etc.  
     my $sources = ["ensembl","phytozome","refseq"];
     for (my $i=0; $i < @{$sources}; $i++) {
         if ($params->{$sources->[$i]} == 1) {
-            my $wsname = $self->util_workspace_names($sources->[$i]);
+            my $wsname;
+            if($i == 1 || $i == 2 ) {
+                #print "Phytozome genomes are loaded into the same workspace as the other RefSeq genomes starting mid-Jan., 2017.\n";
+                $wsname = $self->util_workspace_names($sources->[2]);
+            }
+            else {
+                $wsname = $self->util_workspace_names($sources->[$i]);
+            }
+            
             my $wsinfo;
             my $wsoutput;
             if(defined($self->util_ws_client())){
@@ -1843,10 +1922,7 @@ sub list_loaded_genomes
                     $wsoutput = $self->util_ws_client()->list_objects({
                           workspaces => [$wsname],
                           minObjectID => $batch_count * $m + 1,
-                          type => "KBaseGenomes.Genome-12.3",#11539 objects for '12.2'
-                          #type => "KBaseGenomeAnnotations.Assembly-4.1",#17929 objects
-                          #type => "KBaseGenomeAnnotations.GenomeAnnotation-3.1",#17925 objects
-                          #type => "KBaseGenomes.ContigSet-3.0",#18018 objects
+                          type => $obj_type,
                           maxObjectID => $batch_count * ( $m + 1),
                           includeMetadata => 1
                       });
@@ -1860,27 +1936,30 @@ sub list_loaded_genomes
                  }
                  else {
                     print "\nTotal genome object count=" . @{$wsoutput}. "\n";
+                    my $ws_objinfo;
+                    my $obj_src;
                     if( @{$wsoutput} > 0 ) {
                         for (my $j=0; $j < @{$wsoutput}; $j++) {
-                            push @{$output}, {
-                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4],
-                                id => $wsoutput->[$j]->[0],
-                                workspace_name => $wsoutput->[$j]->[7],
-                                type => $wsoutput->[$j]->[2],
-                                source_id => $wsoutput->[$j]->[10]->{"Source ID"},
-                                accession => $wsoutput->[$j]->[1],
-                                name => $wsoutput->[$j]->[1],
-                                version => $wsoutput->[$j]->[4],
-                                source => $wsoutput->[$j]->[10]->{Source},
-                                domain => $wsoutput->[$j]->[10]->{Domain},
-                                save_date => $wsoutput->[$j]->[3],
-                                contig_count => $wsoutput->[$j]->[10]->{"Number contigs"},
-                                feature_count => $wsoutput->[$j]->[10]->{"Number features"},
-                                size_bytes => $wsoutput->[$j]->[9],
-                                ftp_url => $wsoutput->[$j]->[10]->{"url"},
-                                gc => $wsoutput->[$j]->[10]->{"GC content"}
-                            };
-
+                            $ws_objinfo = $wsoutput->[$j];
+                            $obj_src = $ws_objinfo->[10]->{Source};
+                            if( $obj_src && $i == 1 ) {#phytozome
+                                if( $obj_src =~ /phytozome*/) {#check the source to include phytozome genomes only
+                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                }
+                            }
+                            elsif( $obj_src && $i == 2 ) {#refseq genomes (exclude 'plant')
+                                if( $obj_src =~ /refseq*/) {#check the source to exclude phytozome genomes
+                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo); 
+                                }
+                            }
+                            elsif( $obj_src && $i == 0 ) {#ensembl genomes #TODO
+                                if( $obj_src !~ /phytozome*/ && $obj_src !~ /refseq*/ ) {
+                                    if( $ws_objinfo->[10]->{Domain} !~ /Plant/ && $ws_objinfo->[10]->{Domain} !~ /Bacteria/ ) {    
+                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                }
+                                }
+                            }
+                            
                             if (@{$output} < 10) {
                                 my $curr = @{$output}-1;
                                 $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
@@ -1904,9 +1983,9 @@ sub list_loaded_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to list_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_loaded_genomes');
+	my $msg = "Invalid returns passed to list_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_loaded_genomes');
     }
     return($output);
 }
@@ -1915,112 +1994,129 @@ sub list_loaded_genomes
 
 
 =head2 list_solr_genomes
+
   $output = $obj->list_solr_genomes($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.ListSolrDocsParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrGenomeFeatureData
 ListSolrDocsParams is a reference to a hash where the following keys are defined:
-        solr_core has a value which is a string
-        row_start has a value which is an int
-        row_count has a value which is an int
-        create_report has a value which is a ReferenceDataManager.bool
+	solr_core has a value which is a string
+	row_start has a value which is an int
+	row_count has a value which is an int
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 SolrGenomeFeatureData is a reference to a hash where the following keys are defined:
-        genome_feature_id has a value which is a string
-        genome_id has a value which is a string
-        feature_id has a value which is a string
-        ws_ref has a value which is a string
-        feature_type has a value which is a string
-        aliases has a value which is a string
-        scientific_name has a value which is a string
-        domain has a value which is a string
-        functions has a value which is a string
-        genome_source has a value which is a string
-        go_ontology_description has a value which is a string
-        go_ontology_domain has a value which is a string
-        gene_name has a value which is a string
-        object_name has a value which is a string
-        location_contig has a value which is a string
-        location_strand has a value which is a string
-        taxonomy has a value which is a string
-        workspace_name has a value which is a string
-        genetic_code has a value which is a string
-        md5 has a value which is a string
-        tax_id has a value which is a string
-        assembly_ref has a value which is a string
-        taxonomy_ref has a value which is a string
-        ontology_namespaces has a value which is a string
-        ontology_ids has a value which is a string
-        ontology_names has a value which is a string
-        ontology_lineages has a value which is a string
-        dna_sequence_length has a value which is an int
-        genome_dna_size has a value which is an int
-        location_begin has a value which is an int
-        location_end has a value which is an int
-        num_cds has a value which is an int
-        num_contigs has a value which is an int
-        protein_translation_length has a value which is an int
-        gc_content has a value which is a float
-        complete has a value which is a ReferenceDataManager.bool
-        refseq_category has a value which is a string
-        save_date has a value which is a string
+	genome_feature_id has a value which is a string
+	genome_id has a value which is a string
+	feature_id has a value which is a string
+	ws_ref has a value which is a string
+	feature_type has a value which is a string
+	aliases has a value which is a string
+	scientific_name has a value which is a string
+	domain has a value which is a string
+	functions has a value which is a string
+	genome_source has a value which is a string
+	go_ontology_description has a value which is a string
+	go_ontology_domain has a value which is a string
+	gene_name has a value which is a string
+	object_name has a value which is a string
+	location_contig has a value which is a string
+	location_strand has a value which is a string
+	taxonomy has a value which is a string
+	workspace_name has a value which is a string
+	genetic_code has a value which is a string
+	md5 has a value which is a string
+	tax_id has a value which is a string
+	assembly_ref has a value which is a string
+	taxonomy_ref has a value which is a string
+	ontology_namespaces has a value which is a string
+	ontology_ids has a value which is a string
+	ontology_names has a value which is a string
+	ontology_lineages has a value which is a string
+	dna_sequence_length has a value which is an int
+	genome_dna_size has a value which is an int
+	location_begin has a value which is an int
+	location_end has a value which is an int
+	num_cds has a value which is an int
+	num_contigs has a value which is an int
+	protein_translation_length has a value which is an int
+	gc_content has a value which is a float
+	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.ListSolrDocsParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrGenomeFeatureData
 ListSolrDocsParams is a reference to a hash where the following keys are defined:
-        solr_core has a value which is a string
-        row_start has a value which is an int
-        row_count has a value which is an int
-        create_report has a value which is a ReferenceDataManager.bool
+	solr_core has a value which is a string
+	row_start has a value which is an int
+	row_count has a value which is an int
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 SolrGenomeFeatureData is a reference to a hash where the following keys are defined:
-        genome_feature_id has a value which is a string
-        genome_id has a value which is a string
-        feature_id has a value which is a string
-        ws_ref has a value which is a string
-        feature_type has a value which is a string
-        aliases has a value which is a string
-        scientific_name has a value which is a string
-        domain has a value which is a string
-        functions has a value which is a string
-        genome_source has a value which is a string
-        go_ontology_description has a value which is a string
-        go_ontology_domain has a value which is a string
-        gene_name has a value which is a string
-        object_name has a value which is a string
-        location_contig has a value which is a string
-        location_strand has a value which is a string
-        taxonomy has a value which is a string
-        workspace_name has a value which is a string
-        genetic_code has a value which is a string
-        md5 has a value which is a string
-        tax_id has a value which is a string
-        assembly_ref has a value which is a string
-        taxonomy_ref has a value which is a string
-        ontology_namespaces has a value which is a string
-        ontology_ids has a value which is a string
-        ontology_names has a value which is a string
-        ontology_lineages has a value which is a string
-        dna_sequence_length has a value which is an int
-        genome_dna_size has a value which is an int
-        location_begin has a value which is an int
-        location_end has a value which is an int
-        num_cds has a value which is an int
-        num_contigs has a value which is an int
-        protein_translation_length has a value which is an int
-        gc_content has a value which is a float
-        complete has a value which is a ReferenceDataManager.bool
-        refseq_category has a value which is a string
-        save_date has a value which is a string
+	genome_feature_id has a value which is a string
+	genome_id has a value which is a string
+	feature_id has a value which is a string
+	ws_ref has a value which is a string
+	feature_type has a value which is a string
+	aliases has a value which is a string
+	scientific_name has a value which is a string
+	domain has a value which is a string
+	functions has a value which is a string
+	genome_source has a value which is a string
+	go_ontology_description has a value which is a string
+	go_ontology_domain has a value which is a string
+	gene_name has a value which is a string
+	object_name has a value which is a string
+	location_contig has a value which is a string
+	location_strand has a value which is a string
+	taxonomy has a value which is a string
+	workspace_name has a value which is a string
+	genetic_code has a value which is a string
+	md5 has a value which is a string
+	tax_id has a value which is a string
+	assembly_ref has a value which is a string
+	taxonomy_ref has a value which is a string
+	ontology_namespaces has a value which is a string
+	ontology_ids has a value which is a string
+	ontology_names has a value which is a string
+	ontology_lineages has a value which is a string
+	dna_sequence_length has a value which is an int
+	genome_dna_size has a value which is an int
+	location_begin has a value which is an int
+	location_end has a value which is an int
+	num_cds has a value which is an int
+	num_contigs has a value which is an int
+	protein_translation_length has a value which is an int
+	gc_content has a value which is a float
+	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Lists genomes indexed in SOLR
+
 =back
+
 =cut
 
 sub list_solr_genomes
@@ -2031,14 +2127,17 @@ sub list_solr_genomes
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to list_solr_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_solr_genomes');
+	my $msg = "Invalid arguments passed to list_solr_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_solr_genomes');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_solr_genomes
+    if (! $self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
         solr_core => "genomes",
@@ -2081,9 +2180,9 @@ sub list_solr_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to list_solr_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_solr_genomes');
+	my $msg = "Invalid returns passed to list_solr_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_solr_genomes');
     }
     return($output);
 }
@@ -2092,78 +2191,97 @@ sub list_solr_genomes
 
 
 =head2 load_genomes
+
   $output = $obj->load_genomes($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.LoadGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 LoadGenomesParams is a reference to a hash where the following keys are defined:
-        data has a value which is a string
-        genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
-        index_in_solr has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	data has a value which is a string
+	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
-        accession has a value which is a string
-        version_status has a value which is a string
-        asm_name has a value which is a string
-        ftp_dir has a value which is a string
-        file has a value which is a string
-        id has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
-        refseq_category has a value which is a string
+	accession has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
+	ftp_dir has a value which is a string
+	file has a value which is a string
+	id has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+	refseq_category has a value which is a string
+	tax_id has a value which is a string
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
-        ref has a value which is a string
-        id has a value which is a string
-        workspace_name has a value which is a string
-        source_id has a value which is a string
-        accession has a value which is a string
-        name has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.LoadGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 LoadGenomesParams is a reference to a hash where the following keys are defined:
-        data has a value which is a string
-        genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
-        index_in_solr has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	data has a value which is a string
+	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
+	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 ReferenceGenomeData is a reference to a hash where the following keys are defined:
-        accession has a value which is a string
-        version_status has a value which is a string
-        asm_name has a value which is a string
-        ftp_dir has a value which is a string
-        file has a value which is a string
-        id has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
-        refseq_category has a value which is a string
+	accession has a value which is a string
+	version_status has a value which is a string
+	asm_name has a value which is a string
+	ftp_dir has a value which is a string
+	file has a value which is a string
+	id has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+	refseq_category has a value which is a string
+	tax_id has a value which is a string
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
-        ref has a value which is a string
-        id has a value which is a string
-        workspace_name has a value which is a string
-        source_id has a value which is a string
-        accession has a value which is a string
-        name has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Loads specified genomes into KBase workspace and indexes in SOLR on demand
+
 =back
+
 =cut
 
 sub load_genomes
@@ -2174,9 +2292,9 @@ sub load_genomes
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to load_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'load_genomes');
+	my $msg = "Invalid arguments passed to load_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'load_genomes');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -2321,9 +2439,9 @@ sub load_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to load_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'load_genomes');
+	my $msg = "Invalid returns passed to load_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'load_genomes');
     }
     return($output);
 }
@@ -2332,130 +2450,147 @@ sub load_genomes
 
 
 =head2 index_genomes_in_solr
+
   $output = $obj->index_genomes_in_solr($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.IndexGenomesInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrGenomeFeatureData
 IndexGenomesInSolrParams is a reference to a hash where the following keys are defined:
-        genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-        solr_core has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
+	solr_core has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
-        ref has a value which is a string
-        id has a value which is a string
-        workspace_name has a value which is a string
-        source_id has a value which is a string
-        accession has a value which is a string
-        name has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
 bool is an int
 SolrGenomeFeatureData is a reference to a hash where the following keys are defined:
-        genome_feature_id has a value which is a string
-        genome_id has a value which is a string
-        feature_id has a value which is a string
-        ws_ref has a value which is a string
-        feature_type has a value which is a string
-        aliases has a value which is a string
-        scientific_name has a value which is a string
-        domain has a value which is a string
-        functions has a value which is a string
-        genome_source has a value which is a string
-        go_ontology_description has a value which is a string
-        go_ontology_domain has a value which is a string
-        gene_name has a value which is a string
-        object_name has a value which is a string
-        location_contig has a value which is a string
-        location_strand has a value which is a string
-        taxonomy has a value which is a string
-        workspace_name has a value which is a string
-        genetic_code has a value which is a string
-        md5 has a value which is a string
-        tax_id has a value which is a string
-        assembly_ref has a value which is a string
-        taxonomy_ref has a value which is a string
-        ontology_namespaces has a value which is a string
-        ontology_ids has a value which is a string
-        ontology_names has a value which is a string
-        ontology_lineages has a value which is a string
-        dna_sequence_length has a value which is an int
-        genome_dna_size has a value which is an int
-        location_begin has a value which is an int
-        location_end has a value which is an int
-        num_cds has a value which is an int
-        num_contigs has a value which is an int
-        protein_translation_length has a value which is an int
-        gc_content has a value which is a float
-        complete has a value which is a ReferenceDataManager.bool
-        refseq_category has a value which is a string
-        save_date has a value which is a string
+	genome_feature_id has a value which is a string
+	genome_id has a value which is a string
+	feature_id has a value which is a string
+	ws_ref has a value which is a string
+	feature_type has a value which is a string
+	aliases has a value which is a string
+	scientific_name has a value which is a string
+	domain has a value which is a string
+	functions has a value which is a string
+	genome_source has a value which is a string
+	go_ontology_description has a value which is a string
+	go_ontology_domain has a value which is a string
+	gene_name has a value which is a string
+	object_name has a value which is a string
+	location_contig has a value which is a string
+	location_strand has a value which is a string
+	taxonomy has a value which is a string
+	workspace_name has a value which is a string
+	genetic_code has a value which is a string
+	md5 has a value which is a string
+	tax_id has a value which is a string
+	assembly_ref has a value which is a string
+	taxonomy_ref has a value which is a string
+	ontology_namespaces has a value which is a string
+	ontology_ids has a value which is a string
+	ontology_names has a value which is a string
+	ontology_lineages has a value which is a string
+	dna_sequence_length has a value which is an int
+	genome_dna_size has a value which is an int
+	location_begin has a value which is an int
+	location_end has a value which is an int
+	num_cds has a value which is an int
+	num_contigs has a value which is an int
+	protein_translation_length has a value which is an int
+	gc_content has a value which is a float
+	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.IndexGenomesInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrGenomeFeatureData
 IndexGenomesInSolrParams is a reference to a hash where the following keys are defined:
-        genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
-        solr_core has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
+	solr_core has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
-        ref has a value which is a string
-        id has a value which is a string
-        workspace_name has a value which is a string
-        source_id has a value which is a string
-        accession has a value which is a string
-        name has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
 bool is an int
 SolrGenomeFeatureData is a reference to a hash where the following keys are defined:
-        genome_feature_id has a value which is a string
-        genome_id has a value which is a string
-        feature_id has a value which is a string
-        ws_ref has a value which is a string
-        feature_type has a value which is a string
-        aliases has a value which is a string
-        scientific_name has a value which is a string
-        domain has a value which is a string
-        functions has a value which is a string
-        genome_source has a value which is a string
-        go_ontology_description has a value which is a string
-        go_ontology_domain has a value which is a string
-        gene_name has a value which is a string
-        object_name has a value which is a string
-        location_contig has a value which is a string
-        location_strand has a value which is a string
-        taxonomy has a value which is a string
-        workspace_name has a value which is a string
-        genetic_code has a value which is a string
-        md5 has a value which is a string
-        tax_id has a value which is a string
-        assembly_ref has a value which is a string
-        taxonomy_ref has a value which is a string
-        ontology_namespaces has a value which is a string
-        ontology_ids has a value which is a string
-        ontology_names has a value which is a string
-        ontology_lineages has a value which is a string
-        dna_sequence_length has a value which is an int
-        genome_dna_size has a value which is an int
-        location_begin has a value which is an int
-        location_end has a value which is an int
-        num_cds has a value which is an int
-        num_contigs has a value which is an int
-        protein_translation_length has a value which is an int
-        gc_content has a value which is a float
-        complete has a value which is a ReferenceDataManager.bool
-        refseq_category has a value which is a string
-        save_date has a value which is a string
+	genome_feature_id has a value which is a string
+	genome_id has a value which is a string
+	feature_id has a value which is a string
+	ws_ref has a value which is a string
+	feature_type has a value which is a string
+	aliases has a value which is a string
+	scientific_name has a value which is a string
+	domain has a value which is a string
+	functions has a value which is a string
+	genome_source has a value which is a string
+	go_ontology_description has a value which is a string
+	go_ontology_domain has a value which is a string
+	gene_name has a value which is a string
+	object_name has a value which is a string
+	location_contig has a value which is a string
+	location_strand has a value which is a string
+	taxonomy has a value which is a string
+	workspace_name has a value which is a string
+	genetic_code has a value which is a string
+	md5 has a value which is a string
+	tax_id has a value which is a string
+	assembly_ref has a value which is a string
+	taxonomy_ref has a value which is a string
+	ontology_namespaces has a value which is a string
+	ontology_ids has a value which is a string
+	ontology_names has a value which is a string
+	ontology_lineages has a value which is a string
+	dna_sequence_length has a value which is an int
+	genome_dna_size has a value which is an int
+	location_begin has a value which is an int
+	location_end has a value which is an int
+	num_cds has a value which is an int
+	num_contigs has a value which is an int
+	protein_translation_length has a value which is an int
+	gc_content has a value which is a float
+	complete has a value which is a ReferenceDataManager.bool
+	refseq_category has a value which is a string
+	save_date has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Index specified genomes in SOLR from KBase workspace
+
 =back
+
 =cut
 
 sub index_genomes_in_solr
@@ -2466,9 +2601,9 @@ sub index_genomes_in_solr
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to index_genomes_in_solr:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'index_genomes_in_solr');
+	my $msg = "Invalid arguments passed to index_genomes_in_solr:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'index_genomes_in_solr');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -2481,7 +2616,7 @@ sub index_genomes_in_solr
     $params = $self->util_args($params,[],{
         genomes => {},
         create_report => 0,
-        solr_core => "QZtest"
+        solr_core => "GenomeFeatures_prod"
     });
 
     my $msg = "";
@@ -2499,9 +2634,9 @@ sub index_genomes_in_solr
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to index_genomes_in_solr:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'index_genomes_in_solr');
+	my $msg = "Invalid returns passed to index_genomes_in_solr:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'index_genomes_in_solr');
     }
     return($output);
 }
@@ -2510,74 +2645,91 @@ sub index_genomes_in_solr
 
 
 =head2 list_loaded_taxa
+
   $output = $obj->list_loaded_taxa($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.ListLoadedTaxaParams
 $output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 ListLoadedTaxaParams is a reference to a hash where the following keys are defined:
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
-        ws_ref has a value which is a string
+	taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
+	ws_ref has a value which is a string
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.ListLoadedTaxaParams
 $output is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 ListLoadedTaxaParams is a reference to a hash where the following keys are defined:
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
-        ws_ref has a value which is a string
+	taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
+	ws_ref has a value which is a string
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Lists taxa loaded into KBase for a given workspace
+
 =back
+
 =cut
 
 sub list_loaded_taxa
@@ -2588,9 +2740,9 @@ sub list_loaded_taxa
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to list_loaded_taxa:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_loaded_taxa');
+	my $msg = "Invalid arguments passed to list_loaded_taxa:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_loaded_taxa');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -2619,90 +2771,84 @@ sub list_loaded_taxa
 
     return [] if $maxid < $minid;
 
-    my $batch_count = 10000;
-    $batch_count=$params->{batch} if exists($params->{batch});
+    my $batch_count = 5000;
+    my $maxid = $wsinfo->[4];
     my $pages = ceil($maxid/$batch_count);
-    my $first_page = floor($minid/$batch_count);
-    print "I: Starting at Page $first_page\n";
-    print "I: Fetching ".($maxid-($minid-1))." taxon objects.\n";
-    print "I: Paging through $pages of $batch_count objects\n";
-        for (my $m = $first_page; $m <= $pages; $m++) {
 
-	my ($minObjID,$maxObjID)=(( $batch_count * $m ) + 1,$batch_count * ( $m + 1));
+    #print "\nFound $maxid taxon objects.\n";
+    #print "\nPaging through $pages of $batch_count objects\n";
+    for (my $m =149; $m < $pages; $m++) {
+        #for (my $m = 21; $m < 26; $m++) {
+        print "\nPage ". $m . "x$batch_count batch on " . scalar localtime;
+        eval {
+            $wsoutput = $self->util_ws_client()->list_objects({
+                        workspaces => [$wsname],
+                        type => "KBaseGenomeAnnotations.Taxon-1.0",
+                        minObjectID => $batch_count * $m + 1,
+                        maxObjectID => $batch_count * ( $m + 1),
+                        includeMetadata => 1
+            });
+        };
+        if($@) {
+                print "Cannot list objects!\n";
+                print "ERROR:" . $@;#->{message}."\n";
+                if(defined($@->{status_line})) {
+                        print "ERROR:" . $@->{status_line}."\n";
+                }
+        }
+        else {
+            if( @{$wsoutput} > 0 ) {
+                my $wstaxonrefs = [];
+                for (my $j=0; $j < @{$wsoutput}; $j++) {
+                        push(@{$wstaxonrefs},{
+                                "ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4]
+                        });
+                }
 
-	#set limit based on whats been done before
-	$minObjID=$minid if $minid >$minObjID;
-
-	last if $minObjID > $maxid;
-
-	print ("I: Batch ". $m . "x$batch_count on " . scalar(localtime)."\n");
-	print ("I: minObjectID: $minObjID\n");
-	print ("I: maxObjectID: $maxObjID\n");
-
-	$wsoutput = [];
-	my $try_count=5;
-	while(scalar(@$wsoutput)==0 && $try_count != 0){
-	    $try_count--;
-	    try {
-		$wsoutput = $self->util_ws_client()->list_objects({workspaces => [$wsname],
-								   type => "KBaseGenomeAnnotations.Taxon-1.0",
-								   minObjectID => $minObjID,
-								   maxObjectID => $maxObjID});
-	    }catch{
-		print "ERROR on iteraction $try_count for Batch $batch_count: Cannot list objects: $_ at ".scalar(localtime)."\n";
-	    };
-	    sleep(3) if scalar(@$wsoutput)==0;
-	}
-	if(exists($params->{ignore})){
-	    $wsoutput = [ grep { !exists($params->{ignore}{$_->[0]}) } @$wsoutput ];
-	}
-	next if scalar(@$wsoutput)==0;
-
-	my $wstaxonrefs = [];
-	for (my $j=0; $j < @{$wsoutput}; $j++) {
-	    push(@{$wstaxonrefs},{"ref" => $wsoutput->[$j]->[6]."/".$wsoutput->[$j]->[0]."/".$wsoutput->[$j]->[4]});
-	}
-	$taxonout = [];
-	my $try_count=5;
-	while(scalar(@$taxonout)==0 && $try_count != 0){
-	    $try_count--;
-	    try {
-		print "\nStart to fetch the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime; 
- 		$taxonout = $self->util_ws_client()->get_objects2({objects => $wstaxonrefs})->{data}; 
-		print "\nDone getting the objects at the batch size of: " . @{$taxonout} . " on " . scalar localtime . "\n\n";
-	    }catch{
-		print "ERROR on iteraction $try_count for Batch $batch_count: Cannot get objects: $_ at ".scalar(localtime)."\n";
-	    };
-	    sleep(3) if scalar(@$taxonout)==0;
-	}
-	
-	my $taxon_ret = [];
-	for (my $i=0; $i < @{$taxonout}; $i++) {
-	    my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
-	    push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
-	    if (@{$output} < 10) {
-		my $curr = @{$output}-1;
-		$msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
-	    } 
-              
-#	    push(@{$taxon_ret}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
-	}
-#	$self->index_taxa_in_solr({ 
-#	    taxa => $taxon_ret,
-#	    solr_core => "taxonomy_ci",
-#	    create_report => 0});
-
-	if(exists($params->{batch}) && scalar(@$output) >= $params->{batch}){
-	    last;
-	}
+                print "\nStart to fetch the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime;
+                eval {
+                        $taxonout = $self->util_ws_client()->get_objects2({
+                                objects => $wstaxonrefs
+                        }); #return a reference to a hash where key 'data' is defined as a list of Workspace.ObjectData
+                };
+                if($@) {
+                        print "Cannot get object information!\n";
+                        print "ERROR:".$@;
+                        if(defined($@->{status_line})) {
+                                print $@->{status_line}."\n";
+                        }
+                }
+                else {
+                        print "\nDone getting the objects at the batch size of: " . @{$wstaxonrefs} . " on " . scalar localtime . "\n";
+                        my $solr_taxa = [];
+                        my $curr_taxon; 
+                        $taxonout = $taxonout -> {data};
+                        for (my $i=0; $i < @{$taxonout}; $i++) {
+                                my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
+                        if( $taxonData->{domain} ne "Unknown" ) {
+                                $curr_taxon = {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}};
+                                push(@{$output}, $curr_taxon);
+                                push(@{$solr_taxa}, $curr_taxon);
+                                #push(@{$output}, {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}});
+                                if (@{$output} < 10) {
+                                        my $curr = @{$output}-1;
+                                        $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
+                                }
+                        }#if( $taxonData->{domain} ne "Unknown" )
+                        }
+                        #indexing in SOLR for every $batchCount of taxa
+                        #$self->index_taxa_in_solr({taxa=>$solr_taxa, solr_core => "taxonomy_ci"});
+                    }
+            }
+        }
     }
     #END list_loaded_taxa
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to list_loaded_taxa:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_loaded_taxa');
+	my $msg = "Invalid returns passed to list_loaded_taxa:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_loaded_taxa');
     }
     return($output);
 }
@@ -2711,74 +2857,91 @@ sub list_loaded_taxa
 
 
 =head2 list_solr_taxa
+
   $output = $obj->list_solr_taxa($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.ListSolrDocsParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
 ListSolrDocsParams is a reference to a hash where the following keys are defined:
-        solr_core has a value which is a string
-        row_start has a value which is an int
-        row_count has a value which is an int
-        create_report has a value which is a ReferenceDataManager.bool
+	solr_core has a value which is a string
+	row_start has a value which is an int
+	row_count has a value which is an int
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 SolrTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        ws_ref has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	ws_ref has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.ListSolrDocsParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
 ListSolrDocsParams is a reference to a hash where the following keys are defined:
-        solr_core has a value which is a string
-        row_start has a value which is an int
-        row_count has a value which is an int
-        create_report has a value which is a ReferenceDataManager.bool
+	solr_core has a value which is a string
+	row_start has a value which is an int
+	row_count has a value which is an int
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 SolrTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        ws_ref has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	ws_ref has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Lists taxa indexed in SOLR
+
 =back
+
 =cut
 
 sub list_solr_taxa
@@ -2789,14 +2952,17 @@ sub list_solr_taxa
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to list_solr_taxa:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_solr_taxa');
+	my $msg = "Invalid arguments passed to list_solr_taxa:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_solr_taxa');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
     my($output);
     #BEGIN list_solr_taxa
+    if (! $self->_ping()) {
+        die "\nError--Solr server not responding:\n" . $self->_error->{response};
+    }
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
         solr_core => "taxonomy_ci",
@@ -2837,9 +3003,9 @@ sub list_solr_taxa
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to list_solr_taxa:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'list_solr_taxa');
+	my $msg = "Invalid returns passed to list_solr_taxa:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'list_solr_taxa');
     }
     return($output);
 }
@@ -2848,114 +3014,131 @@ sub list_solr_taxa
 
 
 =head2 load_taxons
+
   $output = $obj->load_taxons($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.LoadTaxonsParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
 LoadTaxonsParams is a reference to a hash where the following keys are defined:
-        data has a value which is a string
-        taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
-        index_in_solr has a value which is a ReferenceDataManager.bool                                                                                                                                               
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	data has a value which is a string
+	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
 bool is an int
 SolrTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        ws_ref has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	ws_ref has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.LoadTaxonsParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
-LoadTaxonsParams is a reference to a hash where the following keys are defined:            
-        data has a value which is a string
-        taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
-        index_in_solr has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+LoadTaxonsParams is a reference to a hash where the following keys are defined:
+	data has a value which is a string
+	taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
+	index_in_solr has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
 bool is an int
 SolrTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        ws_ref has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	ws_ref has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Loads specified taxa into KBase workspace and indexes in SOLR on demand
+
 =back
+
 =cut
 
 sub load_taxons
@@ -2966,9 +3149,9 @@ sub load_taxons
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to load_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-                Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                method_name => 'load_taxons');
+	my $msg = "Invalid arguments passed to load_taxons:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'load_taxons');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -3009,9 +3192,9 @@ sub load_taxons
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to load_taxons:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'load_taxons');
+	my $msg = "Invalid returns passed to load_taxons:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'load_taxons');
     }
     return($output);
 }
@@ -3020,116 +3203,133 @@ sub load_taxons
 
 
 =head2 index_taxa_in_solr
+
   $output = $obj->index_taxa_in_solr($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.IndexTaxaInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
 IndexTaxaInSolrParams is a reference to a hash where the following keys are defined:
-        taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
-        solr_core has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+	solr_core has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
-        ws_ref has a value which is a string
+	taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
+	ws_ref has a value which is a string
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
 bool is an int
 SolrTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        ws_ref has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	ws_ref has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.IndexTaxaInSolrParams
 $output is a reference to a list where each element is a ReferenceDataManager.SolrTaxonData
 IndexTaxaInSolrParams is a reference to a hash where the following keys are defined:
-        taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
-        solr_core has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
+	solr_core has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 LoadedReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
-        ws_ref has a value which is a string
+	taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
+	ws_ref has a value which is a string
 KBaseReferenceTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
 bool is an int
 SolrTaxonData is a reference to a hash where the following keys are defined:
-        taxonomy_id has a value which is an int
-        scientific_name has a value which is a string
-        scientific_lineage has a value which is a string
-        rank has a value which is a string
-        kingdom has a value which is a string
-        domain has a value which is a string
-        ws_ref has a value which is a string
-        aliases has a value which is a reference to a list where each element is a string
-        genetic_code has a value which is an int
-        parent_taxon_ref has a value which is a string
-        embl_code has a value which is a string
-        inherited_div_flag has a value which is an int
-        inherited_GC_flag has a value which is an int
-        mitochondrial_genetic_code has a value which is an int
-        inherited_MGC_flag has a value which is an int
-        GenBank_hidden_flag has a value which is an int
-        hidden_subtree_flag has a value which is an int
-        division_id has a value which is an int
-        comments has a value which is a string
+	taxonomy_id has a value which is an int
+	scientific_name has a value which is a string
+	scientific_lineage has a value which is a string
+	rank has a value which is a string
+	kingdom has a value which is a string
+	domain has a value which is a string
+	ws_ref has a value which is a string
+	aliases has a value which is a reference to a list where each element is a string
+	genetic_code has a value which is an int
+	parent_taxon_ref has a value which is a string
+	embl_code has a value which is a string
+	inherited_div_flag has a value which is an int
+	inherited_GC_flag has a value which is an int
+	mitochondrial_genetic_code has a value which is an int
+	inherited_MGC_flag has a value which is an int
+	GenBank_hidden_flag has a value which is an int
+	hidden_subtree_flag has a value which is an int
+	division_id has a value which is an int
+	comments has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Index specified genomes in SOLR from KBase workspace
+
 =back
+
 =cut
 
 sub index_taxa_in_solr
@@ -3140,9 +3340,9 @@ sub index_taxa_in_solr
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to index_taxa_in_solr:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'index_taxa_in_solr');
+	my $msg = "Invalid arguments passed to index_taxa_in_solr:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'index_taxa_in_solr');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -3164,7 +3364,7 @@ sub index_taxa_in_solr
     my $solrCore = $params->{solr_core};
     my $solrBatch = [];
     my $solrBatchCount = 10000;
-    #print "\nTotal taxa to be indexed: ". @{$taxa} . "\n";
+    print "\nTotal taxa to be indexed: ". @{$taxa} . "\n";
 
     for (my $i = 0; $i < @{$taxa}; $i++) {
         my $taxonData = $taxa -> [$i] -> {taxon};#an UnspecifiedObject
@@ -3222,9 +3422,9 @@ sub index_taxa_in_solr
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to index_taxa_in_solr:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'index_taxa_in_solr');
+	my $msg = "Invalid returns passed to index_taxa_in_solr:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'index_taxa_in_solr');
     }
     return($output);
 }
@@ -3233,56 +3433,73 @@ sub index_taxa_in_solr
 
 
 =head2 update_loaded_genomes
+
   $output = $obj->update_loaded_genomes($params)
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $params is a ReferenceDataManager.UpdateLoadedGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 UpdateLoadedGenomesParams is a reference to a hash where the following keys are defined:
-        ensembl has a value which is a ReferenceDataManager.bool
-        refseq has a value which is a ReferenceDataManager.bool
-        phytozome has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	ensembl has a value which is a ReferenceDataManager.bool
+	refseq has a value which is a ReferenceDataManager.bool
+	phytozome has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
-        ref has a value which is a string
-        id has a value which is a string
-        workspace_name has a value which is a string
-        source_id has a value which is a string
-        accession has a value which is a string
-        name has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 $params is a ReferenceDataManager.UpdateLoadedGenomesParams
 $output is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 UpdateLoadedGenomesParams is a reference to a hash where the following keys are defined:
-        ensembl has a value which is a ReferenceDataManager.bool
-        refseq has a value which is a ReferenceDataManager.bool
-        phytozome has a value which is a ReferenceDataManager.bool
-        workspace_name has a value which is a string
-        create_report has a value which is a ReferenceDataManager.bool
+	ensembl has a value which is a ReferenceDataManager.bool
+	refseq has a value which is a ReferenceDataManager.bool
+	phytozome has a value which is a ReferenceDataManager.bool
+	workspace_name has a value which is a string
+	create_report has a value which is a ReferenceDataManager.bool
 bool is an int
 KBaseReferenceGenomeData is a reference to a hash where the following keys are defined:
-        ref has a value which is a string
-        id has a value which is a string
-        workspace_name has a value which is a string
-        source_id has a value which is a string
-        accession has a value which is a string
-        name has a value which is a string
-        version has a value which is a string
-        source has a value which is a string
-        domain has a value which is a string
+	ref has a value which is a string
+	id has a value which is a string
+	workspace_name has a value which is a string
+	source_id has a value which is a string
+	accession has a value which is a string
+	name has a value which is a string
+	version has a value which is a string
+	source has a value which is a string
+	domain has a value which is a string
+
+
 =end text
+
+
+
 =item Description
+
 Updates the loaded genomes in KBase for the specified source databases
+
 =back
+
 =cut
 
 sub update_loaded_genomes
@@ -3293,9 +3510,9 @@ sub update_loaded_genomes
     my @_bad_arguments;
     (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument \"params\" (value was \"$params\")");
     if (@_bad_arguments) {
-        my $msg = "Invalid arguments passed to update_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'update_loaded_genomes');
+	my $msg = "Invalid arguments passed to update_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'update_loaded_genomes');
     }
 
     my $ctx = $ReferenceDataManager::ReferenceDataManagerServer::CallContext;
@@ -3306,7 +3523,9 @@ sub update_loaded_genomes
     }
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
-        source => "refseq",
+        refseq => 1,
+        phytozome => 0,
+        ensembl => 0, 
         update_only => 0,
         create_report => 0,
         workspace_name => undef
@@ -3316,13 +3535,19 @@ sub update_loaded_genomes
     $output = [];
 
     my $count = 0;
-    my $ref_genomes;
     my $gn_solr_core = "GenomeFeatures_prod";
     my $tx_solr_core = "taxonomy_ci";
-
-    $ref_genomes = $self->list_reference_genomes({source => $params->{source}, update_only => $params->{update_only}});
+    my $gn_source = "refseq";
+    if($params->{phtozome} == 1) {
+        $gn_source = "Phytozome";
+    }
+    elsif($params->{ensembl} == 1) {
+        $gn_source = "Ensembl";
+    }
+    my $ref_genomes = $self->list_reference_genomes({source => $gn_source, update_only => $params->{update_only}});
 
     for (my $i=0; $i < @{ $ref_genomes }; $i++) {
+        print "\n***************Ref genome #". $i. "****************\n";
         my $gnm = $ref_genomes->[$i];
 
         #check if the genome is already present in the database by querying SOLR
@@ -3331,8 +3556,9 @@ sub update_loaded_genomes
         if ($gn_status=~/(new|updated)/i) { 
                 #check if the taxon of the genome (named in KBase as $gnm->{tax_id} . "_taxon") is loaded in a KBase workspace
                 if( ($self->_checkTaxonStatus($gnm, $tx_solr_core))=~/inKBase/i ){
-                    $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
                     $count ++;
+                    print "A new genome with taxon in KBase found, total=" . $count;
+                    $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
                     push(@{$output},$gnm);
                     if ($count < 10) {
                         $msg .= $gnm->{accession}.";".$gnm->{status}.";".$gnm->{name}.";".$gnm->{ftp_dir}.";".$gnm->{file}.";".$gnm->{id}.";".$gnm->{version}.";".$gnm->{source}.";".$gnm->{domain}."\n";
@@ -3357,9 +3583,9 @@ sub update_loaded_genomes
     my @_bad_returns;
     (ref($output) eq 'ARRAY') or push(@_bad_returns, "Invalid type for return variable \"output\" (value was \"$output\")");
     if (@_bad_returns) {
-        my $msg = "Invalid returns passed to update_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
-        Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
-                                                               method_name => 'update_loaded_genomes');
+	my $msg = "Invalid returns passed to update_loaded_genomes:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => 'update_loaded_genomes');
     }
     return($output);
 }
@@ -3368,20 +3594,33 @@ sub update_loaded_genomes
 
 
 =head2 status 
+
   $return = $obj->status()
+
 =over 4
+
 =item Parameter and return types
+
 =begin html
+
 <pre>
 $return is a string
 </pre>
+
 =end html
+
 =begin text
+
 $return is a string
+
 =end text
+
 =item Description
+
 Return the module status. This is a structure including Semantic Versioning number, state and git info.
+
 =back
+
 =cut
 
 sub status {
@@ -3394,52 +3633,96 @@ sub status {
 }
 
 =head1 TYPES
+
+
+
 =head2 bool
+
 =over 4
+
+
+
 =item Description
+
 A boolean.
+
+
 =item Definition
+
 =begin html
+
 <pre>
 an int
 </pre>
+
 =end html
+
 =begin text
+
 an int
+
 =end text
+
 =back
+
+
+
 =head2 ListReferenceGenomesParams
+
 =over 4
+
+
+
 =item Description
+
 Arguments for the list_reference_genomes function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
-ensembl has a value which is a ReferenceDataManager.bool
-refseq has a value which is a ReferenceDataManager.bool
-phytozome has a value which is a ReferenceDataManager.bool
+source has a value which is a string
+domain has a value which is a string
 updated_only has a value which is a ReferenceDataManager.bool
-workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
-ensembl has a value which is a ReferenceDataManager.bool
-refseq has a value which is a ReferenceDataManager.bool
-phytozome has a value which is a ReferenceDataManager.bool
+source has a value which is a string
+domain has a value which is a string
 updated_only has a value which is a ReferenceDataManager.bool
-workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =head2 ReferenceGenomeData
+
 =over 4
+
+
+
 =item Description
+
 Struct containing data for a single genome output by the list_reference_genomes function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 accession has a value which is a string
@@ -3452,9 +3735,14 @@ version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
 refseq_category has a value which is a string
+tax_id has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 accession has a value which is a string
 version_status has a value which is a string
@@ -3466,14 +3754,30 @@ version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
 refseq_category has a value which is a string
+tax_id has a value which is a string
+
+
 =end text
+
 =back
+
+
+
 =head2 ListLoadedGenomesParams
+
 =over 4
+
+
+
 =item Description
+
 Arguments for the list_loaded_genomes function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 ensembl has a value which is a ReferenceDataManager.bool
@@ -3481,23 +3785,42 @@ refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 ensembl has a value which is a ReferenceDataManager.bool
 refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =head2 LoadedReferenceGenomeData
+
 =over 4
+
+
+
 =item Description
+
 Struct containing data for a single genome output by the list_loaded_genomes function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 ref has a value which is a string
@@ -3513,11 +3836,16 @@ type has a value which is a string
 save_date has a value which is a string
 contig_count has a value which is an int
 feature_count has a value which is an int
-dna_size has a value which is an int
+size_bytes has a value which is an int
+ftp_url has a value which is a string
 gc has a value which is a float
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 ref has a value which is a string
 id has a value which is a string
@@ -3532,16 +3860,32 @@ type has a value which is a string
 save_date has a value which is a string
 contig_count has a value which is an int
 feature_count has a value which is an int
-dna_size has a value which is an int
+size_bytes has a value which is an int
+ftp_url has a value which is a string
 gc has a value which is a float
+
+
 =end text
+
 =back
+
+
+
 =head2 SolrGenomeFeatureData
+
 =over 4
+
+
+
 =item Description
+
 Struct containing data for a single genome element output by the list_solr_genomes and index_genomes_in_solr functions
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 genome_feature_id has a value which is a string
@@ -3582,9 +3926,13 @@ gc_content has a value which is a float
 complete has a value which is a ReferenceDataManager.bool
 refseq_category has a value which is a string
 save_date has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 genome_feature_id has a value which is a string
 genome_id has a value which is a string
@@ -3624,36 +3972,70 @@ gc_content has a value which is a float
 complete has a value which is a ReferenceDataManager.bool
 refseq_category has a value which is a string
 save_date has a value which is a string
+
+
 =end text
+
 =back
+
+
+
 =head2 ListSolrDocsParams
+
 =over 4
+
+
+
 =item Description
+
 Arguments for the list_solr_genomes and list_solr_taxa functions
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 solr_core has a value which is a string
 row_start has a value which is an int
 row_count has a value which is an int
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 solr_core has a value which is a string
 row_start has a value which is an int
 row_count has a value which is an int
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =head2 LoadGenomesParams
+
 =over 4
+
+
+
 =item Description
+
 Arguments for the load_genomes function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 data has a value which is a string
@@ -3661,23 +4043,42 @@ genomes has a value which is a reference to a list where each element is a Refer
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 data has a value which is a string
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.ReferenceGenomeData
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =head2 KBaseReferenceGenomeData
+
 =over 4
+
+
+
 =item Description
+
 Structure of a single KBase genome in the list returned by the load_genomes function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 ref has a value which is a string
@@ -3689,9 +4090,13 @@ name has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 ref has a value which is a string
 id has a value which is a string
@@ -3702,53 +4107,105 @@ name has a value which is a string
 version has a value which is a string
 source has a value which is a string
 domain has a value which is a string
+
+
 =end text
+
 =back
+
+
+
 =head2 IndexGenomesInSolrParams
+
 =over 4
+
+
+
 =item Description
+
 Arguments for the index_genomes_in_solr function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 genomes has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceGenomeData
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =head2 ListLoadedTaxaParams
+
 =over 4
+
+
+
 =item Description
+
 Argument(s) for the the lists_loaded_taxa function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
-                                                                                                                                                                                                   3832,1        92%
+
 a reference to a hash where the following keys are defined:
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =head2 KBaseReferenceTaxonData
+
 =over 4
+
+
+
 =item Description
+
 Struct containing data for a single taxon element output by the list_loaded_taxa function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 taxonomy_id has a value which is an int
@@ -3769,9 +4226,13 @@ GenBank_hidden_flag has a value which is an int
 hidden_subtree_flag has a value which is an int
 division_id has a value which is an int
 comments has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 taxonomy_id has a value which is an int
 scientific_name has a value which is a string
@@ -3791,32 +4252,66 @@ GenBank_hidden_flag has a value which is an int
 hidden_subtree_flag has a value which is an int
 division_id has a value which is an int
 comments has a value which is a string
+
+
 =end text
+
 =back
+
+
+
 =head2 LoadedReferenceTaxonData
+
 =over 4
+
+
+
 =item Description
+
 Struct containing data for a single output by the list_loaded_taxa function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
 ws_ref has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 taxon has a value which is a ReferenceDataManager.KBaseReferenceTaxonData
 ws_ref has a value which is a string
+
+
 =end text
+
 =back
+
+
+
 =head2 SolrTaxonData
+
 =over 4
+
+
+
 =item Description
+
 Struct containing data for a single taxon element output by the list_solr_taxa function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 taxonomy_id has a value which is an int
@@ -3838,9 +4333,13 @@ GenBank_hidden_flag has a value which is an int
 hidden_subtree_flag has a value which is an int
 division_id has a value which is an int
 comments has a value which is a string
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 taxonomy_id has a value which is an int
 scientific_name has a value which is a string
@@ -3861,14 +4360,29 @@ GenBank_hidden_flag has a value which is an int
 hidden_subtree_flag has a value which is an int
 division_id has a value which is an int
 comments has a value which is a string
+
+
 =end text
+
 =back
+
+
+
 =head2 LoadTaxonsParams
+
 =over 4
+
+
+
 =item Description
+
 Arguments for the load_taxons function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 data has a value which is a string
@@ -3876,43 +4390,81 @@ taxons has a value which is a reference to a list where each element is a Refere
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 data has a value which is a string
 taxons has a value which is a reference to a list where each element is a ReferenceDataManager.KBaseReferenceTaxonData
 index_in_solr has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =head2 IndexTaxaInSolrParams
+
 =over 4
+
+
+
 =item Description
+
 Arguments for the index_taxa_in_solr function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 taxa has a value which is a reference to a list where each element is a ReferenceDataManager.LoadedReferenceTaxonData
 solr_core has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =head2 UpdateLoadedGenomesParams
+
 =over 4
+
+
+
 =item Description
+
 Arguments for the update_loaded_genomes function
+
+
 =item Definition
+
 =begin html
+
 <pre>
 a reference to a hash where the following keys are defined:
 ensembl has a value which is a ReferenceDataManager.bool
@@ -3920,18 +4472,27 @@ refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
 </pre>
+
 =end html
+
 =begin text
+
 a reference to a hash where the following keys are defined:
 ensembl has a value which is a ReferenceDataManager.bool
 refseq has a value which is a ReferenceDataManager.bool
 phytozome has a value which is a ReferenceDataManager.bool
 workspace_name has a value which is a string
 create_report has a value which is a ReferenceDataManager.bool
+
+
 =end text
+
 =back
+
+
+
 =cut
 
 1;
-

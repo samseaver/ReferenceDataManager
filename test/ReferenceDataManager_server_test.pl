@@ -29,30 +29,30 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     #Altering workspace map
-    $impl->{_workspace_map}->{refseq} = "ReferenceDataManagerWS";
+    $impl->{_workspace_map}->{refseq} = "ReferenceDataManager";
+    #$impl->{_workspace_map}->{refseq} = "Phytozome_Genomes";
     #$impl->{_workspace_map}->{refseq} = "RefSeq_Genomes";
-    #$impl->{_workspace_map}->{refseq} = "Ensembl_Genomes";
+    #$impl->{_workspace_map}->{refseq} = "KBasePublicRichGenomesV5";
 
 =begin
-    #Testing update_loaded_taxa function
-    my $wsret;
+    #Testing update_loaded_genomes function
+    my $wsgnmret;
     eval {
-        $wsret = $impl->update_loaded_taxa({
-            workspace_name => "ReferenceTaxons",
-            solr_core => "taxonomy_ci"
-	});
+        $wsgnmret = $impl->update_loaded_genomes({
+           refseq => 1
+        });
     };
-    ok(!$@,"update_loaded_taxa command successful");
+    ok(!$@,"update_loaded_genomes command successful");
     if ($@) {
         print "ERROR:".$@;
     } else {
-        print "Number of records:".@{$wsret}."\n";
+        print "Number of records:".@{$wsgnmret}."\n";
         print "First record:\n";
-        print Data::Dumper->Dump([$wsret->[0]])."\n";
+        print Data::Dumper->Dump([$wsgnmret->[0]])."\n";
     }
-    ok(defined($wsret->[0]),"update_loaded_taxa command returned at least one record");
+    ok(defined($wsgnmret->[0]),"update_loaded_genomes command returned at least one record");
 =cut
-
+    
 =begin passed tests
     my $solrret;
     eval {
@@ -62,11 +62,9 @@ eval {
     if ($@) { 
          print "ERROR:".$@;
      } else {
-         print "Number of records:".@{$solrret}."\n";
          print "First record:\n";
-         print Data::Dumper->Dump([$solrret->[0]])."\n";
      }
-     ok(defined($solrret->[0]),"_listGenomesInSolr command returned at least one genome");
+     ok(defined($solrret),"_listGenomesInSolr command returned at least one genome");
     
     #Testing list_solr_genomes function
     my $sgret;
@@ -83,7 +81,8 @@ eval {
         print "First record:\n";
         print Data::Dumper->Dump([$sgret->[0]])."\n";
     }
-    ok(defined($sgret->[0]),"list_solr_genomes command returned at least one genome");t
+    ok(defined($sgret->[0]),"list_solr_genomes command returned at least one genome");
+ 
     #Testing list_solr_taxa function
     my $stret;
     eval {
@@ -103,13 +102,14 @@ eval {
     ok(defined($stret->[0]),"list_solr_taxa command returned at least one genome");
 =cut
 
-#=begin list and load NCBI genomes
+=begin list and load NCBI genomes
     #Testing the list_reference_genomes function
     my $refret;
     eval {
         $refret = $impl->list_reference_genomes({
-            refseq => 1,
-            update_only => 0
+            source => "refseq",
+            domain => "bacteria",#"bacteria,archaea,plant,fungi",
+            update_only => 0 
         });
     };
 
@@ -120,63 +120,81 @@ eval {
         print "Number of records:".@{$refret}."\n";
         print "First record:\n";
         print Data::Dumper->Dump([$refret->[0]])."\n";
+        #print Data::Dumper->Dump([$refret->[@{$refret} - 1]])."\n";
     }
     ok(defined($refret->[0]),"list_reference_Genomes command returned at least one genome");
-=begin
+=cut
+
+=begin testing _checkGenomeStatus    
+    #Testing _checkGenomeStatus function
+    my $gnstatusret;
+    eval {
+        $gnstatusret = $impl->_checkGenomeStatus($refret->[0], "GenomeFeatures_prod");
+        #$gnstatusret = $impl->_checkGenomeStatus($refret->[@{$refret} - 1], "GenomeFeatures_prod");
+    };
+    ok(!$@, "_checkGenomeStatus command successful");
+    if ($@) { 
+         print "ERROR:".$@;
+     } else {
+         print "Result status: " .$gnstatusret."\n";
+     }
+     ok(defined($gnstatusret), "_checkGenomeStatus command returneds a value");
+=cut
+=begin testing _checkTaxonStatus    
+    #Testing _checkTaxonStatus function
+    my $txstatusret;
+    eval {
+        $txstatusret = $impl->_checkTaxonStatus($refret->[0], "taxonomy_ci");
+        #$txstatusret = $impl->_checkTaxonStatus($refret->[@{$refret} - 1], "taxonomy_ci");
+    };
+    ok(!$@, "_checkTaxonStatus command successful");
+    if ($@) { 
+         print "ERROR:".$@;
+     } else {
+         print "Result status: " .$txstatusret."\n";
+     }
+     ok(defined($txstatusret), "_checkTaxonStatus command returneds a value");
+=cut
+
+=begin test load_genomes
     #Testing load_genomes function
     my $ret;
     eval {
         $ret = $impl->load_genomes({
             genomes => $refret,
-            index_in_solr => 0
+            index_in_solr => 0 
         });
     };
     ok(!$@,"load_genomes command successful");
     if ($@) {
         print "ERROR:".$@;
-        #my $err = $@;
-        #print "Error type: " . ref($err) . "\n";
-        #print "Error message: " . $err->{message} . "\n";
-        #print "Error error: " . $err->{error} . "\n";
-        #print "Error data: " .$err->{data} . "\n";
+        my $err = $@;
+        print "Error type: " . ref($err) . "\n";
+        print "Error message: " . $err->{message} . "\n";
+        print "Error error: " . $err->{error} . "\n";
+        print "Error data: " .$err->{data} . "\n";
     } else {
-        print "Loaded @{$ret} genomes:\n";
-        print Data::Dumper->Dump([$ret->[0]])."\n";
+        print "Loaded " . scalar @{$ret} . " genomes:\n";
+        print Data::Dumper->Dump([$ret->[@{$ret}-1]])."\n";
     }
     ok(defined($ret->[0]),"load_genomes command returned at least one genome");
-=cut
-    #Testing list_loaded_genomes
-    my $wsret;
-    eval {
-        $wsret = $impl->list_loaded_genomes({
-            refseq => 1,
-	    phytozome => 0,
-	    ensembl => 0	
-	});
-    };
-    ok(!$@,"list_loaded_genomes command successful");
-    if ($@) {
-        print "ERROR:".$@;
-    } else {
-        print "Number of records:".@{$wsret}."\n";
-        print "First record:\n";
-        print Data::Dumper->Dump([$wsret->[0]])."\n";
-    }
-    ok(defined($wsret->[0]),"list_loaded_genomes command returned at least one genome");
+
 #=end of "list and load NCBI genomes
-#=cut
+=cut
 
 =begin test delete solr documents
-    #Wipe out the whole QZtest content!
+    #Delete docs or wipe out the whole $delcore's content----USE CAUTION!
+    my $delcore = "QZtest";
     my $ds = {
-         #'workspace_name' => 'qzTest',
-         #'genome_id' => 'kb|g.0'
-         '*' => '*' 
+         #'workspace_name' => "QZtest",
+         #'domain' => "Eukaryota"
+         #'genome_id' => 'kb|g.0' 
     };
-    #$impl->_deleteRecords("QZtest", $ds);
+    #$impl->_deleteRecords($delcore, $ds);
 =cut
 
-=begin indexing genome features
+#=begin indexing genome features
+
     #Testing list_loaded_genomes
     my $wsret;
     eval {
@@ -192,16 +210,20 @@ eval {
     } else {
         print "Number of records:".@{$wsret}."\n";
         print "First record:\n";
-        print Data::Dumper->Dump([$wsret->[0]])."\n";
+        print Data::Dumper->Dump([$wsret->[@{$wsret} -1]])."\n";
+        #print Data::Dumper->Dump([$wsret->[0]])."\n";
     }
     ok(defined($wsret->[0]),"list_loaded_genomes command returned at least one genome");
+#=cut
 
+=begin testing index_genomes_in_solr
     #Testing index_genomes_in_solr
+    my $slrcore = "GenomeFeatures_prod";
     my $ret;
     eval {
         $ret = $impl->index_genomes_in_solr({
-             genomes => $wsret, #[@{$wsret}[0..1]],
-             solr_core => "QZtest",
+             genomes => $wsret,#[@{$wsret}[(@{$wsret} - 2)..(@{$wsret} - 1)]],#$wsret, #[@{$wsret}[0..1]],
+             solr_core => $slrcore
         });
     };
     ok(!$@,"index_genomes_in_solr command successful");
@@ -217,9 +239,10 @@ eval {
         print Data::Dumper->Dump([$ret->[0]])."\n";
     }
     ok(defined($ret->[0]),"\nindex_genomes_in_solr command returned at least one genome");
-#=end of test indexing genome features
-=cut    
-=begin
+#=end of test indexing genome features    
+=cut
+
+=begin index taxa
     #Testing list_loaded_taxa
     my $taxon_ret;
     eval {
@@ -231,17 +254,19 @@ eval {
     ok(!$@,"list_loaded_taxa command successful");
     if ($@) {
 		my $err = $@;
-		print "Error type: " . ref($err) . "\n";
-		print "Error message: " . $err->{message} . "\n";
-		print "Error error: " . $err->{error} . "\n";
-		print "Error data: " .$err->{data} . "\n";
+                print "Error occurred with error type: " . ref($err) . "\n";
+                #print "Error message: " . $err->{message} . "\n";
+                #print "Error error: " . $err->{error} . "\n";
+                #print "Error data: " .$err->{data} . "\n";
     } else {
         print "Number of records:".@{$taxon_ret}."\n";
         print "First record:\n";
         print Data::Dumper->Dump([$taxon_ret->[0]])."\n";
     }
     ok(defined($taxon_ret->[0]),"list_loaded_taxa command returned at least one taxon");
+=cut
 
+=begin
     #Testing index_taxa_in_solr
     my $solr_ret;
     eval {
@@ -253,11 +278,11 @@ eval {
     };
     ok(!$@,"index_taxa_in_solr command successful");
     if ($@) {
-		my $err = $@;
-		print "Error type: " . ref($err) . "\n";
-		print "Error message: " . $err->{message} . "\n";
-		print "Error error: " . $err->{error} . "\n";
-		print "Error data: " .$err->{data} . "\n";
+	my $err = $@;
+        #print "Error type: " . ref($err) . "\n";
+        #print "Error message: " . $err->{message} . "\n";
+        #print "Error error: " . $err->{error} . "\n";
+        #print "Error data: " .$err->{data} . "\n";
     } else {
         print "Number of records:".@{$solr_ret}."\n";
         print "First record:\n";
@@ -265,28 +290,8 @@ eval {
     }
     ok(defined($solr_ret->[0]),"index_taxa_in_solr command returned at least one taxon");
 =cut
-=begin 
-    #Testing update_loaded_genomes
-    my $ret;
-    eval {
-        $ret = $impl->update_loaded_genomes({ 
-        refseq => 1
-    });
-    };
-    ok(!$@,"update_loaded_genomes command successful");
-    if ($@) {
-		my $err = $@;
-		print "Error type: " . ref($err) . "\n";
-		print "Error message: " . $err->{message} . "\n";
-		print "Error error: " . $err->{error} . "\n";
-		print "Error data: " .$err->{data} . "\n";
-    } else {
-        print "Number of records:".@{$ret}."\n";
-        print "First record:\n";
-        print Data::Dumper->Dump([$ret->[0]])."\n";
-    }
-    ok(defined($ret->[0]),"update_loaded_genomes command returned at least one genome");
     
+=begin   
     #Test _exists() function
     my $exist_ret;
     #my $crit = 'parent_taxon_ref:"1779/116411/1",rank:"species",scientific_lineage:"cellular organisms; Bacteria; Proteobacteria; Alphaproteobacteria; Rhizobiales; Bradyrhizobiaceae; Bradyrhizobium",scientific_name:"Bradyrhizobium sp. rp3", domain:"Bacteria"';
