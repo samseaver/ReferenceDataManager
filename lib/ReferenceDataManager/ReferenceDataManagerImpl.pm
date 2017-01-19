@@ -2757,7 +2757,7 @@ sub list_loaded_taxa
     my ($minid,$maxid)=(0,0);
     $minid = $params->{minid} if exists($params->{minid});
     if(!exists($params->{maxid})){
-        my $wsinfo = $self->util_ws_client()->get_workspace_info({workspace => $wsname});
+        $wsinfo = $self->util_ws_client()->get_workspace_info({workspace => $wsname});
 	$maxid = $wsinfo->[4];
     }else{
 	$maxid=$params->{maxid};
@@ -3530,7 +3530,7 @@ sub update_loaded_genomes
 
     my $count = 0;
     my $gn_solr_core = "GenomeFeatures_prod";
-    my $tx_solr_core = "taxonomy_prod";
+    my $tx_solr_core = "taxonomy_ci";
     my $gn_source = "refseq";
     if($params->{phtozome} == 1) {
         $gn_source = "Phytozome";
