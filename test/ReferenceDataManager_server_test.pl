@@ -29,8 +29,8 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     #Altering workspace map
-    $impl->{_workspace_map}->{refseq} = "ReferenceDataManager";
-    #$impl->{_workspace_map}->{refseq} = "Phytozome_Genomes";
+    #$impl->{_workspace_map}->{refseq} = "ReferenceDataManager";
+    $impl->{_workspace_map}->{refseq} = "Phytozome_Genomes";
     #$impl->{_workspace_map}->{refseq} = "RefSeq_Genomes";
     #$impl->{_workspace_map}->{refseq} = "KBasePublicRichGenomesV5";
 
@@ -54,6 +54,7 @@ eval {
 =cut
     
 =begin passed tests
+
     my $solrret;
     eval {
         $solrret = $impl->_listGenomesInSolr("QZtest", "*");
@@ -65,8 +66,10 @@ eval {
          print "First record:\n";
      }
      ok(defined($solrret),"_listGenomesInSolr command returned at least one genome");
-    
-    #Testing list_solr_genomes function
+=cut    
+
+=begin
+     #Testing list_solr_genomes function
     my $sgret;
     eval {
         $sgret = $impl->list_solr_genomes({
@@ -82,7 +85,9 @@ eval {
         print Data::Dumper->Dump([$sgret->[0]])."\n";
     }
     ok(defined($sgret->[0]),"list_solr_genomes command returned at least one genome");
- 
+=cut
+
+=begin 
     #Testing list_solr_taxa function
     my $stret;
     eval {
@@ -193,14 +198,14 @@ eval {
     #$impl->_deleteRecords($delcore, $ds);
 =cut
 
-#=begin indexing genome features
+=begin indexing genome features
 
     #Testing list_loaded_genomes
     my $wsret;
     eval {
         $wsret = $impl->list_loaded_genomes({
-            refseq => 1,
-	    phytozome => 0,
+            refseq => 0,
+	    phytozome => 1,
 	    ensembl => 0	
 	});
     };
@@ -214,11 +219,11 @@ eval {
         #print Data::Dumper->Dump([$wsret->[0]])."\n";
     }
     ok(defined($wsret->[0]),"list_loaded_genomes command returned at least one genome");
-#=cut
+=cut
 
 =begin testing index_genomes_in_solr
     #Testing index_genomes_in_solr
-    my $slrcore = "GenomeFeatures_prod";
+    my $slrcore = "QZtest";#"genomes";#"GenomeFeatures_prod";
     my $ret;
     eval {
         $ret = $impl->index_genomes_in_solr({
@@ -242,7 +247,7 @@ eval {
 #=end of test indexing genome features    
 =cut
 
-=begin index taxa
+#=begin index taxa
     #Testing list_loaded_taxa
     my $taxon_ret;
     eval {
@@ -264,7 +269,7 @@ eval {
         print Data::Dumper->Dump([$taxon_ret->[0]])."\n";
     }
     ok(defined($taxon_ret->[0]),"list_loaded_taxa command returned at least one taxon");
-=cut
+#=cut
 
 =begin
     #Testing index_taxa_in_solr

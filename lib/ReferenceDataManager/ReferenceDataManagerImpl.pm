@@ -1072,10 +1072,10 @@ sub _checkGenomeStatus
     }
     else {
         my $solr_records = $solr_response->{response}->{grouped}->{$groupOption}->{groups};
-        print "\n\nFound unique $groupOption groups of:" . scalar @{$solr_records} . "\n";
+        #print "\n\nFound unique $groupOption groups of:" . scalar @{$solr_records} . "\n";
         for (my $i = 0; $i < @{$solr_records}; $i++ ) {
             my $record = $solr_records->[$i];
-            print $record->{doclist}->{numFound} ."\n";
+            #print $record->{doclist}->{numFound} ."\n";
             my $genome_id = $record->{genome_id};
 
             if ($genome_id eq $current_genome->{accession}){
@@ -1250,7 +1250,8 @@ sub _indexGenomeFeatureData
                     $ws_gn_onterms = $ws_gn_features->[$ii]->{ontology_terms};
 
                     my $ws_gnft = {
-                          genome_feature_id => $ws_gn_data->{id} . "/" . $ws_gn_features->[$ii]->{id},
+                          genome_feature_id => $ws_gn_data->{id} . "|feature:" . $ws_gn_features->[$ii]->{id},
+                          object_id => "kb|ws_ref:". $ws_ref->{ref}. "|feature:" . $ws_gn_features->[$ii]->{id},
                           genome_id => $ws_gn_data->{id},
                           ws_ref => $ws_ref->{ref},
                           genome_source => $ws_gn_data->{source},
@@ -1879,17 +1880,10 @@ sub list_loaded_genomes
     my $sources = ["ensembl","phytozome","refseq"];
     for (my $i=0; $i < @{$sources}; $i++) {
         if ($params->{$sources->[$i]} == 1) {
-            my $wsname;
-            if($i == 1 || $i == 2 ) {
-                #print "Phytozome genomes are loaded into the same workspace as the other RefSeq genomes starting mid-Jan., 2017.\n";
-                $wsname = $self->util_workspace_names($sources->[2]);
-            }
-            else {
-                $wsname = $self->util_workspace_names($sources->[$i]);
-            }
-            
             my $wsinfo;
             my $wsoutput;
+            my $wsname = $self->util_workspace_names($sources->[2]);
+            
             if(defined($self->util_ws_client())){
                 $wsinfo = $self->util_ws_client()->get_workspace_info({
                     workspace => $wsname
@@ -2754,7 +2748,7 @@ sub list_loaded_taxa
 
     #print "\nFound $maxid taxon objects.\n";
     #print "\nPaging through $pages of $batch_count objects\n";
-    for (my $m =149; $m < $pages; $m++) {
+    for (my $m =19; $m < $pages; $m++) {
         #for (my $m = 21; $m < 26; $m++) {
         print "\nPage ". $m . "x$batch_count batch on " . scalar localtime;
         eval {
@@ -2802,7 +2796,7 @@ sub list_loaded_taxa
                         $taxonout = $taxonout -> {data};
                         for (my $i=0; $i < @{$taxonout}; $i++) {
                                 my $taxonData = $taxonout -> [$i] -> {data};#an UnspecifiedObject
-                        if( $taxonData->{domain} ne "Unknown" ) {
+                                #if( $taxonData->{domain} ne "Unknown" ) {
                                 $curr_taxon = {taxon => $taxonData, ws_ref => $wstaxonrefs -> [$i] -> {ref}};
                                 push(@{$output}, $curr_taxon);
                                 push(@{$solr_taxa}, $curr_taxon);
@@ -2811,10 +2805,10 @@ sub list_loaded_taxa
                                         my $curr = @{$output}-1;
                                         $msg .= Data::Dumper->Dump([$output->[$curr]])."\n";
                                 }
-                        }#if( $taxonData->{domain} ne "Unknown" )
+                                #}#if( $taxonData->{domain} ne "Unknown" )
                         }
                         #indexing in SOLR for every $batchCount of taxa
-                        #$self->index_taxa_in_solr({taxa=>$solr_taxa, solr_core => "taxonomy_ci"});
+                        $self->index_taxa_in_solr({taxa=>$solr_taxa, solr_core => "taxonomy_ci"});
                     }
             }
         }
@@ -3513,7 +3507,7 @@ sub update_loaded_genomes
 
     my $count = 0;
     my $gn_solr_core = "GenomeFeatures_prod";
-    my $tx_solr_core = "taxonomy_ci";
+    my $tx_solr_core = "taxonomy_prod";
     my $gn_source = "refseq";
     if($params->{phtozome} == 1) {
         $gn_source = "Phytozome";
@@ -3523,7 +3517,8 @@ sub update_loaded_genomes
     }
     my $ref_genomes = $self->list_reference_genomes({source => $gn_source, update_only => $params->{update_only}});
 
-    for (my $i=0; $i < @{ $ref_genomes }; $i++) {
+    #for (my $i=0; $i < @{ $ref_genomes }; $i++) {
+    for (my $i=13093; $i < @{ $ref_genomes }; $i++) {#11800
         print "\n***************Ref genome #". $i. "****************\n";
         my $gnm = $ref_genomes->[$i];
 
