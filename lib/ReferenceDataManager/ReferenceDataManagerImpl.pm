@@ -1253,6 +1253,7 @@ sub _indexGenomeFeatureData
                     my $ws_gnft = {
                           genome_feature_id => $ws_gn_data->{id} . "|feature:" . $ws_gn_features->[$ii]->{id},
                           object_id => "kb|ws_ref:". $ws_ref->{ref}. "|feature:" . $ws_gn_features->[$ii]->{id},
+                          object_type => $ws_gn_info->[2],
                           genome_id => $ws_gn_data->{id},
                           ws_ref => $ws_ref->{ref},
                           genome_source => $ws_gn_data->{source},
@@ -2771,7 +2772,7 @@ sub list_loaded_taxa
 
     #print "\nFound $maxid taxon objects.\n";
     #print "\nPaging through $pages of $batch_count objects\n";
-    for (my $m =19; $m < $pages; $m++) {
+    for (my $m =0; $m < $pages; $m++) {
         #for (my $m = 21; $m < 26; $m++) {
         print "\nPage ". $m . "x$batch_count batch on " . scalar localtime;
         eval {
