@@ -29,12 +29,12 @@ my $impl = new ReferenceDataManager::ReferenceDataManagerImpl();
 
 eval {
     #Altering workspace map
-    #$impl->{_workspace_map}->{refseq} = "ReferenceDataManager";
-    $impl->{_workspace_map}->{refseq} = "Phytozome_Genomes";
+    $impl->{_workspace_map}->{refseq} = "ReferenceDataManager";
+    #$impl->{_workspace_map}->{refseq} = "Phytozome_Genomes";
     #$impl->{_workspace_map}->{refseq} = "RefSeq_Genomes";
     #$impl->{_workspace_map}->{refseq} = "KBasePublicRichGenomesV5";
 
-=begin
+#=begin
     #Testing update_loaded_genomes function
     my $wsgnmret;
     eval {
@@ -51,7 +51,7 @@ eval {
         print Data::Dumper->Dump([$wsgnmret->[0]])."\n";
     }
     ok(defined($wsgnmret->[0]),"update_loaded_genomes command returned at least one record");
-=cut
+#=cut
     
 =begin passed tests
 
@@ -247,7 +247,7 @@ eval {
 #=end of test indexing genome features    
 =cut
 
-#=begin index taxa
+=begin index taxa
     #Testing list_loaded_taxa
     my $taxon_ret;
     eval {
@@ -269,7 +269,7 @@ eval {
         print Data::Dumper->Dump([$taxon_ret->[0]])."\n";
     }
     ok(defined($taxon_ret->[0]),"list_loaded_taxa command returned at least one taxon");
-#=cut
+=cut
 
 =begin
     #Testing index_taxa_in_solr

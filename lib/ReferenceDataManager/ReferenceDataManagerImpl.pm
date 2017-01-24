@@ -1185,7 +1185,7 @@ sub _indexGenomeFeatureData
             my $ws_gn_loc;
             my $ws_gn_save_date;
             my $numCDs = 0;
-            my $ws_gn_refseqcat;
+            # my $ws_gn_refseqcat;
 
             #fetch individual data item to assemble the genome_feature info for $solr_gnftData
             for (my $i=0; $i < @{$ws_gnout}; $i++) {
@@ -1195,11 +1195,41 @@ sub _indexGenomeFeatureData
                 $ws_gn_tax = $ws_gn_data->{taxonomy};
                 $ws_gn_tax =~s/ *; */;;/g;
                 $ws_gn_save_date = $ws_gn_info -> [3];
+                
                 $numCDs  = 0;
                 foreach my $feature (@{$ws_gn_features}) {
                     $numCDs++ if $feature->{type} = 'CDS';
                 }
 
+                ###1)---Build the genome solr object for the sake of the search UI/search service
+                my $ws_gnobj = {
+                          object_id => "kb|ws_ref:" . $ws_ref->{ref},
+                          object_name => "kb|g." . $ws_gn_data->{id}, ########
+                          object_type => $ws_gn_info->[2], ########refseq_category => $ws_gn_data->{type},
+                          ws_ref => $ws_ref->{ref},
+                          genome_id => $ws_gn_data->{id},
+                          genome_source_id => $ws_gn_info->[10]->{"Source ID"},
+                          genome_source => $ws_gn_data->{source},
+                          genetic_code => $ws_gn_data->{genetic_code},
+                          domain => $ws_gn_data->{domain},
+                          scientific_name => $ws_gn_data->{scientific_name},
+                          genome_dna_size => $ws_gn_info->[10]->{Size},
+                          num_contigs => $ws_gn_info->[10]->{"Number contigs"},#$ws_gn_data->{num_contigs},
+                          assembly_ref => $ws_gn_data->{assembly_ref},
+                          gc_content => $ws_gn_info->[10]->{"GC content"},
+                          complete => $ws_gn_data->{complete},
+                          taxonomy => $ws_gn_tax,
+                          taxonomy_ref => $ws_gn_data->{taxon_ref},
+                          workspace_name => $ws_gn_info->[7],
+                          num_cds => $numCDs,
+                          #gnmd5checksum => $ws_gn_info->[8],
+                          save_date => $ws_gn_save_date,            
+                };   
+                #push @{$solr_gnftData}, $ws_gnobj;
+                #push @{$gnft_batch}, $ws_gnobj;
+                ###---end Build the genome solr object---
+                
+                ###2)---Build the genome_feature solr object
                 for (my $ii=0; $ii < @{$ws_gn_features}; $ii++) {
                     if( defined($ws_gn_features->[$ii]->{aliases})) {
                         $ws_gn_nm = $ws_gn_features->[$ii]->{aliases}[0] unless $ws_gn_features->[$ii]->{aliases}[0]=~/^(NP_|WP_|YP_|GI|GeneID)/i;
@@ -1251,9 +1281,8 @@ sub _indexGenomeFeatureData
                     $ws_gn_onterms = $ws_gn_features->[$ii]->{ontology_terms};
 
                     my $ws_gnft = {
-                          genome_feature_id => $ws_gn_data->{id} . "|feature:" . $ws_gn_features->[$ii]->{id},
-                          object_id => "kb|ws_ref:". $ws_ref->{ref}. "|feature:" . $ws_gn_features->[$ii]->{id},
-                          object_type => $ws_gn_info->[2],
+                          #genome data (redundant)
+                          genome_source_id => $ws_gn_info->[10]->{"Source ID"},
                           genome_id => $ws_gn_data->{id},
                           ws_ref => $ws_ref->{ref},
                           genome_source => $ws_gn_data->{source},
@@ -1261,18 +1290,20 @@ sub _indexGenomeFeatureData
                           domain => $ws_gn_data->{domain},
                           scientific_name => $ws_gn_data->{scientific_name},
                           genome_dna_size => $ws_gn_info->[10]->{Size},
-                          num_contigs => $ws_gn_data->{num_contigs},
+                          num_contigs => $ws_gn_info->[10]->{"Number contigs"},#$ws_gn_data->{num_contigs},
                           assembly_ref => $ws_gn_data->{assembly_ref},
                           gc_content => $ws_gn_info->[10]->{"GC content"},
                           complete => $ws_gn_data->{complete},
-                          #gnmd5checksum => $ws_gn_info -> {chsum},
                           taxonomy => $ws_gn_tax,
                           taxonomy_ref => $ws_gn_data->{taxon_ref},
                           workspace_name => $ws_gn_info->[7],
                           num_cds => $numCDs,
-                          refseq_category => $ws_gn_data->{type},
                           save_date => $ws_gn_save_date,
                           #feature data
+                          genome_feature_id => $ws_gn_data->{id} . "|feature:" . $ws_gn_features->[$ii]->{id},
+                          object_id => "kb|ws_ref:". $ws_ref->{ref}. "|feature:" . $ws_gn_features->[$ii]->{id},
+                          object_name => $ws_gn_info->[1] . "|feature:" . $ws_gn_features->[$ii]->{id},
+                          object_type => $ws_gn_info->[2] . ".Feature",
                           feature_type => $ws_gn_features->[$ii]->{type},
                           feature_id => $ws_gn_features->[$ii]->{id},
                           functions => $ws_gn_funcs,
@@ -3542,7 +3573,7 @@ sub update_loaded_genomes
     my $ref_genomes = $self->list_reference_genomes({source => $gn_source, update_only => $params->{update_only}});
 
     #for (my $i=0; $i < @{ $ref_genomes }; $i++) {
-    for (my $i=13093; $i < @{ $ref_genomes }; $i++) {#11800
+    for (my $i=15000; $i < 18000; $i++) {#11800
         print "\n***************Ref genome #". $i. "****************\n";
         my $gnm = $ref_genomes->[$i];
 
@@ -3564,8 +3595,6 @@ sub update_loaded_genomes
                 # Current version already in KBase, check for annotation update
         }
     }
-
-    #$self->load_genomes( {genomes => $output, index_in_solr => 1} );
 
     if ($params->{create_report}) {
         $self->util_create_report({
