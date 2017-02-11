@@ -1961,25 +1961,36 @@ sub list_loaded_genomes
                     print "\nTotal genome object count=" . @{$wsoutput}. "\n";
                     my $ws_objinfo;
                     my $obj_src;
+                    my $curr_gn_info;
                     if( @{$wsoutput} > 0 ) {
                         for (my $j=0; $j < @{$wsoutput}; $j++) {
                             $ws_objinfo = $wsoutput->[$j];
-                            my $curr_gn = $self->_getGenomeInfo($ws_objinfo); 
+                            $curr_gn_info = $self->_getGenomeInfo($ws_objinfo); 
                             $obj_src = $ws_objinfo->[10]->{Source};
                             if( $obj_src && $i == 0 ) {#phytozome
                                 if( $obj_src =~ /phytozome*/) {#check the source to include phytozome genomes only
-                                    push @{$output}, $curr_gn; 
+                                    push @{$output}, $curr_gn_info; 
                                 }
                             }
                             elsif( $obj_src && $i == 1 ) {#refseq genomes (exclude 'plant')
                                 if( $obj_src =~ /refseq*/) {#check the source to exclude phytozome genomes
-                                    push @{$output}, $curr_gn; 
+                                    push @{$output}, $curr_gn_info;
+=begin
+##NOTE:The following line is needed only for the case if you want to index a large number (>100k) genome_features, 
+#because of the reality that there will be interruption of all sorts.
+                                    my $gn_solrCore = "GenomeFeatures_ci";
+                                    if($self->_exists($gn_solrCore, {genome_id=>$curr_gn_info->{name}})==0) {
+                                        print "Not in " . $gn_solrCore . ": " . $curr_gn_info->{id} . "--" . $curr_gn_info->{name} . "\n";
+                                        #indexing in SOLR for every $batchCount of genomes
+                                        $self->index_genomes_in_solr({solr_core => $gn_solrCore, genomes => [$curr_gn_info]});
+                                    }
+=cut 
                                 }
                             }
                             elsif( $obj_src && $i == 2 ) {#ensembl genomes #TODO
                                 if( $obj_src !~ /phytozome*/ && $obj_src !~ /refseq*/ ) {
                                     if( $ws_objinfo->[10]->{Domain} !~ /Plant/ && $ws_objinfo->[10]->{Domain} !~ /Bacteria/ ) {    
-                                    push @{$output}, $curr_gn; 
+                                    push @{$output}, $curr_gn_info; 
                                 }
                                 }
                             }
@@ -2422,8 +2433,10 @@ sub load_genomes
                 domain => $ncbigenome->{domain}
              };
 
+             my $gn_solrCore = "GenomeFeatures_ci";
              if ($params->{index_in_solr} == 1) {
                     $self->index_genomes_in_solr({
+                        solr_core => $gn_solrCore,             
                         genomes => [$genomeout]
                     });
              }
@@ -2875,7 +2888,6 @@ sub list_loaded_taxa
     }
     return($output);
 }
-
 
 
 
@@ -3378,7 +3390,7 @@ sub index_taxa_in_solr
     $params = $self->util_args($params,[],{
         taxa => {},
         create_report => 0,
-        solr_core => undef
+        solr_core => "taxonomy_ci" 
     });
 
     my $msg = "";
