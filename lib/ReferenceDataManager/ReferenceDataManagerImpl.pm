@@ -1929,7 +1929,7 @@ sub list_loaded_genomes
         if ($params->{$sources->[$i]} == 1) {
             my $wsinfo;
             my $wsoutput;
-            my $wsname = $self->util_workspace_names($sources->[2]);
+            my $wsname = $self->util_workspace_names($sources->[$i]);
             
             if(defined($self->util_ws_client())){
                 $wsinfo = $self->util_ws_client()->get_workspace_info({
@@ -3593,7 +3593,7 @@ sub update_loaded_genomes
                 #check if the taxon of the genome (named in KBase as $gnm->{tax_id} . "_taxon") is loaded in a KBase workspace
                 if( ($self->_checkTaxonStatus($gnm, $tx_solr_core))=~/inKBase/i ){
                     $count ++;
-                    print "A '". $gn_status . "' genome with taxon in KBase found, update_total=" . $count;
+                    print "A '" . $gn_status . "' genome with taxon in KBase found, update_total=" . $count;
                     $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
                     push(@{$output},$gnm);
                     if ($count < 10) {
