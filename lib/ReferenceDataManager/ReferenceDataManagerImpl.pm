@@ -302,7 +302,7 @@ sub _listGenomesInSolr {
 #
 sub _listTaxaInSolr {
     my ($self, $solrCore, $fields, $rowStart, $rowCount, $grp) = @_;
-    $solrCore = ($solrCore) ? $solrCore : "taxonomy_ci";
+    $solrCore = ($solrCore) ? $solrCore : "taxonomy_prod";
     my $start = ($rowStart) ? $rowStart : 0;
     my $count = ($rowCount) ? $rowCount : 10;
     $fields = ($fields) ? $fields : "*";
@@ -406,7 +406,7 @@ sub _buildQueryString_wildcard {
     }
     
     # Build the display parameter part                                             
-        my $paramFields = "";                                                                                                                                                                                            
+    my $paramFields = "";                                                                                                                                                                                            
     foreach my $key (keys %$searchParams) {
         $paramFields .= "$key=". URI::Escape::uri_escape($searchParams->{$key}) . "&";
     }
@@ -486,8 +486,8 @@ sub _searchSolr {
     }
     if($groupOption){
         my @solr_records = @{$solr_response->{response}->{grouped}->{$groupOption}->{groups}};
-        print "\n\nFound unique $groupOption groups of:" . scalar @solr_records . "\n";
-        print @solr_records[0]->{doclist}->{numFound} ."\n";
+        #print "\nFound unique $groupOption groups of:" . scalar @solr_records . "\n";
+        #print @solr_records[0]->{doclist}->{numFound} ."\n";
     }
     
     return $solr_response;
@@ -529,8 +529,8 @@ sub _searchSolr_wildcard {
     if($groupOption){
         my @solr_records = @{$solr_response->{response}->{grouped}->{$groupOption}->{groups}};
         if( scalar @solr_records > 0 ) {
-            print "\n\nFound unique $groupOption groups of:" . scalar @solr_records . "\n";
-            print @solr_records[0]->{doclist}->{numFound} ."\n";
+            #print "\nFound unique $groupOption groups of:" . scalar @solr_records . "with recourds of: ";
+            #print @solr_records[0]->{doclist}->{numFound} ."\n";
         }
     }
     
@@ -937,7 +937,6 @@ sub _exists
     my $queryString = $self->_buildQueryString($searchCriteria);
     my $url = $self->{_SOLR_URL}."/$solrCore/select?";
     $url = $url. $queryString;
-
     my $response = $self->_sendRequest($url, 'GET');
 
     my $status = $self->_parseResponse($response);
@@ -1033,7 +1032,7 @@ sub _checkTaxonStatus
             my $record = $solr_records->[$i];
             #print $solr_response->{response}->{response}->{numFound} ."\n";
 
-            if ($record->{taxonomy_id} eq $current_genome->{tax_id} && $record->{domain} ne "Unknown"){
+            if ($record->{taxonomy_id} eq $current_genome->{tax_id} && lc $record->{domain} ne "unknown"){
                 $status = "Taxon inKBase";
                 last;
             }
@@ -1073,13 +1072,11 @@ sub _checkGenomeStatus
     }
     else {
         my $solr_records = $solr_response->{response}->{grouped}->{$groupOption}->{groups};
-        #print "\n\nFound unique $groupOption groups of:" . scalar @{$solr_records} . "\n";
         for (my $i = 0; $i < @{$solr_records}; $i++ ) {
             my $record = $solr_records->[$i];
-            #print $record->{doclist}->{numFound} ."\n";
-            my $genome_id = $record->{genome_id};
+            my $genome_id = uc $record->{genome_id};
 
-            if ($genome_id eq $current_genome->{accession}){
+            if ($genome_id eq uc $current_genome->{accession}){
                 $status = "Existing genome: current";
                 $current_genome->{genome_id} = $genome_id;
                 last;
@@ -1225,8 +1222,8 @@ sub _indexGenomeFeatureData
                           #gnmd5checksum => $ws_gn_info->[8],
                           save_date => $ws_gn_save_date,            
                 };   
-                #push @{$solr_gnftData}, $ws_gnobj;
-                #push @{$gnft_batch}, $ws_gnobj;
+                push @{$solr_gnftData}, $ws_gnobj;
+                push @{$gnft_batch}, $ws_gnobj;
                 ###---end Build the genome solr object---
                 
                 ###2)---Build the genome_feature solr object
@@ -1386,6 +1383,7 @@ sub _getTaxon
         inherited_MGC_flag => ($taxonData -> {inherited_MGC_flag}) ? ($taxonData -> {inherited_MGC_flag}) : "0",
         GenBank_hidden_flag => ($taxonData -> {GenBank_hidden_flag}) ? ($taxonData -> {GenBank_hidden_flag}) : "0",
         hidden_subtree_flag => ($taxonData -> {hidden_subtree_flag}) ? ($taxonData -> {hidden_subtree_flag}) : "0",
+        deleted => ($taxonData -> {deleted}) ? ($taxonData -> {deleted}) : "0",
         comments => $taxonData -> {comments}
     };
     return $current_taxon;
@@ -1926,13 +1924,13 @@ sub list_loaded_genomes
     my $msg = "";
     my $output = [];
     my $batch_count = 1000;
-    my $obj_type = "KBaseGenomes.Genome-12.3";#could be "KBaseGenomes.Genome-12.2","KBaseSearch.Genome-5.0","KBaseGenomeAnnotations.Assembly-4.1","KBaseGenomeAnnotations.GenomeAnnotation-3.1","KBaseGenomes.ContigSet-3.0",etc.  
-    my $sources = ["ensembl","phytozome","refseq"];
+    my $obj_type = "KBaseGenomes.Genome-";
+    my $sources = ["phytozome","refseq","ensembl"];
     for (my $i=0; $i < @{$sources}; $i++) {
         if ($params->{$sources->[$i]} == 1) {
             my $wsinfo;
             my $wsoutput;
-            my $wsname = $self->util_workspace_names($sources->[2]);
+            my $wsname = $self->util_workspace_names($sources->[$i]);
             
             if(defined($self->util_ws_client())){
                 $wsinfo = $self->util_ws_client()->get_workspace_info({
@@ -1964,24 +1962,36 @@ sub list_loaded_genomes
                     print "\nTotal genome object count=" . @{$wsoutput}. "\n";
                     my $ws_objinfo;
                     my $obj_src;
+                    my $curr_gn_info;
                     if( @{$wsoutput} > 0 ) {
                         for (my $j=0; $j < @{$wsoutput}; $j++) {
                             $ws_objinfo = $wsoutput->[$j];
+                            $curr_gn_info = $self->_getGenomeInfo($ws_objinfo); 
                             $obj_src = $ws_objinfo->[10]->{Source};
-                            if( $obj_src && $i == 1 ) {#phytozome
+                            if( $obj_src && $i == 0 ) {#phytozome
                                 if( $obj_src =~ /phytozome*/) {#check the source to include phytozome genomes only
-                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                    push @{$output}, $curr_gn_info; 
                                 }
                             }
-                            elsif( $obj_src && $i == 2 ) {#refseq genomes (exclude 'plant')
+                            elsif( $obj_src && $i == 1 ) {#refseq genomes (exclude 'plant')
                                 if( $obj_src =~ /refseq*/) {#check the source to exclude phytozome genomes
-                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo); 
+                                    push @{$output}, $curr_gn_info;
+=begin
+##NOTE:The following line is needed only for the case if you want to index a large number (>100k) genome_features, 
+#because of the reality that there will be interruption of all sorts.
+                                    my $gn_solrCore = "GenomeFeatures_prod";
+                                    if($self->_exists($gn_solrCore, {genome_id=>$curr_gn_info->{name}})==0) {
+                                        print "Not in " . $gn_solrCore . ": " . $curr_gn_info->{id} . "--" . $curr_gn_info->{name} . "\n";
+                                        #indexing in SOLR for every $batchCount of genomes
+                                        $self->index_genomes_in_solr({solr_core => $gn_solrCore, genomes => [$curr_gn_info]});
+                                    }
+=cut 
                                 }
                             }
-                            elsif( $obj_src && $i == 0 ) {#ensembl genomes #TODO
+                            elsif( $obj_src && $i == 2 ) {#ensembl genomes #TODO
                                 if( $obj_src !~ /phytozome*/ && $obj_src !~ /refseq*/ ) {
                                     if( $ws_objinfo->[10]->{Domain} !~ /Plant/ && $ws_objinfo->[10]->{Domain} !~ /Bacteria/ ) {    
-                                    push @{$output}, $self->_getGenomeInfo($ws_objinfo);
+                                    push @{$output}, $curr_gn_info; 
                                 }
                                 }
                             }
@@ -2355,8 +2365,6 @@ sub load_genomes
         $ncbigenomes = $params->{genomes};
     }
 
-    #for (my $i=7117; $i < @{$ncbigenomes}; $i++) {
-        #for (my $i=1357; $i <= 1732; $i++) {#1357-1732 for re-running the "ServerError" genomes into ReferenceDataManager2 workspace, another batch is 4874-4879
     for (my $i=0; $i < @{$ncbigenomes}; $i++) {
         my $ncbigenome = $ncbigenomes->[$i];
         print "\n******************Genome#: $i ********************";
@@ -2426,8 +2434,10 @@ sub load_genomes
                 domain => $ncbigenome->{domain}
              };
 
+             my $gn_solrCore = "GenomeFeatures_prod";
              if ($params->{index_in_solr} == 1) {
                     $self->index_genomes_in_solr({
+                        solr_core => $gn_solrCore,             
                         genomes => [$genomeout]
                     });
              }
@@ -2905,7 +2915,6 @@ sub list_loaded_taxa
 
 
 
-
 =head2 list_solr_taxa
 
   $output = $obj->list_solr_taxa($params)
@@ -3015,7 +3024,7 @@ sub list_solr_taxa
     }
     $params = $self->util_initialize_call($params,$ctx);
     $params = $self->util_args($params,[],{
-        solr_core => "taxonomy_ci",
+        solr_core => "taxonomy_prod",
         row_start => 0,
         row_count => 100,
         group_option => "",
@@ -3405,7 +3414,7 @@ sub index_taxa_in_solr
     $params = $self->util_args($params,[],{
         taxa => {},
         create_report => 0,
-        solr_core => undef
+        solr_core => "taxonomy_prod" 
     });
 
     my $msg = "";
@@ -3586,7 +3595,7 @@ sub update_loaded_genomes
 
     my $count = 0;
     my $gn_solr_core = "GenomeFeatures_prod";
-    my $tx_solr_core = "taxonomy_ci";
+    my $tx_solr_core = "taxonomy_prod";
     my $gn_source = "refseq";
     if($params->{phtozome} == 1) {
         $gn_source = "Phytozome";
@@ -3597,7 +3606,7 @@ sub update_loaded_genomes
     my $ref_genomes = $self->list_reference_genomes({source => $gn_source, update_only => $params->{update_only}});
 
     #for (my $i=0; $i < @{ $ref_genomes }; $i++) {
-    for (my $i=15000; $i < 18000; $i++) {#11800
+    for (my $i=11800; $i < @{ $ref_genomes }; $i++) {#11800
         print "\n***************Ref genome #". $i. "****************\n";
         my $gnm = $ref_genomes->[$i];
 
@@ -3608,7 +3617,7 @@ sub update_loaded_genomes
                 #check if the taxon of the genome (named in KBase as $gnm->{tax_id} . "_taxon") is loaded in a KBase workspace
                 if( ($self->_checkTaxonStatus($gnm, $tx_solr_core))=~/inKBase/i ){
                     $count ++;
-                    print "A new genome with taxon in KBase found, total=" . $count;
+                    print "A '" . $gn_status . "' genome with taxon in KBase found, update_total=" . $count;
                     $self->load_genomes( {genomes => [$gnm], index_in_solr => 1} ); 
                     push(@{$output},$gnm);
                     if ($count < 10) {

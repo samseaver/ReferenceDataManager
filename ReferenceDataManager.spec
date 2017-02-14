@@ -155,8 +155,7 @@ module ReferenceDataManager {
     } LoadGenomesParams;
     
     /*  
-        Structure of a single KBase genome in the list returned by the load_genomes function
-            
+        Structure of a single KBase genome in the list returned by the load_genomes and update_loaded_genomes functions
     */  
     typedef structure {
         string ref;
